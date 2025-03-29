@@ -1,0 +1,428 @@
+definitions:
+  schemas.AddAnimeToListRequest:
+    properties:
+      id:
+        type: string
+    type: object
+  schemas.AddAnimeToListResponse:
+    properties:
+      media:
+        items:
+          properties:
+            description:
+              type: string
+            episodes:
+              type: integer
+            genres:
+              items:
+                type: string
+              type: array
+            nextAiringEpisode:
+              properties:
+                airingAt:
+                  type: string
+                episode:
+                  type: string
+              type: object
+            title:
+              properties:
+                english:
+                  type: string
+                romaji:
+                  type: string
+              type: object
+          type: object
+        type: array
+    type: object
+  schemas.AddIndexerRequest:
+    properties:
+      id:
+        type: string
+    type: object
+  schemas.AnimeGetInfoByIdRequest:
+    properties:
+      id:
+        type: string
+    type: object
+  schemas.AnimeGetInfoByIdResponse:
+    properties:
+      data:
+        properties:
+          page:
+            properties:
+              media:
+                items:
+                  properties:
+                    description:
+                      type: string
+                    episodes:
+                      type: integer
+                    genres:
+                      items:
+                        type: string
+                      type: array
+                    nextAiringEpisode:
+                      properties:
+                        airingAt: {}
+                        episode: {}
+                      type: object
+                    title:
+                      properties:
+                        english:
+                          type: string
+                        romaji:
+                          type: string
+                      type: object
+                  type: object
+                type: array
+            type: object
+        type: object
+    type: object
+  schemas.AnimeTitleIdByNameRequest:
+    properties:
+      name:
+        type: string
+    type: object
+  schemas.AnimeTitleIdByNameResponse:
+    properties:
+      data:
+        properties:
+          Page:
+            properties:
+              media:
+                items:
+                  properties:
+                    id:
+                      type: integer
+                    title:
+                      properties:
+                        english:
+                          type: string
+                        romaji:
+                          type: string
+                      type: object
+                  type: object
+                type: array
+            type: object
+        type: object
+    type: object
+  schemas.DefaultResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+    type: object
+  schemas.DeleteAnimeRequest:
+    properties:
+      id:
+        type: string
+    type: object
+  schemas.ErrorResponse:
+    properties:
+      errorCode:
+        type: string
+      message:
+        type: string
+    type: object
+  schemas.IndexerResponse:
+    properties:
+      definitionName:
+        type: string
+      enable:
+        type: boolean
+      id:
+        type: integer
+      indexerUrls:
+        items:
+          type: string
+        type: array
+      language:
+        type: string
+      name:
+        type: string
+    type: object
+  schemas.RemoveIndexerRequest:
+    properties:
+      id:
+        type: string
+    type: object
+info:
+  contact:
+    email: julianosgreg@gmail.com
+    name: Jusoares
+  description: This is a sample server celler server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Gongon API
+  version: "0.1"
+paths:
+  /anilist:
+    post:
+      consumes:
+      - application/json
+      description: Search anime by name
+      parameters:
+      - description: Request Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.AnimeTitleIdByNameRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.AnimeTitleIdByNameResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Find Anime by name
+      tags:
+      - Anilist
+  /anilist/get-info:
+    post:
+      consumes:
+      - application/json
+      description: Search anime info by id
+      parameters:
+      - description: Request Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.AnimeGetInfoByIdRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.AnimeGetInfoByIdResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Get Anime info By id
+      tags:
+      - Anilist
+  /database/anime:
+    delete:
+      description: Delete Anime from List
+      parameters:
+      - description: Request Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.DeleteAnimeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Delete Anime
+      tags:
+      - Database/Anime
+    get:
+      description: List all added animes
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: List Animes
+      tags:
+      - Database/Anime
+    post:
+      consumes:
+      - application/json
+      description: Add anime to list
+      parameters:
+      - description: Request Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.AddAnimeToListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.AddAnimeToListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Add Anime
+      tags:
+      - Database/Anime
+  /database/indexer:
+    get:
+      description: List all added indexers
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: List Added Indexers
+      tags:
+      - Database/Indexer
+  /database/indexer/{id}:
+    get:
+      description: Get indexers
+      parameters:
+      - description: Indexer identification
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Get Indexers
+      tags:
+      - Database/Indexer
+  /prowlarr/indexers:
+    delete:
+      description: Delete Indexer from db
+      parameters:
+      - description: Request Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.RemoveIndexerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Delete Indexer
+      tags:
+      - Prowlarr
+    get:
+      consumes:
+      - application/json
+      description: Get Prowlarr indexers
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/schemas.IndexerResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Get Indexers
+      tags:
+      - Prowlarr
+    post:
+      consumes:
+      - application/json
+      description: Add prowlarr indexer
+      parameters:
+      - description: Request Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.AddIndexerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/schemas.AddIndexerRequest'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Add Indexer
+      tags:
+      - Prowlarr
+swagger: "2.0"
