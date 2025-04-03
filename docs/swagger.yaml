@@ -1,71 +1,48 @@
+basePath: /api/v1
 definitions:
-  schemas.AddAnimeToListRequest:
+  dtos.AnimeDto:
     properties:
-      id:
+      bannerImage:
         type: string
-    type: object
-  schemas.AddAnimeToListResponse:
-    properties:
-      media:
-        items:
-          properties:
-            description:
-              type: string
-            episodes:
-              type: integer
-            genres:
-              items:
-                type: string
-              type: array
-            nextAiringEpisode:
-              properties:
-                airingAt:
-                  type: string
-                episode:
-                  type: string
-              type: object
-            title:
-              properties:
-                english:
-                  type: string
-                romaji:
-                  type: string
-              type: object
-          type: object
-        type: array
-    type: object
-  schemas.AddIndexerRequest:
-    properties:
-      id:
-        type: string
-    type: object
-  schemas.AnimeGetInfoByIdRequest:
-    properties:
-      id:
-        type: string
-    type: object
-  schemas.AnimeGetInfoByIdResponse:
-    properties:
-      data:
+      coverImage:
         properties:
-          page:
-            properties:
-              media:
-                items:
+          extraLarge:
+            type: string
+        type: object
+      description:
+        type: string
+      episodes:
+        type: integer
+      genres:
+        items:
+          type: string
+        type: array
+      id:
+        type: integer
+      nextAiringEpisode:
+        properties:
+          airingAt:
+            type: integer
+          episode:
+            type: integer
+        type: object
+      relations:
+        properties:
+          edges:
+            items:
+              properties:
+                id:
+                  type: integer
+                node:
                   properties:
-                    description:
-                      type: string
                     episodes:
                       type: integer
-                    genres:
-                      items:
-                        type: string
-                      type: array
-                    nextAiringEpisode:
-                      properties:
-                        airingAt: {}
-                        episode: {}
-                      type: object
+                    format:
+                      type: string
+                    id:
+                      type: integer
+                    status:
+                      type: string
                     title:
                       properties:
                         english:
@@ -74,16 +51,37 @@ definitions:
                           type: string
                       type: object
                   type: object
-                type: array
-            type: object
+                relationType:
+                  type: string
+              type: object
+            type: array
+        type: object
+      status:
+        type: string
+      title:
+        properties:
+          english:
+            type: string
+          romaji:
+            type: string
         type: object
     type: object
-  schemas.AnimeTitleIdByNameRequest:
+  schema.AddNewTorrentRequest:
+    properties:
+      magneticUrl:
+        type: string
+    type: object
+  schema.AnimeGetInfoByIdRequest:
+    properties:
+      id:
+        type: integer
+    type: object
+  schema.AnimeTitleIdByNameRequest:
     properties:
       name:
         type: string
     type: object
-  schemas.AnimeTitleIdByNameResponse:
+  schema.AnimeTitleIdByNameResponse:
     properties:
       data:
         properties:
@@ -106,25 +104,43 @@ definitions:
             type: object
         type: object
     type: object
-  schemas.DefaultResponse:
+  schema.CheckTorrentRequest:
     properties:
-      data: {}
-      message:
+      filter:
         type: string
     type: object
-  schemas.DeleteAnimeRequest:
+  schema.CheckTorrentResponse:
     properties:
-      id:
+      completed:
+        type: integer
+      completedon:
+        type: integer
+      contentpath:
         type: string
+      dlspeed:
+        type: integer
+      eta:
+        type: integer
+      hash:
+        type: string
+      name:
+        type: string
+      num_leechs:
+        type: integer
+      num_seeds:
+        type: integer
+      progress:
+        type: number
+      save_path:
+        type: string
+      state:
+        type: string
+      time_active:
+        type: integer
+      upspeed:
+        type: integer
     type: object
-  schemas.ErrorResponse:
-    properties:
-      errorCode:
-        type: string
-      message:
-        type: string
-    type: object
-  schemas.IndexerResponse:
+  schema.IndexerResponse:
     properties:
       definitionName:
         type: string
@@ -141,20 +157,73 @@ definitions:
       name:
         type: string
     type: object
-  schemas.RemoveIndexerRequest:
+  schema.SearchRequest:
+    properties:
+      query:
+        type: string
+    type: object
+  schema.SearchResponse:
+    properties:
+      age:
+        type: number
+      ageHours:
+        type: number
+      ageMinutes:
+        type: number
+      fileName:
+        type: string
+      guid:
+        type: string
+      indexer:
+        type: string
+      indexerId:
+        type: integer
+      infoHash:
+        type: string
+      infoUrl:
+        type: string
+      leechers:
+        type: integer
+      magnetUrl:
+        type: string
+      protocol:
+        type: string
+      publishDate:
+        type: string
+      seeders:
+        type: integer
+      size:
+        type: integer
+      title:
+        type: string
+    type: object
+  schemas.DefaultResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+    type: object
+  schemas.ErrorResponse:
+    properties:
+      errorCode:
+        type: string
+      message:
+        type: string
+    type: object
+  schemas.IdRequest:
     properties:
       id:
-        type: string
+        type: integer
     type: object
 info:
   contact:
     email: julianosgreg@gmail.com
     name: Jusoares
-  description: This is a sample server celler server.
+  description: Anime download manager API
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
-  title: Gongon API
+  title: Gongon
   version: "0.1"
 paths:
   /anilist:
@@ -168,14 +237,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/schemas.AnimeTitleIdByNameRequest'
+          $ref: '#/definitions/schema.AnimeTitleIdByNameRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/schemas.AnimeTitleIdByNameResponse'
+            $ref: '#/definitions/schema.AnimeTitleIdByNameResponse'
         "400":
           description: Bad Request
           schema:
@@ -198,14 +267,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/schemas.AnimeGetInfoByIdRequest'
+          $ref: '#/definitions/schema.AnimeGetInfoByIdRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/schemas.AnimeGetInfoByIdResponse'
+            $ref: '#/definitions/dtos.AnimeDto'
         "400":
           description: Bad Request
           schema:
@@ -226,7 +295,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/schemas.DeleteAnimeRequest'
+          $ref: '#/definitions/schemas.IdRequest'
       produces:
       - application/json
       responses:
@@ -246,7 +315,7 @@ paths:
       tags:
       - Database/Anime
     get:
-      description: List all added animes
+      description: List all animes
       produces:
       - application/json
       responses:
@@ -275,14 +344,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/schemas.AddAnimeToListRequest'
+          $ref: '#/definitions/schemas.IdRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/schemas.AddAnimeToListResponse'
+            $ref: '#/definitions/schemas.DefaultResponse'
         "400":
           description: Bad Request
           schema:
@@ -295,6 +364,33 @@ paths:
       tags:
       - Database/Anime
   /database/indexer:
+    delete:
+      description: Delete Indexer from db
+      parameters:
+      - description: Request Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.IdRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Delete Indexer
+      tags:
+      - Database/Indexer
     get:
       description: List all added indexers
       produces:
@@ -312,12 +408,41 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/schemas.ErrorResponse'
-      summary: List Added Indexers
+      summary: List Indexers
+      tags:
+      - Database/Indexer
+    post:
+      consumes:
+      - application/json
+      description: Add Indexer to db
+      parameters:
+      - description: Request Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.IdRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Add Indexer
       tags:
       - Database/Indexer
   /database/indexer/{id}:
     get:
-      description: Get indexers
+      description: Get indexer
       parameters:
       - description: Indexer identification
         in: path
@@ -339,41 +464,14 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/schemas.ErrorResponse'
-      summary: Get Indexers
+      summary: Get Indexer
       tags:
       - Database/Indexer
-  /prowlarr/indexers:
-    delete:
-      description: Delete Indexer from db
-      parameters:
-      - description: Request Body
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schemas.RemoveIndexerRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/schemas.DefaultResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/schemas.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/schemas.ErrorResponse'
-      summary: Delete Indexer
-      tags:
-      - Prowlarr
+  /prowlarr/indexer:
     get:
       consumes:
       - application/json
-      description: Get Prowlarr indexers
+      description: Get All Prowlarr indexers
       produces:
       - application/json
       responses:
@@ -381,7 +479,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/schemas.IndexerResponse'
+              $ref: '#/definitions/schema.IndexerResponse'
             type: array
         "400":
           description: Bad Request
@@ -391,20 +489,19 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/schemas.ErrorResponse'
-      summary: Get Indexers
+      summary: Get All Indexer
       tags:
-      - Prowlarr
+      - Prowlarr/Indexer
+  /prowlarr/search:
     post:
-      consumes:
-      - application/json
-      description: Add prowlarr indexer
+      description: Search animes on prowlarr indexers
       parameters:
       - description: Request Body
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/schemas.AddIndexerRequest'
+          $ref: '#/definitions/schema.SearchRequest'
       produces:
       - application/json
       responses:
@@ -412,7 +509,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/schemas.AddIndexerRequest'
+              $ref: '#/definitions/schema.SearchResponse'
             type: array
         "400":
           description: Bad Request
@@ -422,7 +519,67 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/schemas.ErrorResponse'
-      summary: Add Indexer
+      summary: Search Animes
       tags:
-      - Prowlarr
+      - Prowlarr/Search
+  /qbittorrent/add:
+    post:
+      consumes:
+      - application/json
+      description: Add New Torrent
+      parameters:
+      - description: Request Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.AddNewTorrentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schema.AddNewTorrentRequest'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Add Torrent
+      tags:
+      - QBittorrent
+  /qbittorrent/info:
+    get:
+      consumes:
+      - application/json
+      description: Check torrent info
+      parameters:
+      - description: Request Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.CheckTorrentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schema.CheckTorrentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Check Torrent info
+      tags:
+      - QBittorrent
 swagger: "2.0"

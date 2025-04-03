@@ -1,8 +1,9 @@
 package config
 
 import (
-	"gorgon/pkg/schemas"
 	"os"
+
+	"gorgon/internal/db/model"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -27,9 +28,14 @@ func InitializeDb() (*gorm.DB, error) {
 	}
 
 	err = db.AutoMigrate(
-		&schemas.Anime{},
-		&schemas.Title{},
-		&schemas.Indexer{},
+		&model.Anime{},
+		&model.Episode{},
+		&model.Title{},
+		&model.Season{},
+		&model.Related{},
+		&model.RelationWrapper{},
+
+		&model.Indexer{},
 	)
 	if err != nil {
 		return nil, err

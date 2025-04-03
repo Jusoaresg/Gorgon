@@ -1,15 +1,17 @@
 package config
 
 import (
+	"log/slog"
+
 	"gorm.io/gorm"
 )
 
 var (
-	ConfigPath      string = "assets/config.json"
-	Port            string = "8080"
-	baseApiPath     string
-	animeIdDataPath string = "assets/anime-titles.dat.gz"
-	db              *gorm.DB
+	ConfigPath  string = "assets/config.json"
+	Port        string = "8080"
+	baseApiPath string
+	db          *gorm.DB
+	logger      *slog.Logger
 )
 
 func Init() error {
@@ -25,10 +27,10 @@ func Init() error {
 	return nil
 }
 
-func GetSQLite() *gorm.DB {
-	return db
+func GetLogger() *slog.Logger {
+	return NewLogger()
 }
 
-func GetAnimeIdDataPath() string {
-	return animeIdDataPath
+func GetSQLite() *gorm.DB {
+	return db
 }

@@ -4,63 +4,198 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 )
 
 type APIService struct {
 	Url    string
 	Client *http.Client
+	Logger *slog.Logger
 }
 
-func NewAPIService(url string) (a *APIService) {
+func NewAPIService(url string, logger *slog.Logger) (a *APIService) {
 	return &APIService{
 		Url: url,
 		Client: &http.Client{
 			Timeout: 10 * time.Second,
 		},
+		Logger: logger,
 	}
 }
 
-func (a *APIService) Get(endpoint string, response interface{}) error {
+func (a *APIService) Get(endpoint string, response interface{}, headersInfo ...map[string]string) error {
 	url := fmt.Sprintf("%s%s", a.Url, endpoint)
 
 	resp, err := a.Client.Get(url)
 	if err != nil {
+		a.Logger.Error("GET request failed",
+			slog.String("url", url),
+			slog.String("error", err.Error()),
+		)
 		return fmt.Errorf("Error while get request: %w", err)
 	}
 	defer resp.Body.Close()
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		a.Logger.Error("Error reading GET response body",
+			slog.String("url", url),
+			slog.Int("status", resp.StatusCode),
+			slog.String("error", err.Error()),
+		)
+		return fmt.Errorf("Error reading response body: %w", err)
+	}
+
+	a.Logger.Debug("GET response",
+		slog.String("url", url),
+		slog.Int("status", resp.StatusCode),
+		slog.String("body", string(body)),
+	)
+
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		a.Logger.Error("Error decoding GET response body",
+			slog.String("url", url),
+			slog.Int("status", resp.StatusCode),
+			slog.String("error", err.Error()),
+		)
+		return fmt.Errorf("Error while decoding response body: %w", err)
+	}
+
+	a.Logger.Info("GET request successful",
+		slog.String("url", url),
+		slog.Int("status", resp.StatusCode),
+	)
+
+	return nil
+}
+
+func (a *APIService) GetWithHeaders(endpoint string, response interface{}, headers map[string]string) error {
+	url := fmt.Sprintf("%s%s", a.Url, endpoint)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return fmt.Errorf("Error while creating GET request: %w", err)
+	}
+
+	// Adiciona os cabeçalhos à requisição
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+
+	resp, err := a.Client.Do(req)
+	if err != nil {
+		return fmt.Errorf("Error while making GET request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Lê e imprime a resposta para depuração
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("Error reading response body: %w", err)
+	}
+
+	fmt.Println("Response Body:", string(body))
+
+	if len(body) == 0 {
+		return fmt.Errorf("Empty response body")
+	}
+
+	// Tenta decodificar a resposta JSON
+	if err := json.Unmarshal(body, &response); err != nil {
 		return fmt.Errorf("Error while decoding response body: %w", err)
 	}
 
 	return nil
 }
 
-func (a *APIService) Post(endpoint string, requestData interface{}, response interface{}) error {
+func (a *APIService) Post(endpoint string, requestData interface{}, response interface{}, headersInfo ...map[string]string) (*http.Response, error) {
 	url := fmt.Sprintf("%s%s", a.Url, endpoint)
 
-	jsonData, err := json.Marshal(requestData)
-	if err != nil {
-		return fmt.Errorf("Error while marshaling request data: %w", err)
+	var reqBody io.Reader
+	var requestBodyBytes []byte
+
+	switch v := requestData.(type) {
+	case string:
+		reqBody = strings.NewReader(v)
+	case []byte:
+		reqBody = bytes.NewBuffer(v)
+	default:
+		jsonData, err := json.Marshal(requestData)
+		if err != nil {
+			a.Logger.Error("Error marshaling POST request data",
+				slog.String("url", url),
+				slog.String("error", err.Error()),
+			)
+			return nil, fmt.Errorf("error while marshaling request data: %w", err)
+		}
+		reqBody = bytes.NewBuffer(jsonData)
+		requestBodyBytes = jsonData
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", url, reqBody)
 	if err != nil {
-		return fmt.Errorf("Error while making POST request: %w", err)
+		a.Logger.Error("Error creating POST request",
+			slog.String("url", url),
+			slog.String("error", err.Error()),
+		)
+		return nil, fmt.Errorf("Error while making POST request: %w", err)
 	}
+
 	req.Header.Set("Content-Type", "application/json")
+
+	if len(headersInfo) > 0 {
+		for _, headers := range headersInfo {
+			for key, value := range headers {
+				req.Header.Set(key, value)
+			}
+		}
+	}
 
 	resp, err := a.Client.Do(req)
 	if err != nil {
-		return fmt.Errorf("Error while making POST request: %w", err)
+		a.Logger.Error("POST request failed",
+			slog.String("url", url),
+			slog.String("error", err.Error()),
+		)
+		return nil, fmt.Errorf("Error while making POST request: %w", err)
 	}
 	defer resp.Body.Close()
 
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return fmt.Errorf("Error while decoding response body: %w", err)
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		a.Logger.Error("Error reading POST response body",
+			slog.String("url", url),
+			slog.Int("status", resp.StatusCode),
+			slog.String("error", err.Error()),
+		)
+		return nil, fmt.Errorf("error while reading response body: %w", err)
+	}
+	a.Logger.Debug("POST response",
+		slog.String("url", url),
+		slog.Int("status", resp.StatusCode),
+		slog.String("request_body", string(requestBodyBytes)),
+		slog.String("response_body", string(bodyBytes)),
+	)
+
+	if response != nil {
+		if err := json.Unmarshal(bodyBytes, &response); err != nil {
+			a.Logger.Error("Error decoding POST response body",
+				slog.String("url", url),
+				slog.Int("status", resp.StatusCode),
+				slog.String("error", err.Error()),
+			)
+			return nil, fmt.Errorf("Error while decoding response body: %w", err)
+		}
 	}
 
-	return nil
+	a.Logger.Info("POST request successful",
+		slog.String("url", url),
+		slog.Int("status", resp.StatusCode),
+	)
+
+	return resp, nil
 }

@@ -42,7 +42,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/schemas.AnimeTitleIdByNameRequest"
+                            "$ref": "#/definitions/schema.AnimeTitleIdByNameRequest"
                         }
                     }
                 ],
@@ -50,7 +50,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/schemas.AnimeTitleIdByNameResponse"
+                            "$ref": "#/definitions/schema.AnimeTitleIdByNameResponse"
                         }
                     },
                     "400": {
@@ -88,7 +88,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/schemas.AnimeGetInfoByIdRequest"
+                            "$ref": "#/definitions/schema.AnimeGetInfoByIdRequest"
                         }
                     }
                 ],
@@ -96,7 +96,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/schemas.AnimeGetInfoByIdResponse"
+                            "$ref": "#/definitions/dtos.AnimeDto"
                         }
                     },
                     "400": {
@@ -116,7 +116,7 @@ const docTemplate = `{
         },
         "/database/anime": {
             "get": {
-                "description": "List all added animes",
+                "description": "List all animes",
                 "produces": [
                     "application/json"
                 ],
@@ -164,7 +164,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/schemas.AddAnimeToListRequest"
+                            "$ref": "#/definitions/schemas.IdRequest"
                         }
                     }
                 ],
@@ -172,7 +172,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/schemas.AddAnimeToListResponse"
+                            "$ref": "#/definitions/schemas.DefaultResponse"
                         }
                     },
                     "400": {
@@ -205,7 +205,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/schemas.DeleteAnimeRequest"
+                            "$ref": "#/definitions/schemas.IdRequest"
                         }
                     }
                 ],
@@ -240,7 +240,92 @@ const docTemplate = `{
                 "tags": [
                     "Database/Indexer"
                 ],
-                "summary": "List Added Indexers",
+                "summary": "List Indexers",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Add Indexer to db",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Database/Indexer"
+                ],
+                "summary": "Add Indexer",
+                "parameters": [
+                    {
+                        "description": "Request Body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.IdRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete Indexer from db",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Database/Indexer"
+                ],
+                "summary": "Delete Indexer",
+                "parameters": [
+                    {
+                        "description": "Request Body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.IdRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -265,14 +350,14 @@ const docTemplate = `{
         },
         "/database/indexer/{id}": {
             "get": {
-                "description": "Get indexers",
+                "description": "Get indexer",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Database/Indexer"
                 ],
-                "summary": "Get Indexers",
+                "summary": "Get Indexer",
                 "parameters": [
                     {
                         "type": "string",
@@ -304,9 +389,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/prowlarr/indexers": {
+        "/prowlarr/indexer": {
             "get": {
-                "description": "Get Prowlarr indexers",
+                "description": "Get All Prowlarr indexers",
                 "consumes": [
                     "application/json"
                 ],
@@ -314,16 +399,16 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Prowlarr"
+                    "Prowlarr/Indexer"
                 ],
-                "summary": "Get Indexers",
+                "summary": "Get All Indexer",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/schemas.IndexerResponse"
+                                "$ref": "#/definitions/schema.IndexerResponse"
                             }
                         }
                     },
@@ -340,19 +425,18 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
+            }
+        },
+        "/prowlarr/search": {
             "post": {
-                "description": "Add prowlarr indexer",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "Search animes on prowlarr indexers",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Prowlarr"
+                    "Prowlarr/Search"
                 ],
-                "summary": "Add Indexer",
+                "summary": "Search Animes",
                 "parameters": [
                     {
                         "description": "Request Body",
@@ -360,7 +444,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/schemas.AddIndexerRequest"
+                            "$ref": "#/definitions/schema.SearchRequest"
                         }
                     }
                 ],
@@ -370,7 +454,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/schemas.AddIndexerRequest"
+                                "$ref": "#/definitions/schema.SearchResponse"
                             }
                         }
                     },
@@ -387,16 +471,21 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "delete": {
-                "description": "Delete Indexer from db",
+            }
+        },
+        "/qbittorrent/add": {
+            "post": {
+                "description": "Add New Torrent",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Prowlarr"
+                    "QBittorrent"
                 ],
-                "summary": "Delete Indexer",
+                "summary": "Add Torrent",
                 "parameters": [
                     {
                         "description": "Request Body",
@@ -404,7 +493,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/schemas.RemoveIndexerRequest"
+                            "$ref": "#/definitions/schema.AddNewTorrentRequest"
                         }
                     }
                 ],
@@ -412,7 +501,53 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/schemas.DefaultResponse"
+                            "$ref": "#/definitions/schema.AddNewTorrentRequest"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/qbittorrent/info": {
+            "get": {
+                "description": "Check torrent info",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QBittorrent"
+                ],
+                "summary": "Check Torrent info",
+                "parameters": [
+                    {
+                        "description": "Request Body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.CheckTorrentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schema.CheckTorrentResponse"
                         }
                     },
                     "400": {
@@ -432,109 +567,71 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "schemas.AddAnimeToListRequest": {
+        "dtos.AnimeDto": {
             "type": "object",
             "properties": {
-                "id": {
+                "bannerImage": {
                     "type": "string"
-                }
-            }
-        },
-        "schemas.AddAnimeToListResponse": {
-            "type": "object",
-            "properties": {
-                "media": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "description": {
-                                "type": "string"
-                            },
-                            "episodes": {
-                                "type": "integer"
-                            },
-                            "genres": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string"
-                                }
-                            },
-                            "nextAiringEpisode": {
-                                "type": "object",
-                                "properties": {
-                                    "airingAt": {
-                                        "type": "string"
-                                    },
-                                    "episode": {
-                                        "type": "string"
-                                    }
-                                }
-                            },
-                            "title": {
-                                "type": "object",
-                                "properties": {
-                                    "english": {
-                                        "type": "string"
-                                    },
-                                    "romaji": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "schemas.AddIndexerRequest": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                }
-            }
-        },
-        "schemas.AnimeGetInfoByIdRequest": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                }
-            }
-        },
-        "schemas.AnimeGetInfoByIdResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
+                },
+                "coverImage": {
                     "type": "object",
                     "properties": {
-                        "page": {
-                            "type": "object",
-                            "properties": {
-                                "media": {
-                                    "type": "array",
-                                    "items": {
+                        "extraLarge": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "episodes": {
+                    "type": "integer"
+                },
+                "genres": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nextAiringEpisode": {
+                    "type": "object",
+                    "properties": {
+                        "airingAt": {
+                            "type": "integer"
+                        },
+                        "episode": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "relations": {
+                    "type": "object",
+                    "properties": {
+                        "edges": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": "integer"
+                                    },
+                                    "node": {
                                         "type": "object",
                                         "properties": {
-                                            "description": {
-                                                "type": "string"
-                                            },
                                             "episodes": {
                                                 "type": "integer"
                                             },
-                                            "genres": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "string"
-                                                }
+                                            "format": {
+                                                "type": "string"
                                             },
-                                            "nextAiringEpisode": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "airingAt": {},
-                                                    "episode": {}
-                                                }
+                                            "id": {
+                                                "type": "integer"
+                                            },
+                                            "status": {
+                                                "type": "string"
                                             },
                                             "title": {
                                                 "type": "object",
@@ -548,15 +645,48 @@ const docTemplate = `{
                                                 }
                                             }
                                         }
+                                    },
+                                    "relationType": {
+                                        "type": "string"
                                     }
                                 }
                             }
                         }
                     }
+                },
+                "status": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "object",
+                    "properties": {
+                        "english": {
+                            "type": "string"
+                        },
+                        "romaji": {
+                            "type": "string"
+                        }
+                    }
                 }
             }
         },
-        "schemas.AnimeTitleIdByNameRequest": {
+        "schema.AddNewTorrentRequest": {
+            "type": "object",
+            "properties": {
+                "magneticUrl": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.AnimeGetInfoByIdRequest": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "schema.AnimeTitleIdByNameRequest": {
             "type": "object",
             "properties": {
                 "name": {
@@ -564,7 +694,7 @@ const docTemplate = `{
                 }
             }
         },
-        "schemas.AnimeTitleIdByNameResponse": {
+        "schema.AnimeTitleIdByNameResponse": {
             "type": "object",
             "properties": {
                 "data": {
@@ -601,35 +731,62 @@ const docTemplate = `{
                 }
             }
         },
-        "schemas.DefaultResponse": {
+        "schema.CheckTorrentRequest": {
             "type": "object",
             "properties": {
-                "data": {},
-                "message": {
+                "filter": {
                     "type": "string"
                 }
             }
         },
-        "schemas.DeleteAnimeRequest": {
+        "schema.CheckTorrentResponse": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "string"
-                }
-            }
-        },
-        "schemas.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "errorCode": {
+                "completed": {
+                    "type": "integer"
+                },
+                "completedon": {
+                    "type": "integer"
+                },
+                "contentpath": {
                     "type": "string"
                 },
-                "message": {
+                "dlspeed": {
+                    "type": "integer"
+                },
+                "eta": {
+                    "type": "integer"
+                },
+                "hash": {
                     "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "num_leechs": {
+                    "type": "integer"
+                },
+                "num_seeds": {
+                    "type": "integer"
+                },
+                "progress": {
+                    "type": "number"
+                },
+                "save_path": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                },
+                "time_active": {
+                    "type": "integer"
+                },
+                "upspeed": {
+                    "type": "integer"
                 }
             }
         },
-        "schemas.IndexerResponse": {
+        "schema.IndexerResponse": {
             "type": "object",
             "properties": {
                 "definitionName": {
@@ -655,11 +812,92 @@ const docTemplate = `{
                 }
             }
         },
-        "schemas.RemoveIndexerRequest": {
+        "schema.SearchRequest": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.SearchResponse": {
+            "type": "object",
+            "properties": {
+                "age": {
+                    "type": "number"
+                },
+                "ageHours": {
+                    "type": "number"
+                },
+                "ageMinutes": {
+                    "type": "number"
+                },
+                "fileName": {
+                    "type": "string"
+                },
+                "guid": {
+                    "type": "string"
+                },
+                "indexer": {
+                    "type": "string"
+                },
+                "indexerId": {
+                    "type": "integer"
+                },
+                "infoHash": {
+                    "type": "string"
+                },
+                "infoUrl": {
+                    "type": "string"
+                },
+                "leechers": {
+                    "type": "integer"
+                },
+                "magnetUrl": {
+                    "type": "string"
+                },
+                "protocol": {
+                    "type": "string"
+                },
+                "publishDate": {
+                    "type": "string"
+                },
+                "seeders": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "schemas.DefaultResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "schemas.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "errorCode": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "schemas.IdRequest": {
             "type": "object",
             "properties": {
                 "id": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         }
@@ -670,10 +908,10 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "0.1",
 	Host:             "",
-	BasePath:         "",
+	BasePath:         "/api/v1",
 	Schemes:          []string{},
-	Title:            "Gongon API",
-	Description:      "This is a sample server celler server.",
+	Title:            "Gongon",
+	Description:      "Anime download manager API",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
