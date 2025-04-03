@@ -26,12 +26,31 @@ func (b *BaseService) Get(model interface{}, id int) error {
 	return b.DB.First(model, "id = ?", id).Error
 }
 
+// Always use a slice as model
 func (b *BaseService) List(model interface{}) error {
 	return b.DB.Find(model).Error
 }
 
+// Always use a slice as model
+func (b *BaseService) ListWithPreload(model interface{}, relations ...string) error {
+	query := b.DB
+	for _, relation := range relations {
+		query = query.Preload(relation)
+	}
+	return query.Find(model).Error
+}
+
+func (b *BaseService) ListByNameWithPreload(name string, model interface{}, relations ...string) error {
+	query := b.DB
+	for _, relation := range relations {
+		query = query.Preload(relation)
+	}
+	query.Where("Name LIKE ?", "%"+name+"%")
+	return query.Find(model).Error
+}
+
 func (b *BaseService) Delete(id int, model interface{}) error {
-	return b.DB.Model(model).Where("aid = ?", id).Delete(model).Error
+	return b.DB.Model(model).Where("id = ?", id).Delete(model).Error
 }
 
 func (b *BaseService) DeletePermanently(id int, model interface{}) error {

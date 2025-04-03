@@ -8,7 +8,7 @@ import (
 	"gorgon/pkg/schemas"
 	"log/slog"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
 // @BasePath /api/v1
@@ -22,7 +22,7 @@ import (
 // @Failure 400 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /prowlarr/indexer [get]
-func GetIndexer(c *gin.Context) {
+func GetIndexer(c echo.Context) error {
 	logger := config.GetLogger()
 	logger.Info("Received request to Get Indexer", slog.String("endpoint", "/api/v1/prowlarr/indexer"))
 
@@ -32,9 +32,10 @@ func GetIndexer(c *gin.Context) {
 	if err := prowlarrIndexerService.GetIndexers(&indexers); err != nil {
 		logger.Error("Error getting list of indexers", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, fmt.Sprintf("Error getting list of indexers: %s", err.Error()))
-		return
+		return err
 	}
 
 	logger.Info("Get Indexer request successfully", slog.Any("response", indexers))
 	schemas.SendSucess(c, "Get Indexer", indexers)
+	return nil
 }

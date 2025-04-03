@@ -9,13 +9,13 @@ import (
 	"log/slog"
 
 	"github.com/MarceloPetrucio/go-scalar-api-reference"
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
-func InitializeRoutes(g *gin.Engine) {
+func InitializeRoutes(e *echo.Echo) {
 	logger := config.GetLogger()
 
-	basePath := "/api/v1"
+	basePath := "/api/v1/"
 
 	handler.InitHandler()
 
@@ -23,19 +23,21 @@ func InitializeRoutes(g *gin.Engine) {
 
 	logger.Info("Initializing routes", slog.String("basePath", basePath))
 
-	v1 := g.Group(basePath)
-	SetupAnilistRouter(v1)
-	logger.Debug("Anilist route initialized sucessfully")
+	v1 := e.Group(basePath)
+	SetupTvMazeRouter(v1)
+	logger.Debug("TvMaze route initialized sucessfully")
 	SetupDatabaseRouter(v1)
 	logger.Debug("Database route initialized sucessfully")
 	SetupProwlarrRouter(v1)
 	logger.Debug("Prowlarr route initialized sucessfully")
 	SetupQbittorrentRouter(v1)
 	logger.Debug("QBittorrent route initialized sucessfully")
+	SetupTemplatesRouter(e.Group(""))
+	logger.Debug("Templates route initialized sucessfully")
 
 	logger.Info("Routes initialized", slog.String("basePath", basePath))
 
-	g.GET("/docs", func(c *gin.Context) {
+	e.GET("/docs", func(c echo.Context) error {
 		htmlContent, err := scalar.ApiReferenceHTML(&scalar.Options{
 			CDN:     "https://cdn.jsdelivr.net/npm/@scalar/api-reference@latest",
 			SpecURL: "./docs/swagger.yaml",
@@ -48,10 +50,12 @@ func InitializeRoutes(g *gin.Engine) {
 		if err != nil {
 			logger.Error("Error while generating API documentation", slog.String("error", err.Error()))
 			schemas.SendError(c, 500, fmt.Sprintf("Error while getting Scalar Api Reference: %s", err.Error()))
-			return
+			return err
 		}
 
-		c.Data(200, "text/html", []byte(htmlContent))
+		// c.Data(200, "text/html", []byte(htmlContent))
+		c.HTML(200, htmlContent)
 		logger.Info("API Documentation generated successfully", slog.String("url", "/docs"))
+		return nil
 	})
 }

@@ -4,18 +4,19 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
-func SendSucess(c *gin.Context, handler string, data interface{}) {
-	c.Header("Content-type", "application/json")
-	c.JSON(200, gin.H{
+func SendSucess(c echo.Context, handler string, data interface{}) {
+	c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	c.JSONPretty(200, gin.H{
 		"message": fmt.Sprintf("Operation from handler %s successfull", handler),
 		"data":    data,
-	})
+	}, "  ")
 }
 
-func SendError(c *gin.Context, code int, msg string) {
-	c.Header("Content-type", "application/json")
+func SendError(c echo.Context, code int, msg string) {
+	c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	c.JSON(code, gin.H{
 		"message":   msg,
 		"errorCode": code,

@@ -1,0 +1,26 @@
+package components
+
+import (
+	"gorgon/pkg/schemas/dtos"
+	"strconv"
+)
+
+templ ShowCard(show dtos.ShowDto) {
+	<div class="show-result">
+		<div class="show-image">
+			<img src={ show.Image.Medium } alt={ show.Name }/>
+		</div>
+		<div class="show-info">
+			<h3 class="show-title">{ show.Name }</h3>
+			<p class="show-description">{ show.Summary }</p>
+		</div>
+		<form>
+			<input type="hidden" name="id" value={ strconv.Itoa(show.ShowID) }/>
+			<button
+				class="add-button"
+				hx-post="/api/v1/database/show"
+				hx-swap="outerHTML"
+			>Add</button>
+		</form>
+	</div>
+}

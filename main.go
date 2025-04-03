@@ -1,12 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/gin-contrib/cors"
 	"gorgon/config"
 	"gorgon/internal/routes"
+	"os"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 // @title           Gongon
@@ -20,19 +22,29 @@ import (
 // @license.name  Apache 2.0
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 func main() {
-	g := gin.Default()
+	// g := gin.Default()
 
-	g.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},                                // Permitindo apenas a origem do seu frontend (ajuste conforme necessário)
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},     // Métodos permitidos
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"}, // Cabeçalhos permitidos
-		ExposeHeaders:    []string{"Content-Length"},                   // Cabeçalhos expostos ao frontend
-		AllowCredentials: true,                                         // Permitir envio de cookies e credenciais
-	}))
+	e := echo.New()
+
+	cors := middleware.CORSConfig{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}
+	e.Use(middleware.CORSWithConfig(cors))
 
 	config.Init()
 
-	routes.InitializeRoutes(g)
+	routes.InitializeRoutes(e)
 
-	g.Run(fmt.Sprintf(":%s", config.Port))
+	data, err := json.MarshalIndent(e.Routes(), "", "  ")
+	if err != nil {
+		return
+	}
+	os.WriteFile("routes.json", data, 0644)
+
+	// g.Run(fmt.Sprintf(":%s", config.Port))
+	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", config.Port)))
 }

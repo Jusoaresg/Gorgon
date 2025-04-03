@@ -28,12 +28,12 @@ func InitializeDb() (*gorm.DB, error) {
 	}
 
 	err = db.AutoMigrate(
-		&model.Anime{},
+		&model.Show{},
 		&model.Episode{},
-		&model.Title{},
+		&model.Schedule{},
+		&model.Externals{},
+		&model.Image{},
 		&model.Season{},
-		&model.Related{},
-		&model.RelationWrapper{},
 
 		&model.Indexer{},
 	)

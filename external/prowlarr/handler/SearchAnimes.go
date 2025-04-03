@@ -8,7 +8,7 @@ import (
 	"gorgon/pkg/schemas"
 	"log/slog"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
 // @BasePath /api/v1
@@ -22,14 +22,15 @@ import (
 // @Failure 400 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /prowlarr/search [post]
-func SearchAnimes(c *gin.Context) {
+func SearchAnimes(c echo.Context) error {
 	logger := config.GetLogger()
 	logger.Info("Received request to Search Animes", slog.String("endpoint", "/api/v1/prowlarr/search"), slog.String("method", "POST"))
 
 	var request schema.SearchRequest
-	if err := c.BindJSON(&request); err != nil {
+	if err := c.Bind(&request); err != nil {
 		logger.Error("Failed to bind request body", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, "Failed to bind request body")
+		return err
 	}
 
 	searchService := service.NewProwlarrSearchService(logger)
@@ -38,9 +39,10 @@ func SearchAnimes(c *gin.Context) {
 	if err := searchService.Search(&request, &response); err != nil {
 		logger.Error("Error while search all animes from prowlarr", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, fmt.Sprintf("Error while searching all animes prowlarr: %s", err.Error()))
-		return
+		return err
 	}
 
 	logger.Info("Search Animes request successfully", slog.Any("response", response))
 	schemas.SendSucess(c, "Search Animes", response)
+	return nil
 }

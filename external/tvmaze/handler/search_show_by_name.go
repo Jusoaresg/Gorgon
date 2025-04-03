@@ -1,0 +1,44 @@
+package handler
+
+import (
+	"gorgon/config"
+	"gorgon/external/tvmaze/schema"
+	"gorgon/external/tvmaze/service"
+	"gorgon/pkg/schemas"
+	"log/slog"
+
+	"github.com/labstack/echo/v4"
+)
+
+// @BasePath /api/v1
+
+// @Summary Seach Show By Name
+// @Description Search TvMaze By Show Name
+// @Tags TvMaze/Search
+// @Accept json
+// @Produce json
+// @Param request body schemas.NameRequest true "Request Body"
+// @Success 200 {object} schemas.DefaultResponse
+// @Failure 400 {object} schemas.ErrorResponse
+// @Failure 500 {object} schemas.ErrorResponse
+// @Router /tvmaze/search/name [post]
+func SearchShowByName(c echo.Context) error {
+	logger := config.GetLogger()
+
+	var request schemas.NameRequest
+	if err := c.Bind(&request); err != nil {
+		return err
+	}
+
+	tvMazeService := service.NewTvMazeSearchService(logger)
+
+	var response []schema.TvMazeResponse
+	if err := tvMazeService.SearchByName(request.Name, &response); err != nil {
+		logger.Error("Error while searching for name", slog.String("error", err.Error()))
+		schemas.SendError(c, 500, "Error while searching by name")
+		return err
+	}
+
+	schemas.SendSucess(c, "SearchShowByName", &response)
+	return nil
+}

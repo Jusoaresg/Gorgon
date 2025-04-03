@@ -1,0 +1,92 @@
+[
+  {
+    "method": "POST",
+    "path": "/api/v1/prowlarr/search",
+    "name": "gorgon/external/prowlarr/handler.SearchAnimes"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/qbittorrentadd",
+    "name": "gorgon/external/qbittorrent/handler.AddNewTorrent"
+  },
+  {
+    "method": "GET",
+    "path": "/add",
+    "name": "gorgon/internal/templates/handler.AddHandler"
+  },
+  {
+    "method": "GET",
+    "path": "/docs",
+    "name": "gorgon/internal/routes.InitializeRoutes.func1"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/tvmaze/search/name",
+    "name": "gorgon/external/tvmaze/handler.SearchShowByName"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/database/show",
+    "name": "gorgon/internal/db/handler/show.ListShows"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/prowlarr/indexer",
+    "name": "gorgon/external/prowlarr/handler.GetIndexer"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/qbittorrentinfo",
+    "name": "gorgon/external/qbittorrent/handler.CheckTorrentInfo"
+  },
+  {
+    "method": "GET",
+    "path": "/css*",
+    "name": "github.com/labstack/echo/v4.(*Group).StaticFS.StaticDirectoryHandler.func1"
+  },
+  {
+    "method": "POST",
+    "path": "/",
+    "name": "gorgon/internal/templates/handler.ShowsListHandler"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/database/show",
+    "name": "gorgon/internal/db/handler/show.AddShowToList"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/database/show",
+    "name": "gorgon/internal/db/handler/show.DeleteShow"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/database/indexer:id",
+    "name": "gorgon/internal/db/handler/indexer.GetIndexer"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/database/indexer",
+    "name": "gorgon/internal/db/handler/indexer.AddIndexer"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/database/indexer",
+    "name": "gorgon/internal/db/handler/indexer.DeleteIndexer"
+  },
+  {
+    "method": "GET",
+    "path": "/",
+    "name": "gorgon/internal/templates/handler.ShowsListHandler"
+  },
+  {
+    "method": "POST",
+    "path": "/add",
+    "name": "gorgon/internal/templates/handler.AddHandler"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/database/indexer",
+    "name": "gorgon/internal/db/handler/indexer.ListIndexers"
+  }
+]

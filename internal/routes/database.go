@@ -2,29 +2,36 @@ package routes
 
 import (
 	"gorgon/config"
-	"gorgon/internal/db/handler/anime"
 	"gorgon/internal/db/handler/indexer"
+	"gorgon/internal/db/handler/show"
 	"log/slog"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
-func SetupDatabaseRouter(v1 *gin.RouterGroup) {
+func SetupDatabaseRouter(v1 *echo.Group) {
 	logger := config.GetLogger()
 
-	listGroup := v1.Group("database")
+	listGroup := v1.Group("database/")
 	{
-		animeGroup := listGroup.Group("anime")
+		showGroup := listGroup.Group("show")
 		{
-			animeGroup.POST("", anime.AddAnimeToList)
-			logger.Info("POST route added to /api/v1/database/anime")
+			showGroup.POST("", show.AddShowToList)
+			logger.Info("POST route added to /api/v1/database/show")
 
-			animeGroup.GET("", anime.ListAnimes)
-			logger.Info("GET route added to /api/v1/database/anime")
+			showGroup.GET("", show.ListShows)
+			logger.Info("GET route added to /api/v1/database/show")
 
-			animeGroup.DELETE("", anime.DeleteAnime)
-			logger.Info("DELETE route added to /api/v1/database/anime")
+			showGroup.DELETE("", show.DeleteShow)
+			logger.Info("DELETE route added to /api/v1/database/show")
 		}
+		// animeGroup := listGroup.Group("anime")
+		// {
+		// 	animeGroup.POST("", anime.AddAnimeToList)
+		// 	logger.Info("POST route added to /api/v1/database/anime")
+		//
+		//
+		// }
 
 		indexerGroup := listGroup.Group("indexer")
 		{

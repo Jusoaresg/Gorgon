@@ -5,7 +5,7 @@ import (
 	"gorgon/pkg/schemas"
 	"gorgon/pkg/services"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
 // @BasePath /api/v1
@@ -18,14 +18,15 @@ import (
 // @Failure 400 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /database/indexer [get]
-func ListIndexers(c *gin.Context) {
+func ListIndexers(c echo.Context) error {
 	indexers := []model.Indexer{}
 
 	baseService := services.NewBaseService()
 
 	if err := baseService.List(&indexers); err != nil {
-		return
+		return err
 	}
 
 	schemas.SendSucess(c, "List Indexers", indexers)
+	return nil
 }

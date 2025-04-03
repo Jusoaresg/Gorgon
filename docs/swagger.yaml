@@ -1,108 +1,9 @@
 basePath: /api/v1
 definitions:
-  dtos.AnimeDto:
-    properties:
-      bannerImage:
-        type: string
-      coverImage:
-        properties:
-          extraLarge:
-            type: string
-        type: object
-      description:
-        type: string
-      episodes:
-        type: integer
-      genres:
-        items:
-          type: string
-        type: array
-      id:
-        type: integer
-      nextAiringEpisode:
-        properties:
-          airingAt:
-            type: integer
-          episode:
-            type: integer
-        type: object
-      relations:
-        properties:
-          edges:
-            items:
-              properties:
-                id:
-                  type: integer
-                node:
-                  properties:
-                    episodes:
-                      type: integer
-                    format:
-                      type: string
-                    id:
-                      type: integer
-                    status:
-                      type: string
-                    title:
-                      properties:
-                        english:
-                          type: string
-                        romaji:
-                          type: string
-                      type: object
-                  type: object
-                relationType:
-                  type: string
-              type: object
-            type: array
-        type: object
-      status:
-        type: string
-      title:
-        properties:
-          english:
-            type: string
-          romaji:
-            type: string
-        type: object
-    type: object
   schema.AddNewTorrentRequest:
     properties:
       magneticUrl:
         type: string
-    type: object
-  schema.AnimeGetInfoByIdRequest:
-    properties:
-      id:
-        type: integer
-    type: object
-  schema.AnimeTitleIdByNameRequest:
-    properties:
-      name:
-        type: string
-    type: object
-  schema.AnimeTitleIdByNameResponse:
-    properties:
-      data:
-        properties:
-          Page:
-            properties:
-              media:
-                items:
-                  properties:
-                    id:
-                      type: integer
-                    title:
-                      properties:
-                        english:
-                          type: string
-                        romaji:
-                          type: string
-                      type: object
-                  type: object
-                type: array
-            type: object
-        type: object
     type: object
   schema.CheckTorrentRequest:
     properties:
@@ -215,6 +116,11 @@ definitions:
       id:
         type: integer
     type: object
+  schemas.NameRequest:
+    properties:
+      name:
+        type: string
+    type: object
 info:
   contact:
     email: julianosgreg@gmail.com
@@ -226,143 +132,6 @@ info:
   title: Gongon
   version: "0.1"
 paths:
-  /anilist:
-    post:
-      consumes:
-      - application/json
-      description: Search anime by name
-      parameters:
-      - description: Request Body
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.AnimeTitleIdByNameRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/schema.AnimeTitleIdByNameResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/schemas.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/schemas.ErrorResponse'
-      summary: Find Anime by name
-      tags:
-      - Anilist
-  /anilist/get-info:
-    post:
-      consumes:
-      - application/json
-      description: Search anime info by id
-      parameters:
-      - description: Request Body
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.AnimeGetInfoByIdRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dtos.AnimeDto'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/schemas.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/schemas.ErrorResponse'
-      summary: Get Anime info By id
-      tags:
-      - Anilist
-  /database/anime:
-    delete:
-      description: Delete Anime from List
-      parameters:
-      - description: Request Body
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schemas.IdRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/schemas.DefaultResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/schemas.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/schemas.ErrorResponse'
-      summary: Delete Anime
-      tags:
-      - Database/Anime
-    get:
-      description: List all animes
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/schemas.DefaultResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/schemas.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/schemas.ErrorResponse'
-      summary: List Animes
-      tags:
-      - Database/Anime
-    post:
-      consumes:
-      - application/json
-      description: Add anime to list
-      parameters:
-      - description: Request Body
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schemas.IdRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/schemas.DefaultResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/schemas.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/schemas.ErrorResponse'
-      summary: Add Anime
-      tags:
-      - Database/Anime
   /database/indexer:
     delete:
       description: Delete Indexer from db
@@ -467,6 +236,83 @@ paths:
       summary: Get Indexer
       tags:
       - Database/Indexer
+  /database/show:
+    delete:
+      description: Delete Show from list
+      parameters:
+      - description: Request Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.IdRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Delete Show
+      tags:
+      - Database/Show
+    get:
+      description: List all shows
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: List Shows
+      tags:
+      - Database/Show
+    post:
+      consumes:
+      - application/json
+      description: Add Show to List
+      parameters:
+      - description: Request Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.IdRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Add Show
+      tags:
+      - Database/Show
   /prowlarr/indexer:
     get:
       consumes:
@@ -582,4 +428,64 @@ paths:
       summary: Check Torrent info
       tags:
       - QBittorrent
+  /tvmaze/search/name:
+    post:
+      consumes:
+      - application/json
+      description: Search TvMaze By Show Name
+      parameters:
+      - description: Request Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.NameRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Seach Show By Name
+      tags:
+      - TvMaze/Search
+  /tvmaze/search/tvmaze:
+    post:
+      consumes:
+      - application/json
+      description: Search TvMaze By TvMaze ID
+      parameters:
+      - description: Request Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.IdRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Seach Show By TvMaze ID
+      tags:
+      - TvMaze/Search
 swagger: "2.0"

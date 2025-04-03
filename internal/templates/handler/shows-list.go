@@ -1,0 +1,42 @@
+package handler
+
+import (
+	"fmt"
+	"gorgon/assets/templates/components"
+	"gorgon/assets/templates/pages"
+	"gorgon/internal/db/model"
+	"gorgon/internal/templates"
+	"gorgon/pkg/services"
+
+	"github.com/labstack/echo/v4"
+)
+
+func ShowsListHandler(c echo.Context) error {
+	baseService := services.NewBaseService()
+
+	var shows []model.Show
+	if c.Request().Method == echo.POST {
+		name := c.FormValue("query")
+		fmt.Println(name)
+		if err := baseService.ListByNameWithPreload(name, &shows, "Seasons", "Episodes"); err != nil {
+			return err
+		}
+
+		fmt.Println(shows)
+		component := components.ShowGridShowsList(shows)
+		component.Render(c.Request().Context(), c.Response())
+		return nil
+
+	} else {
+		if err := baseService.ListWithPreload(&shows, "Seasons", "Episodes"); err != nil {
+			return err
+		}
+	}
+
+	page := pages.ShowsList("Shows List", shows)
+	if err := templates.Render(c, page); err != nil {
+		return err
+	}
+
+	return nil
+}

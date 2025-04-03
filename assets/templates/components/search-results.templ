@@ -1,0 +1,17 @@
+package components
+
+import "gorgon/external/tvmaze/schema"
+
+templ SearchResults(shows []schema.TvMazeResponse) {
+	<div id="search-results" class="results-container">
+		if len(shows) > 0 {
+			for _, show := range shows {
+				@ShowCard(show.Show)
+			}
+		} else {
+			<div class="empty-state">
+				<p>Search for a show to add it to your collection</p>
+			</div>
+		}
+	</div>
+}

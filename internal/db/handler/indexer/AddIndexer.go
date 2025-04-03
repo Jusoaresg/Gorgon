@@ -10,6 +10,7 @@ import (
 	"gorgon/pkg/services"
 
 	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"gorm.io/datatypes"
 )
 
@@ -25,11 +26,13 @@ import (
 // @Failure 400 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /database/indexer [post]
-func AddIndexer(c *gin.Context) {
+func AddIndexer(c echo.Context) error {
 	logger := config.GetLogger()
 
 	var request schemas.IdRequest
-	c.BindJSON(&request)
+	if err := c.Bind(&request); err != nil {
+		return err
+	}
 
 	baseService := services.NewBaseService()
 
@@ -38,13 +41,13 @@ func AddIndexer(c *gin.Context) {
 	var response schema.IndexerResponse
 	if err := prowlarrIndexerService.GetIndexer(request.Id, &response); err != nil {
 		c.JSON(500, gin.H{"error": "Failed to get indexer"})
-		return
+		return err
 	}
 
 	indexerUrlsJSON, err := json.Marshal(response.IndexerUrls)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "Failed to marshal indexer URLs"})
-		return
+		return err
 	}
 
 	indexer := model.Indexer{
@@ -58,4 +61,5 @@ func AddIndexer(c *gin.Context) {
 	baseService.Add(&indexer)
 
 	schemas.SendSucess(c, "Add Indexer", indexer)
+	return nil
 }

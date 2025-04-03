@@ -8,7 +8,7 @@ import (
 	"gorgon/pkg/schemas"
 	"log/slog"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
 // @BasePath /api/v1
@@ -23,22 +23,22 @@ import (
 // @Failure 400 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /qbittorrent/info [get]
-func CheckTorrentInfo(c *gin.Context) {
+func CheckTorrentInfo(c echo.Context) error {
 	logger := config.GetLogger()
 	logger.Info("Received request to Check Torrent Info", slog.String("endpoint", "/api/v1/qbittorrent/info"))
 
 	var request schema.CheckTorrentRequest
-	if err := c.BindJSON(&request); err != nil {
+	if err := c.Bind(&request); err != nil {
 		logger.Error("Failed to bind request body", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, "Failed to bind request body")
-		return
+		return err
 	}
 
 	torrentService, err := service.NewQBittorrentService(logger)
 	if err != nil {
 		logger.Error("Failed to create Torrent Service", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, "Failed to create Torrent Service")
-		return
+		return err
 	}
 
 	var response []schema.CheckTorrentResponse
@@ -49,4 +49,5 @@ func CheckTorrentInfo(c *gin.Context) {
 
 	logger.Info("Check Torrent info request successfully", slog.Any("response", response))
 	schemas.SendSucess(c, "CheckTorrentInfo", response)
+	return nil
 }

@@ -27,7 +27,7 @@ func NewAPIService(url string, logger *slog.Logger) (a *APIService) {
 	}
 }
 
-func (a *APIService) Get(endpoint string, response interface{}, headersInfo ...map[string]string) error {
+func (a *APIService) Get(endpoint string, response interface{}) error {
 	url := fmt.Sprintf("%s%s", a.Url, endpoint)
 
 	resp, err := a.Client.Get(url)
@@ -56,7 +56,7 @@ func (a *APIService) Get(endpoint string, response interface{}, headersInfo ...m
 		slog.String("body", string(body)),
 	)
 
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+	if err := json.Unmarshal(body, &response); err != nil {
 		a.Logger.Error("Error decoding GET response body",
 			slog.String("url", url),
 			slog.Int("status", resp.StatusCode),
@@ -64,6 +64,15 @@ func (a *APIService) Get(endpoint string, response interface{}, headersInfo ...m
 		)
 		return fmt.Errorf("Error while decoding response body: %w", err)
 	}
+
+	// if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+	// 	a.Logger.Error("Error decoding GET response body",
+	// 		slog.String("url", url),
+	// 		slog.Int("status", resp.StatusCode),
+	// 		slog.String("error", err.Error()),
+	// 	)
+	// 	return fmt.Errorf("Error while decoding response body: %w", err)
+	// }
 
 	a.Logger.Info("GET request successful",
 		slog.String("url", url),

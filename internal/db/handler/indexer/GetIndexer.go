@@ -5,7 +5,7 @@ import (
 	"gorgon/pkg/schemas"
 	"gorgon/pkg/services"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
 // @BasePath /api/v1
@@ -19,13 +19,13 @@ import (
 // @Failure 400 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /database/indexer/{id} [get]
-func GetIndexer(c *gin.Context) {
+func GetIndexer(c echo.Context) error {
 	// id := c.Param("id")
 	// idInt, err := strconv.Atoi(id)
 	var request schemas.IdRequest
-	if err := c.ShouldBindUri(&request); err != nil {
-		c.JSON(400, gin.H{"error": "Invalid ID format"})
-		return
+	if err := c.Bind(&request); err != nil {
+		schemas.SendError(c, 400, "Failed to bind request body")
+		return err
 	}
 
 	indexer := model.Indexer{}
@@ -33,8 +33,9 @@ func GetIndexer(c *gin.Context) {
 	baseService := services.NewBaseService()
 
 	if err := baseService.Get(&indexer, request.Id); err != nil {
-		return
+		return err
 	}
 
 	schemas.SendSucess(c, "List Indexers", indexer)
+	return nil
 }

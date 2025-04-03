@@ -5,13 +5,13 @@ import (
 	"gorgon/external/prowlarr/handler"
 	"log/slog"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
-func SetupProwlarrRouter(v1 *gin.RouterGroup) {
+func SetupProwlarrRouter(v1 *echo.Group) {
 	logger := config.GetLogger()
 
-	prowlarrGroup := v1.Group("prowlarr")
+	prowlarrGroup := v1.Group("prowlarr/")
 	{
 		indexerGroup := prowlarrGroup.Group("indexer")
 		{

@@ -6,7 +6,7 @@ import (
 	"gorgon/pkg/schemas"
 	"gorgon/pkg/services"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
 // @BasePath /api/v1
@@ -20,14 +20,18 @@ import (
 // @Failure 400 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /database/indexer [delete]
-func DeleteIndexer(c *gin.Context) {
+func DeleteIndexer(c echo.Context) error {
 	var request schemas.IdRequest
-	c.BindJSON(&request)
+	if err := c.Bind(&request); err != nil {
+		return err
+	}
 
 	baseService := services.NewBaseService()
 
 	if err := baseService.DeletePermanently(request.Id, &model.Indexer{}); err != nil {
 		schemas.SendError(c, 500, fmt.Sprintf("Error while deleting indexer: %s", err.Error()))
-		return
+		return err
 	}
+	schemas.SendSucess(c, "Delete Indexer", "")
+	return nil
 }

@@ -5,10 +5,10 @@ import (
 	"gorgon/external/qbittorrent/handler"
 	"log/slog"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
-func SetupQbittorrentRouter(r *gin.RouterGroup) {
+func SetupQbittorrentRouter(r *echo.Group) {
 	logger := config.GetLogger()
 
 	qbitorrentRouter := r.Group("qbittorrent")
