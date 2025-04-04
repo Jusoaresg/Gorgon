@@ -1,23 +1,29 @@
 package handler
 
 import (
-	"fmt"
 	"gorgon/assets/templates/pages"
 	"gorgon/internal/db/model"
+	"gorgon/internal/templates"
 	"gorgon/pkg/services"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
 
 func RenderShow(c echo.Context) error {
+	id := c.Param("id")
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		return err
+	}
 
 	service := services.NewBaseService()
 	var show model.Show
-	if err := service.GetWithPreload(&show, 7, "Seasons", "Episodes"); err != nil {
+	if err := service.GetWithPreload(&show, idInt, "Seasons", "Episodes"); err != nil {
 		return err
 	}
-	fmt.Println(show.Seasons)
+
 	page := pages.Show("Show", show)
-	page.Render(c.Request().Context(), c.Response())
-	return nil
+	// return page.Render(c.Request().Context(), c.Response())
+	return templates.Render(c, page)
 }

@@ -44,7 +44,7 @@ func Base(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><link href=\"css/style.css\" rel=\"stylesheet\"><link href=\"css/components.css\" rel=\"stylesheet\"><link href=\"css/pages.css\" rel=\"stylesheet\"><script src=\"https://cdnjs.cloudflare.com/ajax/libs/htmx/2.0.4/htmx.min.js\"></script><script src=\"https://unpkg.com/htmx.org@1.9.12/dist/ext/json-enc.js\"></script></head><body><div class=\"container\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><link href=\"/css/style.css\" rel=\"stylesheet\"><link href=\"/css/components.css\" rel=\"stylesheet\"><link href=\"/css/pages.css\" rel=\"stylesheet\"><script src=\"https://cdnjs.cloudflare.com/ajax/libs/htmx/2.0.4/htmx.min.js\"></script><script src=\"https://unpkg.com/htmx.org@1.9.12/dist/ext/json-enc.js\"></script></head><body><div class=\"container\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

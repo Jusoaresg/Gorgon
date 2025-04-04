@@ -25,8 +25,11 @@ func SetupTemplatesRouter(r *echo.Group) {
 		templatesRouter.POST("/add-show", handler.RenderAddShow)
 		logger.Info("POST route added to /add-show")
 
-		templatesRouter.GET("/show", handler.RenderShow)
-		logger.Info("GET route added to /show")
+		templatesRouter.GET("/show/:id", handler.RenderShow)
+		logger.Info("GET route added to /show/:id")
+
+		templatesRouter.POST("/show-redirect", handler.RedirectToShow)
+		logger.Info("GET route added to /show-redirect")
 
 	}
 	logger.Info("Templates routes added successfully", slog.String("endpoint", "/"))

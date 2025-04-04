@@ -7,6 +7,7 @@ import (
 	"gorgon/internal/db/model"
 	"gorgon/internal/templates"
 	"gorgon/pkg/services"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
@@ -38,5 +39,26 @@ func RenderShowsList(c echo.Context) error {
 		return err
 	}
 
+	return nil
+}
+
+func RedirectToShow(c echo.Context) error {
+	id := c.FormValue("id")
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		return err
+	}
+
+	service := services.NewBaseService()
+
+	var show model.Show
+	if err := service.GetWithPreload(&show, idInt, "Seasons", "Episodes"); err != nil {
+		return err
+	}
+
+	// c.Redirect(200, fmt.Sprintf("/%s/%s", "show", id))
+	// c.Redirect(200, "/teste")
+	c.Response().Header().Set("HX-Redirect", fmt.Sprintf("/show/%d", show.ID))
+	// return c.NoContent(204)
 	return nil
 }

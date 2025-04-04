@@ -1,10 +1,20 @@
 package shows_list
 
 import "gorgon/internal/db/model"
+import "strconv"
 
 templ ShowGridShowsList(shows []model.Show) {
 	for _, show := range shows {
-		<div class="show-grid-item">
+		<div
+			class="show-grid-item"
+			hx-post="/show-redirect"
+			hx-vals={ `{"id": ` + strconv.Itoa(show.ID) + `}` }
+			hx-target="body"
+			hx-trigger="click"
+			hx-swap="innerHTML"
+			style="cursor: pointer;"
+		>
+			<input type="hidden" value={ strconv.Itoa(show.ID) } name="id"/>
 			<div class="show-poster">
 				if (show.Image.Medium != "") {
 					<img src={ show.Image.Medium } alt={ show.Name }/>
