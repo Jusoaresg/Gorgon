@@ -22,7 +22,7 @@ func Init() error {
 		return err
 	}
 
-	InitializeConfigFile()
+	InitializeOrUpdateConfigFile()
 
 	return nil
 }
