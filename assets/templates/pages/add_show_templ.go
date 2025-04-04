@@ -53,7 +53,7 @@ func AddShow(title string, shows []schema.TvMazeResponse) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = search.SearchResults(shows).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = search.SearchResults(shows, make(map[int]bool)).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

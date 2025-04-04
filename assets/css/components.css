@@ -142,6 +142,20 @@ button:hover {
 	opacity: 0.9;
 }
 
+button.add-button.added {
+	background-color: #4CAF50 !important;
+	cursor: not-allowed;
+	opacity: 0.8;
+}
+
+button.add-button.added:hover {
+	opacity: 0.8;
+}
+
+button.add-button.added::after {
+	content: " ✓";
+}
+
 /* Results Container */
 .results-container {
 	margin-top: 1rem;

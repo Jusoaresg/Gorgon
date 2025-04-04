@@ -9,7 +9,7 @@ templ AddShow(title string, shows []schema.TvMazeResponse) {
 		<div class="add-show-container">
 			<h1>Add Show</h1>
 			@search.SearchForm("/add-show", "#search-results", ".spinner", "", "Enter show name...", true)
-			@search.SearchResults(shows)
+			@search.SearchResults(shows, make(map[int]bool))
 		</div>
 	}
 }

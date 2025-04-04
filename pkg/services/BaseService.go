@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"gorgon/config"
 
 	"gorm.io/gorm"
@@ -32,6 +33,10 @@ func (b *BaseService) GetWithPreload(model interface{}, id int, relations ...str
 		query = query.Preload(relation)
 	}
 	return query.First(model, "id = ?", id).Error
+}
+
+func (b *BaseService) GetShowsByIdentification(model interface{}, identification string, ids []int) error {
+	return b.DB.Where(fmt.Sprintf("%s IN ?", identification), ids).Find(model).Error
 }
 
 // Always use a slice as model

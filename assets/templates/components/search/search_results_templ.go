@@ -11,7 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import "gorgon/external/tvmaze/schema"
 import "gorgon/assets/templates/components/add_show"
 
-func SearchResults(shows []schema.TvMazeResponse) templ.Component {
+func SearchResults(shows []schema.TvMazeResponse, addedShows map[int]bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -38,7 +38,7 @@ func SearchResults(shows []schema.TvMazeResponse) templ.Component {
 		}
 		if len(shows) > 0 {
 			for _, show := range shows {
-				templ_7745c5c3_Err = add_show.ShowCard(show.Show).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = add_show.ShowCard(show.Show, addedShows[show.Show.ShowID]).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
