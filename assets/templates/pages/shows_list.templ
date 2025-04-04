@@ -2,14 +2,15 @@ package pages
 
 import "gorgon/internal/db/model"
 import "gorgon/assets/templates/layouts"
-import "gorgon/assets/templates/components"
+import "gorgon/assets/templates/components/search"
+import "gorgon/assets/templates/components/shows_list"
 
 templ ShowsList(title string, shows []model.Show) {
 	@layouts.Base(title) {
 		<div class="home-container">
 			<h1>My Shows</h1>
 			<div class="categories">
-				@components.SearchForm("/", ".shows-grid", ".spinning", "keyup, changed delay:500ms", "Filter the show", false)
+				@search.SearchForm("/", ".shows-grid", ".spinning", "keyup, changed delay:500ms", "Filter the show", false)
 				//<div class="category active">All Shows</div>
 				//<div class="category">Currently Watching</div>
 				//<div class="category">Completed</div>
@@ -17,7 +18,7 @@ templ ShowsList(title string, shows []model.Show) {
 			</div>
 			if len(shows) > 0 {
 				<div class="shows-grid">
-					@components.ShowGridShowsList(shows)
+					@shows_list.ShowGridShowsList(shows)
 				</div>
 			} else {
 				<div class="empty-state">

@@ -26,6 +26,14 @@ func (b *BaseService) Get(model interface{}, id int) error {
 	return b.DB.First(model, "id = ?", id).Error
 }
 
+func (b *BaseService) GetWithPreload(model interface{}, id int, relations ...string) error {
+	query := b.DB
+	for _, relation := range relations {
+		query = query.Preload(relation)
+	}
+	return query.First(model, "id = ?", id).Error
+}
+
 // Always use a slice as model
 func (b *BaseService) List(model interface{}) error {
 	return b.DB.Find(model).Error

@@ -2,7 +2,7 @@ package handler
 
 import (
 	"fmt"
-	"gorgon/assets/templates/components"
+	"gorgon/assets/templates/components/shows_list"
 	"gorgon/assets/templates/pages"
 	"gorgon/internal/db/model"
 	"gorgon/internal/templates"
@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func ShowsListHandler(c echo.Context) error {
+func RenderShowsList(c echo.Context) error {
 	baseService := services.NewBaseService()
 
 	var shows []model.Show
@@ -23,7 +23,7 @@ func ShowsListHandler(c echo.Context) error {
 		}
 
 		fmt.Println(shows)
-		component := components.ShowGridShowsList(shows)
+		component := shows_list.ShowGridShowsList(shows)
 		component.Render(c.Request().Context(), c.Response())
 		return nil
 

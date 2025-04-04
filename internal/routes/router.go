@@ -53,7 +53,6 @@ func InitializeRoutes(e *echo.Echo) {
 			return err
 		}
 
-		// c.Data(200, "text/html", []byte(htmlContent))
 		c.HTML(200, htmlContent)
 		logger.Info("API Documentation generated successfully", slog.String("url", "/docs"))
 		return nil

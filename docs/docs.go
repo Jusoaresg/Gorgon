@@ -337,14 +337,14 @@ const docTemplate = `{
         },
         "/prowlarr/search": {
             "post": {
-                "description": "Search animes on prowlarr indexers",
+                "description": "Search shows on prowlarr indexers",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Prowlarr/Search"
                 ],
-                "summary": "Search Animes",
+                "summary": "Search For Shows",
                 "parameters": [
                     {
                         "description": "Request Body",

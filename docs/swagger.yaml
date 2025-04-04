@@ -340,7 +340,7 @@ paths:
       - Prowlarr/Indexer
   /prowlarr/search:
     post:
-      description: Search animes on prowlarr indexers
+      description: Search shows on prowlarr indexers
       parameters:
       - description: Request Body
         in: body
@@ -365,7 +365,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/schemas.ErrorResponse'
-      summary: Search Animes
+      summary: Search For Shows
       tags:
       - Prowlarr/Search
   /qbittorrent/add:

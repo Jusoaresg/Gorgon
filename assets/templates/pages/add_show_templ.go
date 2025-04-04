@@ -8,9 +8,9 @@ package pages
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "gorgon/assets/templates/components"
 import "gorgon/assets/templates/layouts"
 import "gorgon/external/tvmaze/schema"
+import "gorgon/assets/templates/components/search"
 
 func AddShow(title string, shows []schema.TvMazeResponse) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -49,11 +49,11 @@ func AddShow(title string, shows []schema.TvMazeResponse) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = components.SearchForm("/add", "#search-results", ".spinner", "", "Enter show name...", true).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = search.SearchForm("/add-show", "#search-results", ".spinner", "", "Enter show name...", true).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = components.SearchResults(shows).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = search.SearchResults(shows).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -2,7 +2,7 @@ package handler
 
 import (
 	"fmt"
-	"gorgon/assets/templates/components"
+	"gorgon/assets/templates/components/search"
 	"gorgon/assets/templates/pages"
 	"gorgon/config"
 	"gorgon/external/tvmaze/schema"
@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func AddHandler(c echo.Context) error {
+func RenderAddShow(c echo.Context) error {
 	logger := config.GetLogger()
 
 	if c.Request().Method == echo.POST {
@@ -20,10 +20,12 @@ func AddHandler(c echo.Context) error {
 
 		tvMazeService := service.NewTvMazeSearchService(logger)
 
-		var shows []schema.TvMazeResponse
-		tvMazeService.SearchByName(query, &shows)
+		shows, err := tvMazeService.SearchByName(query)
+		if err != nil {
+			return err
+		}
 
-		component := components.SearchResults(shows)
+		component := search.SearchResults(*shows)
 
 		component.Render(c.Request().Context(), c.Response())
 		return nil

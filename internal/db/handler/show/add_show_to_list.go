@@ -6,7 +6,6 @@ import (
 	"gorgon/external/tvmaze/service"
 	"gorgon/internal/db/model"
 	"gorgon/pkg/schemas"
-	"gorgon/pkg/schemas/dtos"
 	"gorgon/pkg/services"
 	"log/slog"
 	"strconv"
@@ -49,20 +48,20 @@ func AddShowToList(c echo.Context) error {
 
 	tvMazeService := service.NewTvMazeSearchService(logger)
 
-	var showDto dtos.ShowDto
-	if err := tvMazeService.SearchByTvMazeId(request.Id, &showDto); err != nil {
+	showDto, err := tvMazeService.SearchByTvMazeId(request.Id)
+	if err != nil {
 		schemas.SendError(c, 500, err.Error())
 		return err
 	}
 
-	var episodesDto []dtos.EpisodeDto
-	if err := tvMazeService.SearchEpisodes(request.Id, &episodesDto); err != nil {
+	episodesDto, err := tvMazeService.SearchEpisodes(request.Id)
+	if err != nil {
 		schemas.SendError(c, 500, err.Error())
 		return err
 	}
 
-	var seasonsDto []dtos.SeasonDto
-	if err := tvMazeService.SearchSeasons(request.Id, &seasonsDto); err != nil {
+	seasonsDto, err := tvMazeService.SearchSeasons(request.Id)
+	if err != nil {
 		schemas.SendError(c, 500, err.Error())
 		return err
 	}
@@ -79,8 +78,8 @@ func AddShowToList(c echo.Context) error {
 		Summary:   showDto.Summary,
 		Updated:   showDto.Updated,
 
-		Seasons:  make([]model.Season, len(seasonsDto)),
-		Episodes: make([]model.Episode, len(episodesDto)),
+		Seasons:  make([]model.Season, len(*seasonsDto)),
+		Episodes: make([]model.Episode, len(*episodesDto)),
 
 		Externals: model.Externals{
 			Tvrage:   showDto.Externals.TvRage,
@@ -93,7 +92,7 @@ func AddShowToList(c echo.Context) error {
 		},
 	}
 
-	for i, season := range seasonsDto {
+	for i, season := range *seasonsDto {
 		show.Seasons[i] = model.Season{
 			ShowId:   showDto.ShowID,
 			SeasonId: season.ShowId,
@@ -101,7 +100,7 @@ func AddShowToList(c echo.Context) error {
 		}
 	}
 
-	for i, episode := range episodesDto {
+	for i, episode := range *episodesDto {
 		show.Episodes[i] = model.Episode{
 			ShowId:   episode.ShowId,
 			Name:     episode.Name,

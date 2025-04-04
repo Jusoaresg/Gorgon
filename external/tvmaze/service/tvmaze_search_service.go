@@ -24,47 +24,53 @@ func NewTvMazeSearchService(logger *slog.Logger) *TvMazeSearchService {
 	}
 }
 
-func (t *TvMazeSearchService) SearchByName(name string, model *[]schema.TvMazeResponse) error {
+func (t *TvMazeSearchService) SearchByName(name string) (*[]schema.TvMazeResponse, error) {
+	var model []schema.TvMazeResponse
 	if err := t.APIService.Get(fmt.Sprintf("/search/shows?q=%s", url.QueryEscape(name)), &model); err != nil {
 		t.Logger.Error("Error while searching for name", slog.String("error", err.Error()))
-		return err
+		return nil, err
 	}
-	return nil
+	return &model, nil
 }
 
-func (t *TvMazeSearchService) SearchByTvMazeId(id int, model *dtos.ShowDto) error {
+func (t *TvMazeSearchService) SearchByTvMazeId(id int) (*dtos.ShowDto, error) {
+	var model dtos.ShowDto
 	if err := t.APIService.Get(fmt.Sprintf("/shows/%d", id), &model); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &model, nil
 }
 
-func (t *TvMazeSearchService) SearchByTheTvDbId(id string, model *dtos.ShowDto) error {
+func (t *TvMazeSearchService) SearchByTheTvDbId(id string) (*dtos.ShowDto, error) {
+	var model dtos.ShowDto
 	if err := t.APIService.Get(fmt.Sprintf("/lookup/shows?thetvdb=%s", t.Url, id), &model); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &model, nil
 }
 
-func (t *TvMazeSearchService) SearchByImdb(id string, model *dtos.ShowDto) error {
+func (t *TvMazeSearchService) SearchByImdb(id string) (*dtos.ShowDto, error) {
+	var model dtos.ShowDto
 	if err := t.APIService.Get(fmt.Sprintf("/lookup/shows?imdb=%s", t.Url, id), &model); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &model, nil
 }
 
 // Episodes
-func (t *TvMazeSearchService) SearchEpisodes(id int, model *[]dtos.EpisodeDto) error {
+func (t *TvMazeSearchService) SearchEpisodes(id int) (*[]dtos.EpisodeDto, error) {
+	var model []dtos.EpisodeDto
 	if err := t.APIService.Get(fmt.Sprintf("/shows/%d/episodes", id), &model); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &model, nil
 }
 
 // Seasons
-func (t *TvMazeSearchService) SearchSeasons(id int, model *[]dtos.SeasonDto) error {
+func (t *TvMazeSearchService) SearchSeasons(id int) (*[]dtos.SeasonDto, error) {
+	var model []dtos.SeasonDto
 	if err := t.APIService.Get(fmt.Sprintf("/shows/%d/seasons", id), &model); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &model, nil
 }

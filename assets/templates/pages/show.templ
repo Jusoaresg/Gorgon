@@ -1,0 +1,92 @@
+package pages
+
+import "gorgon/assets/templates/layouts"
+import "gorgon/internal/db/model"
+import "strconv"
+import "time"
+
+templ Show(title string, show model.Show) {
+	<head>
+		<link href="css/pages/show.css" rel="stylesheet"/>
+	</head>
+	@layouts.Base(title) {
+		<div class="show-container">
+			<div class="show-header">
+				<h1>{ show.Name }</h1>
+				<div class="show-meta">
+					<span class="show-status">{ show.Status }</span>
+					if show.Premiered != "" {
+						<span class="show-date">{ show.Premiered } - { show.Ended }</span>
+					}
+					if show.Language != "" {
+						<span class="show-language">{ show.Language }</span>
+					}
+				</div>
+			</div>
+			<div class="show-overview">
+				<div class="show-poster">
+					if show.Image.Medium != "" {
+						<img src={ show.Image.Medium } alt={ show.Name + " Poster" }/>
+					} else {
+						<div class="placeholder-poster">
+							<span>{ string([]rune(show.Name)[0]) }</span>
+						</div>
+					}
+				</div>
+				<div class="show-summary">
+					@templ.Raw(show.Summary)
+				</div>
+			</div>
+			<div class="seasons-navigation">
+				for i := 0; i < len(show.Seasons); i++ {
+					<a href={ templ.SafeURL("#season-" + strconv.FormatInt(int64(show.Seasons[i].Number), 10)) } class="season-pill">
+						Season { strconv.FormatInt(int64(show.Seasons[i].Number), 10) }
+					</a>
+				}
+			</div>
+			for i := len(show.Seasons)-1; i >= 0; i-- {
+				<div id={ "season-" + strconv.FormatInt(int64(show.Seasons[i].Number), 10) } class="season-block">
+					<h2>Season { strconv.FormatInt(int64(show.Seasons[i].Number), 10) }</h2>
+					<div class="episodes-container">
+						for e := 0; e < len(show.Episodes); e++ {
+							if show.Episodes[e].Season == show.Seasons[i].Number {
+								<div class="episode-card">
+									<div class="episode-number">{ strconv.FormatInt(int64(show.Episodes[e].Number), 10) }</div>
+									<div class="episode-content">
+										<h3 class="episode-title">{ show.Episodes[e].Name }</h3>
+										<div class="episode-date">
+											if show.Episodes[e].AirStamp != "" {
+												{ formatDate(show.Episodes[e].AirStamp) }
+											}
+										</div>
+										if show.Episodes[e].Summary != "" {
+											<div class="episode-summary">
+												@templ.Raw(show.Episodes[e].Summary)
+											</div>
+										}
+									</div>
+								</div>
+							}
+						}
+					</div>
+				</div>
+			}
+		</div>
+	}
+}
+
+// Helper function to format date
+func formatDate(dateStr string) string {
+	if dateStr == "" {
+		return ""
+	}
+
+	// Parse the ISO8601 date format
+	t, err := time.Parse(time.RFC3339, dateStr)
+	if err != nil {
+		return dateStr
+	}
+
+	// Format as Month Day, Year
+	return t.Format("January 2, 2006")
+}

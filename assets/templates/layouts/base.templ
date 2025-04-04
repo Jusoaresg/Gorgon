@@ -1,6 +1,6 @@
 package layouts
 
-import "gorgon/assets/templates/components"
+import "gorgon/assets/templates/components/nav"
 
 templ Base(title string) {
 	<!DOCTYPE html>
@@ -17,7 +17,7 @@ templ Base(title string) {
 		</head>
 		<body>
 			<div class="container">
-				@components.Nav()
+				@nav.Nav()
 				<div class="content">
 					{ children... }
 				</div>

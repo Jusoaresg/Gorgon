@@ -2,7 +2,6 @@ package handler
 
 import (
 	"gorgon/config"
-	"gorgon/external/tvmaze/schema"
 	"gorgon/external/tvmaze/service"
 	"gorgon/pkg/schemas"
 	"log/slog"
@@ -32,8 +31,8 @@ func SearchShowByName(c echo.Context) error {
 
 	tvMazeService := service.NewTvMazeSearchService(logger)
 
-	var response []schema.TvMazeResponse
-	if err := tvMazeService.SearchByName(request.Name, &response); err != nil {
+	response, err := tvMazeService.SearchByName(request.Name)
+	if err != nil {
 		logger.Error("Error while searching for name", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, "Error while searching by name")
 		return err

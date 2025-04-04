@@ -1,4 +1,6 @@
-package components
+package search
+
+import "gorgon/assets/templates/components"
 
 templ SearchForm(hxPost, hxTarget, hxIndicator, hxTrigger, placeholder string, hasButton bool) {
 	<style>
@@ -41,6 +43,6 @@ templ SearchForm(hxPost, hxTarget, hxIndicator, hxTrigger, placeholder string, h
 				}
 			</div>
 		</form>
-		@Spinner()
+		@components.Spinner()
 	</div>
 }

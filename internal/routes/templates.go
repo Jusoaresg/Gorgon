@@ -15,15 +15,18 @@ func SetupTemplatesRouter(r *echo.Group) {
 
 	templatesRouter := r.Group("")
 	{
-		templatesRouter.GET("/", handler.ShowsListHandler)
+		templatesRouter.GET("/", handler.RenderShowsList)
 		logger.Info("GET route added to /")
-		templatesRouter.POST("/", handler.ShowsListHandler)
+		templatesRouter.POST("/", handler.RenderShowsList)
 		logger.Info("POST route added to /")
 
-		templatesRouter.GET("/add", handler.AddHandler)
-		logger.Info("GET route added to /add")
-		templatesRouter.POST("/add", handler.AddHandler)
-		logger.Info("POST route added to /add")
+		templatesRouter.GET("/add-show", handler.RenderAddShow)
+		logger.Info("GET route added to /add-show")
+		templatesRouter.POST("/add-show", handler.RenderAddShow)
+		logger.Info("POST route added to /add-show")
+
+		templatesRouter.GET("/show", handler.RenderShow)
+		logger.Info("GET route added to /show")
 
 	}
 	logger.Info("Templates routes added successfully", slog.String("endpoint", "/"))

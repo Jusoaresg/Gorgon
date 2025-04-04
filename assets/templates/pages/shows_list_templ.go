@@ -10,7 +10,8 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import "gorgon/internal/db/model"
 import "gorgon/assets/templates/layouts"
-import "gorgon/assets/templates/components"
+import "gorgon/assets/templates/components/search"
+import "gorgon/assets/templates/components/shows_list"
 
 func ShowsList(title string, shows []model.Show) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -49,7 +50,7 @@ func ShowsList(title string, shows []model.Show) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = components.SearchForm("/", ".shows-grid", ".spinning", "keyup, changed delay:500ms", "Filter the show", false).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = search.SearchForm("/", ".shows-grid", ".spinning", "keyup, changed delay:500ms", "Filter the show", false).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -62,7 +63,7 @@ func ShowsList(title string, shows []model.Show) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = components.ShowGridShowsList(shows).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = shows_list.ShowGridShowsList(shows).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

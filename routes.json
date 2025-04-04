@@ -2,7 +2,7 @@
   {
     "method": "POST",
     "path": "/api/v1/prowlarr/search",
-    "name": "gorgon/external/prowlarr/handler.SearchAnimes"
+    "name": "gorgon/external/prowlarr/handler.SearchShows"
   },
   {
     "method": "POST",
@@ -11,38 +11,8 @@
   },
   {
     "method": "GET",
-    "path": "/add",
-    "name": "gorgon/internal/templates/handler.AddHandler"
-  },
-  {
-    "method": "GET",
-    "path": "/docs",
-    "name": "gorgon/internal/routes.InitializeRoutes.func1"
-  },
-  {
-    "method": "POST",
-    "path": "/api/v1/tvmaze/search/name",
-    "name": "gorgon/external/tvmaze/handler.SearchShowByName"
-  },
-  {
-    "method": "GET",
-    "path": "/api/v1/database/show",
-    "name": "gorgon/internal/db/handler/show.ListShows"
-  },
-  {
-    "method": "GET",
-    "path": "/api/v1/prowlarr/indexer",
-    "name": "gorgon/external/prowlarr/handler.GetIndexer"
-  },
-  {
-    "method": "GET",
-    "path": "/api/v1/qbittorrentinfo",
-    "name": "gorgon/external/qbittorrent/handler.CheckTorrentInfo"
-  },
-  {
-    "method": "GET",
-    "path": "/css*",
-    "name": "github.com/labstack/echo/v4.(*Group).StaticFS.StaticDirectoryHandler.func1"
+    "path": "/",
+    "name": "gorgon/internal/templates/handler.ShowsListHandler"
   },
   {
     "method": "POST",
@@ -50,14 +20,9 @@
     "name": "gorgon/internal/templates/handler.ShowsListHandler"
   },
   {
-    "method": "POST",
-    "path": "/api/v1/database/show",
-    "name": "gorgon/internal/db/handler/show.AddShowToList"
-  },
-  {
-    "method": "DELETE",
-    "path": "/api/v1/database/show",
-    "name": "gorgon/internal/db/handler/show.DeleteShow"
+    "method": "GET",
+    "path": "/add",
+    "name": "gorgon/internal/templates/handler.AddHandler"
   },
   {
     "method": "GET",
@@ -76,13 +41,48 @@
   },
   {
     "method": "GET",
-    "path": "/",
-    "name": "gorgon/internal/templates/handler.ShowsListHandler"
+    "path": "/api/v1/qbittorrentinfo",
+    "name": "gorgon/external/qbittorrent/handler.CheckTorrentInfo"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/tvmaze/search/name",
+    "name": "gorgon/external/tvmaze/handler.SearchShowByName"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/database/show",
+    "name": "gorgon/internal/db/handler/show.ListShows"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/prowlarr/indexer",
+    "name": "gorgon/external/prowlarr/handler.GetIndexer"
   },
   {
     "method": "POST",
     "path": "/add",
     "name": "gorgon/internal/templates/handler.AddHandler"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/database/show",
+    "name": "gorgon/internal/db/handler/show.AddShowToList"
+  },
+  {
+    "method": "GET",
+    "path": "/css*",
+    "name": "github.com/labstack/echo/v4.(*Group).StaticFS.StaticDirectoryHandler.func1"
+  },
+  {
+    "method": "GET",
+    "path": "/docs",
+    "name": "gorgon/internal/routes.InitializeRoutes.func1"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/database/show",
+    "name": "gorgon/internal/db/handler/show.DeleteShow"
   },
   {
     "method": "GET",

@@ -1,12 +1,13 @@
-package components
+package search
 
 import "gorgon/external/tvmaze/schema"
+import "gorgon/assets/templates/components/add_show"
 
 templ SearchResults(shows []schema.TvMazeResponse) {
 	<div id="search-results" class="results-container">
 		if len(shows) > 0 {
 			for _, show := range shows {
-				@ShowCard(show.Show)
+				@add_show.ShowCard(show.Show)
 			}
 		} else {
 			<div class="empty-state">

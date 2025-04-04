@@ -4,7 +4,6 @@ import (
 	"gorgon/config"
 	"gorgon/external/tvmaze/service"
 	"gorgon/pkg/schemas"
-	"gorgon/pkg/schemas/dtos"
 	"log/slog"
 
 	"github.com/labstack/echo/v4"
@@ -32,8 +31,8 @@ func SearchShowByTvMazeId(c echo.Context) error {
 
 	tvMazeService := service.NewTvMazeSearchService(logger)
 
-	var response dtos.ShowDto
-	if err := tvMazeService.SearchByTvMazeId(request.Id, &response); err != nil {
+	response, err := tvMazeService.SearchByTvMazeId(request.Id)
+	if err != nil {
 		logger.Error("Error while searching for name", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, "Error while searching by name")
 		return err

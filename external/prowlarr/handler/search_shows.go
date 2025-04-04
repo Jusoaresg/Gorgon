@@ -13,8 +13,8 @@ import (
 
 // @BasePath /api/v1
 
-// @Summary Search Animes
-// @Description Search animes on prowlarr indexers
+// @Summary Search For Shows
+// @Description Search shows on prowlarr indexers
 // @Tags Prowlarr/Search
 // @Produce json
 // @Param request body schema.SearchRequest true "Request Body"
@@ -22,7 +22,7 @@ import (
 // @Failure 400 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /prowlarr/search [post]
-func SearchAnimes(c echo.Context) error {
+func SearchShows(c echo.Context) error {
 	logger := config.GetLogger()
 	logger.Info("Received request to Search Animes", slog.String("endpoint", "/api/v1/prowlarr/search"), slog.String("method", "POST"))
 
