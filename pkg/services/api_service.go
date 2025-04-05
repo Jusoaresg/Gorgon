@@ -65,15 +65,6 @@ func (a *APIService) Get(endpoint string, response interface{}) error {
 		return fmt.Errorf("Error while decoding response body: %w", err)
 	}
 
-	// if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-	// 	a.Logger.Error("Error decoding GET response body",
-	// 		slog.String("url", url),
-	// 		slog.Int("status", resp.StatusCode),
-	// 		slog.String("error", err.Error()),
-	// 	)
-	// 	return fmt.Errorf("Error while decoding response body: %w", err)
-	// }
-
 	a.Logger.Info("GET request successful",
 		slog.String("url", url),
 		slog.Int("status", resp.StatusCode),
@@ -90,7 +81,6 @@ func (a *APIService) GetWithHeaders(endpoint string, response interface{}, heade
 		return fmt.Errorf("Error while creating GET request: %w", err)
 	}
 
-	// Adiciona os cabeçalhos à requisição
 	for key, value := range headers {
 		req.Header.Set(key, value)
 	}
@@ -101,19 +91,17 @@ func (a *APIService) GetWithHeaders(endpoint string, response interface{}, heade
 	}
 	defer resp.Body.Close()
 
-	// Lê e imprime a resposta para depuração
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("Error reading response body: %w", err)
 	}
 
-	fmt.Println("Response Body:", string(body))
+	//fmt.Println("Response Body:", string(body))
 
 	if len(body) == 0 {
 		return fmt.Errorf("Empty response body")
 	}
 
-	// Tenta decodificar a resposta JSON
 	if err := json.Unmarshal(body, &response); err != nil {
 		return fmt.Errorf("Error while decoding response body: %w", err)
 	}

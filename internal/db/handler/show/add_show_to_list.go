@@ -107,9 +107,7 @@ func AddShowToList(c echo.Context) error {
 			Summary:  episode.Summary,
 			Number:   episode.Number,
 			Season:   episode.Season,
-			AirDate:  episode.AirDate,
 			AirStamp: episode.AirStamp,
-			AirTime:  episode.AirTime,
 		}
 	}
 

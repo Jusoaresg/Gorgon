@@ -24,6 +24,7 @@ func InitializeRoutes(e *echo.Echo) {
 	logger.Info("Initializing routes", slog.String("basePath", basePath))
 
 	v1 := e.Group(basePath)
+
 	SetupTvMazeRouter(v1)
 	logger.Debug("TvMaze route initialized sucessfully")
 	SetupDatabaseRouter(v1)

@@ -26,31 +26,11 @@ type Show struct {
 	Genres string `gorm:"type:text"` // Serializar e desserializar manualmente
 }
 
-type Season struct {
-	ID       uint `gorm:"primaryKey"`
-	ShowId   int  `gorm:"index"`
-	SeasonId int  `gorm:"index"`
-	Number   int
-}
-
-type Episode struct {
-	ID       uint `gorm:"primaryKey"`
-	ShowId   int  `gorm:"index"`
-	Name     string
-	Summary  string
-	Type     string
-	Number   int
-	Season   int
-	AirDate  string
-	AirStamp string
-	AirTime  string
-}
-
 type Schedule struct {
 	ID     uint `gorm:"primaryKey"`
 	ShowId int  `gorm:"index"`
 	Time   string
-	Days   string `gorm:"type:text"` // Serializar e desserializar manualmente
+	Days   string `gorm:"type:text"`
 }
 
 // Structs aninhadas

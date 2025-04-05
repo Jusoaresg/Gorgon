@@ -14,6 +14,5 @@ run-with-docs: docs
 
 build:
 	$(HOME)/go/bin/swag init
-	templ fmt .
 	templ generate
 	go build -o ./tmp/main .

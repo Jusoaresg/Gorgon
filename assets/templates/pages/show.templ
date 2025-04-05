@@ -126,7 +126,6 @@ templ Show(title string, show model.Show) {
 }
 
 templ EpisodeCard(episode model.Episode, seasonNumber int) {
-	// Mock status for demo - in real app this would come from your database
 	@episodeCard(episode, seasonNumber, getEpisodeStatus(episode))
 }
 
@@ -151,6 +150,7 @@ templ episodeCard(episode model.Episode, seasonNumber int, status string) {
 					<button class={ "episode-btn episode-status-toggle " + getStatusClass(status) } title="Toggle Status">
 						<i class={ getStatusIcon(status) }></i>
 					</button>
+					//@EpisodeRow(episode)
 				</div>
 			</div>
 			<div class="episode-info">
@@ -172,6 +172,34 @@ templ episodeCard(episode model.Episode, seasonNumber int, status string) {
 	</div>
 }
 
+templ EpisodeRow(episode model.Episode) {
+	<tr>
+		<td>{ strconv.Itoa(int(episode.Number)) }</td>
+		<td>{ episode.Name }</td>
+		<td>
+			<select
+				class="status-dropdown p-1 rounder border border-gray-300"
+				hx-post={ "/api/episodes/" + strconv.Itoa(int(episode.ID)) + "/status" }
+				hx-trigger="change"
+				hx-swap="none"
+			>
+				<option value="missing" if episode.Tracking == "missing" {
+	selected
+}>Missing</option>
+				<option value="wanted" if episode.Tracking == "wanted" {
+	selected
+}>Wanted</option>
+				<option value="skipped" if episode.Tracking == "skipped" {
+	selected
+}>Skipped</option>
+				<option value="snatched" if episode.Tracking == "snatched" {
+	selected
+}>Snatched</option>
+			</select>
+		</td>
+	</tr>
+}
+
 // Helper function to format date
 func formatDate(dateStr string) string {
 	if dateStr == "" {
@@ -188,15 +216,8 @@ func formatDate(dateStr string) string {
 
 // Helper functions for episode status
 func getEpisodeStatus(episode model.Episode) string {
-	// Mock status assignment based on episode info
-	// In a real app, this would come from your database
-	// Statuses: "downloaded", "missing", "wanted", "skipped"
-
-	// For demo: episodes with even numbers are "downloaded", odd are "missing"
-	if episode.Number%2 == 0 {
-		return "downloaded"
-	}
-	return "missing"
+	// Statuses: "downloaded", "missing", "wanted", "skipped", "snatched"
+	return string(episode.Tracking)
 }
 
 func getStatusClass(status string) string {
@@ -209,6 +230,8 @@ func getStatusClass(status string) string {
 		return "status-wanted"
 	case "skipped":
 		return "status-skipped"
+	case "snatched":
+		return "status-snatched"
 	default:
 		return "status-unknown"
 	}
@@ -224,6 +247,8 @@ func getStatusIcon(status string) string {
 		return "fas fa-clock"
 	case "skipped":
 		return "fas fa-ban"
+	case "snatched":
+		return "fas fa-magnet"
 	default:
 		return "fas fa-question"
 	}

@@ -11,7 +11,7 @@ import (
 
 func InitializeDb() (*gorm.DB, error) {
 
-	dbPath := "assets/anime.db"
+	dbPath := "assets/gorgon.db"
 
 	_, err := os.Stat(dbPath)
 	if os.IsNotExist(err) {

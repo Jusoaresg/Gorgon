@@ -313,6 +313,10 @@
 	background-color: #95a5a6;
 }
 
+.status-snatched {
+	background-color: #3498db !important;
+}
+
 /* Air Date Status */
 .aired {
 	color: #2ecc71;

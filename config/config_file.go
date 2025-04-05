@@ -23,20 +23,17 @@ func InitializeOrUpdateConfigFile() error {
 		DefaultInstalledShowFolder: "$HOME/Videos/show",
 	}
 
-	// Verifica se existe o arquivo
 	if _, err := os.Stat(ConfigPath); os.IsNotExist(err) {
-		// Não existe: cria com os valores default
 		fmt.Println("Creating new config file...")
 		return saveConfig(config)
 	}
 
-	// Já existe: carrega o existente
 	existingConfig, err := LoadConfig()
 	if err != nil {
 		return err
 	}
 
-	// Preenche os campos faltantes
+	//Fill in the missing fields
 	existingVal := reflect.ValueOf(existingConfig).Elem()
 	defaultVal := reflect.ValueOf(config)
 	for i := 0; i < existingVal.NumField(); i++ {
