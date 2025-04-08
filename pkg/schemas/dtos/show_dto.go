@@ -1,5 +1,7 @@
 package dtos
 
+import "gorgon/internal/db/model"
+
 type ShowDto struct {
 	ShowID    int    `json:"id"`
 	Name      string `json:"name"`
@@ -51,4 +53,54 @@ type EpisodeDto struct {
 	AirStamp string `json:"airStamp"`
 	AirTime  string `json:"airTime"`
 	Summary  string `json:"summary"`
+}
+
+func (d *ShowDto) ToModel(episodes *[]EpisodeDto, seasons *[]SeasonDto) *model.Show {
+
+	show := model.Show{
+		ShowID:    d.ShowID,
+		Name:      d.Name,
+		Type:      d.Type,
+		Language:  d.Language,
+		Status:    d.Status,
+		Premiered: d.Premiered,
+		Ended:     d.Ended,
+		Rating:    d.Rating.Average,
+		Summary:   d.Summary,
+		Updated:   d.Updated,
+
+		Seasons:  make([]model.Season, len(*seasons)),
+		Episodes: make([]model.Episode, len(*episodes)),
+
+		Externals: model.Externals{
+			Tvrage:   d.Externals.TvRage,
+			Thetvdvb: d.Externals.TheTvdb,
+			Imdb:     d.Externals.Imdb,
+		},
+		Image: model.Image{
+			Original: d.Image.Original,
+			Medium:   d.Image.Medium,
+		},
+	}
+
+	for i, season := range *seasons {
+		show.Seasons[i] = model.Season{
+			ShowId:   d.ShowID,
+			SeasonId: season.ShowId,
+			Number:   season.Number,
+		}
+	}
+
+	for i, episode := range *episodes {
+		show.Episodes[i] = model.Episode{
+			ShowId:   episode.ShowId,
+			Name:     episode.Name,
+			Summary:  episode.Summary,
+			Number:   episode.Number,
+			Season:   episode.Season,
+			AirStamp: episode.AirStamp,
+		}
+	}
+
+	return &show
 }

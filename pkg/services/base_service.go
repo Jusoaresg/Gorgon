@@ -27,6 +27,10 @@ func (b *BaseService) Get(model interface{}, id int) error {
 	return b.DB.First(model, "id = ?", id).Error
 }
 
+func (b *BaseService) UpdateByID(id int, model interface{}) error {
+	return b.DB.Model(model).Where("id = ?", id).Updates(model).Error
+}
+
 func (b *BaseService) GetWithPreload(model interface{}, id int, relations ...string) error {
 	query := b.DB
 	for _, relation := range relations {

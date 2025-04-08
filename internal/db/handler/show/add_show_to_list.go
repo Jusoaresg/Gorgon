@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"gorgon/config"
 	"gorgon/external/tvmaze/service"
-	"gorgon/internal/db/model"
+	showManager "gorgon/internal/db/service"
 	"gorgon/pkg/schemas"
 	"gorgon/pkg/services"
 	"log/slog"
@@ -47,6 +47,7 @@ func AddShowToList(c echo.Context) error {
 	}
 
 	tvMazeService := service.NewTvMazeSearchService(logger)
+	showManagerService := showManager.NewShowManagerService(logger)
 
 	showDto, err := tvMazeService.SearchByTvMazeId(request.Id)
 	if err != nil {
@@ -54,62 +55,19 @@ func AddShowToList(c echo.Context) error {
 		return err
 	}
 
-	episodesDto, err := tvMazeService.SearchEpisodes(request.Id)
+	episodesDto, err := showManagerService.GetEpisodes(showDto.ShowID)
 	if err != nil {
 		schemas.SendError(c, 500, err.Error())
 		return err
 	}
 
-	seasonsDto, err := tvMazeService.SearchSeasons(request.Id)
+	seasonsDto, err := showManagerService.GetSeasons(showDto.ShowID)
 	if err != nil {
 		schemas.SendError(c, 500, err.Error())
 		return err
 	}
 
-	show := model.Show{
-		ShowID:    showDto.ShowID,
-		Name:      showDto.Name,
-		Type:      showDto.Type,
-		Language:  showDto.Language,
-		Status:    showDto.Status,
-		Premiered: showDto.Premiered,
-		Ended:     showDto.Ended,
-		Rating:    showDto.Rating.Average,
-		Summary:   showDto.Summary,
-		Updated:   showDto.Updated,
-
-		Seasons:  make([]model.Season, len(*seasonsDto)),
-		Episodes: make([]model.Episode, len(*episodesDto)),
-
-		Externals: model.Externals{
-			Tvrage:   showDto.Externals.TvRage,
-			Thetvdvb: showDto.Externals.TheTvdb,
-			Imdb:     showDto.Externals.Imdb,
-		},
-		Image: model.Image{
-			Original: showDto.Image.Original,
-			Medium:   showDto.Image.Medium,
-		},
-	}
-
-	for i, season := range *seasonsDto {
-		show.Seasons[i] = model.Season{
-			ShowId:   showDto.ShowID,
-			SeasonId: season.ShowId,
-			Number:   season.Number,
-		}
-	}
-
-	for i, episode := range *episodesDto {
-		show.Episodes[i] = model.Episode{
-			ShowId:   episode.ShowId,
-			Name:     episode.Name,
-			Summary:  episode.Summary,
-			Number:   episode.Number,
-			Season:   episode.Season,
-			AirStamp: episode.AirStamp,
-		}
-	}
+	show := showDto.ToModel(episodesDto, seasonsDto)
 
 	baseService := services.NewBaseService()
 	if err := baseService.Add(&show); err != nil {

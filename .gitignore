@@ -1,3 +1,4 @@
 assets/config.json
+assets/last_update.txt
 tmp/*
 *.db

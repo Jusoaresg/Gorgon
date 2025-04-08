@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gorgon/config"
 	"gorgon/internal/routes"
+	"gorgon/internal/scheduler"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -34,6 +35,7 @@ func main() {
 	config.Init()
 
 	routes.InitializeRoutes(e)
+	scheduler.StartDailyUpdate(scheduler.UpdateAllShows)
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", config.Port)))
 }

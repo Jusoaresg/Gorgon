@@ -183,18 +183,30 @@ templ EpisodeRow(episode model.Episode) {
 				hx-trigger="change"
 				hx-swap="none"
 			>
-				<option value="missing" if episode.Tracking == "missing" {
-	selected
-}>Missing</option>
-				<option value="wanted" if episode.Tracking == "wanted" {
-	selected
-}>Wanted</option>
-				<option value="skipped" if episode.Tracking == "skipped" {
-	selected
-}>Skipped</option>
-				<option value="snatched" if episode.Tracking == "snatched" {
-	selected
-}>Snatched</option>
+				<option
+					value="missing"
+					if episode.Tracking == "missing" {
+						selected
+					}
+				>Missing</option>
+				<option
+					value="wanted"
+					if episode.Tracking == "wanted" {
+						selected
+					}
+				>Wanted</option>
+				<option
+					value="skipped"
+					if episode.Tracking == "skipped" {
+						selected
+					}
+				>Skipped</option>
+				<option
+					value="snatched"
+					if episode.Tracking == "snatched" {
+						selected
+					}
+				>Snatched</option>
 			</select>
 		</td>
 	</tr>
