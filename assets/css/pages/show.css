@@ -130,6 +130,10 @@
 	background-color: #2ecc71;
 }
 
+button.action-btn.delete-show-btn:hover {
+	background-color: #e74c3c;
+}
+
 /* Seasons Navigation */
 .seasons-navigation {
 	display: flex;

@@ -104,7 +104,7 @@ func ShowCard(show dtos.ShowDto, isAdded bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<button class=\"add-button\" hx-post=\"/api/v1/database/show\" hx-swap=\"outerHTML\">Add</button>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<button class=\"add-button\" hx-post=\"/api/v1/database/show\" hx-target=\"closest .show-result\" hx-swap=\"outerHTML\">Add</button>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

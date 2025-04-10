@@ -21,6 +21,8 @@ import (
 // @license.name  Apache 2.0
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 func main() {
+	config.Init()
+
 	e := echo.New()
 
 	cors := middleware.CORSConfig{
@@ -31,8 +33,7 @@ func main() {
 		AllowCredentials: true,
 	}
 	e.Use(middleware.CORSWithConfig(cors))
-
-	config.Init()
+	e.Use(middleware.Logger())
 
 	routes.InitializeRoutes(e)
 	scheduler.StartDailyUpdate(scheduler.UpdateAllShows)

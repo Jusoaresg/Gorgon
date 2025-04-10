@@ -56,9 +56,6 @@ func RedirectToShow(c echo.Context) error {
 		return err
 	}
 
-	// c.Redirect(200, fmt.Sprintf("/%s/%s", "show", id))
-	// c.Redirect(200, "/teste")
 	c.Response().Header().Set("HX-Redirect", fmt.Sprintf("/show/%d", show.ID))
-	// return c.NoContent(204)
 	return nil
 }

@@ -24,6 +24,26 @@ templ Show(title string, show model.Show) {
 						<span class="show-language">{ show.Language }</span>
 					}
 				</div>
+
+				<div class="show-actions">
+					<button class="action-btn refresh-btn">
+						<i class="fas fa-sync-alt"></i> Refresh Show Info
+					</button>
+					<button class="action-btn search-all-btn">
+						<i class="fas fa-search"></i> Search All Missing
+					</button>
+					<form>
+						<input hidden value={ strconv.Itoa(show.ID) } name="id"/>
+						<button
+							class="action-btn delete-show-btn"
+							hx-delete="/api/v1/database/show"
+							hx-confirm="Are you sure?"
+						>
+							<i class="fas fa-trash"></i> Delete Show
+						</button>
+					</form>
+				</div>
+
 			</div>
 			<div class="show-overview">
 				<div class="show-poster">
@@ -37,14 +57,6 @@ templ Show(title string, show model.Show) {
 				</div>
 				<div class="show-summary">
 					@templ.Raw(show.Summary)
-					<div class="show-actions">
-						<button class="action-btn refresh-btn">
-							<i class="fas fa-sync-alt"></i> Refresh Show Info
-						</button>
-						<button class="action-btn search-all-btn">
-							<i class="fas fa-search"></i> Search All Missing
-						</button>
-					</div>
 				</div>
 			</div>
 			<div class="seasons-navigation">

@@ -22,6 +22,7 @@ templ ShowCard(show dtos.ShowDto, isAdded bool) {
 				<button
 					class="add-button"
 					hx-post="/api/v1/database/show"
+					hx-target="closest .show-result"
 					hx-swap="outerHTML"
 				>Add</button>
 			}

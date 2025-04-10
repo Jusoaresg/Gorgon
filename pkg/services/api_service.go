@@ -53,7 +53,6 @@ func (a *APIService) Get(endpoint string, response interface{}) error {
 	a.Logger.Debug("GET response",
 		slog.String("url", url),
 		slog.Int("status", resp.StatusCode),
-		slog.String("body", string(body)),
 	)
 
 	if err := json.Unmarshal(body, &response); err != nil {
