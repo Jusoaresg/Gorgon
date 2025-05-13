@@ -12,13 +12,14 @@ import (
 )
 
 type QBittorrentService struct {
-	APIService *services.APIService
-	Logger     *slog.Logger
-	username   string
-	password   string
-	host       string
-	port       string
-	sid        string // API KEY
+	APIService     *services.APIService
+	Logger         *slog.Logger
+	username       string
+	password       string
+	host           string
+	port           string
+	DownloadFolder string // The client has to have access to this folder
+	sid            string // API KEY
 }
 
 func NewQBittorrentService(logger *slog.Logger) (*QBittorrentService, error) {
@@ -28,14 +29,16 @@ func NewQBittorrentService(logger *slog.Logger) (*QBittorrentService, error) {
 	}
 	host := configFile.QBittorrentHost
 	port := configFile.QBittorrentPort
+	downloadFolder := configFile.QBittorrentDownloadFolder
 
 	return &QBittorrentService{
-		APIService: services.NewAPIService(fmt.Sprintf("%s:%s", host, port), logger),
-		Logger:     logger,
-		username:   configFile.QBittorrentUsername,
-		password:   configFile.QBittorrentPassword,
-		host:       host,
-		port:       port,
+		APIService:     services.NewAPIService(fmt.Sprintf("%s:%s", host, port), logger),
+		Logger:         logger,
+		username:       configFile.QBittorrentUsername,
+		password:       configFile.QBittorrentPassword,
+		DownloadFolder: downloadFolder,
+		host:           host,
+		port:           port,
 	}, nil
 }
 
@@ -65,12 +68,7 @@ func (q *QBittorrentService) Login(request *schema.QBittorrentLoginRequest) erro
 	return fmt.Errorf("QBittorrent SID not found")
 }
 
-func (q *QBittorrentService) Logout() error {
-	return nil
-}
-
-func (q *QBittorrentService) AddTorrent(url string) error {
-
+func (q *QBittorrentService) SidVerification() error {
 	if q.sid == "" {
 		req := schema.QBittorrentLoginRequest{
 			Username: q.username,
@@ -81,13 +79,25 @@ func (q *QBittorrentService) AddTorrent(url string) error {
 		}
 
 	}
+	return nil
+}
+
+func (q *QBittorrentService) Logout() error {
+	return nil
+}
+
+func (q *QBittorrentService) AddTorrent(url string) error {
+
+	if err := q.SidVerification(); err != nil {
+		return err
+	}
 
 	var requestBody bytes.Buffer
 	writer := multipart.NewWriter(&requestBody)
 
 	writer.WriteField("urls", url)
-	writer.WriteField("savepath", "/downloads")
-	writer.WriteField("category", "anime")
+	writer.WriteField("savepath", q.DownloadFolder)
+	writer.WriteField("category", "gorgon")
 	writer.WriteField("skip_checking", "false")
 	writer.WriteField("root_folder", "false")
 	writer.WriteField("paused", "true")
@@ -109,22 +119,33 @@ func (q *QBittorrentService) AddTorrent(url string) error {
 // Filter can be "all", "downloading", "seeding", "completed", paused", "active", "inactive", "resumed", "staled", "stalled_uploading", stalled_downloading", "errored"
 func (q *QBittorrentService) CheckTorrents(filter string, response *[]schema.CheckTorrentResponse) error {
 
-	if q.sid == "" {
-		req := schema.QBittorrentLoginRequest{
-			Username: q.username,
-			Password: q.password,
-		}
-		if err := q.Login(&req); err != nil {
-			return fmt.Errorf("error while logging on qbittorrent: %w", err)
-		}
-
+	if err := q.SidVerification(); err != nil {
+		return err
 	}
+
 	headers := map[string]string{
 		"Cookie": fmt.Sprintf("SID=%s", q.sid),
 	}
 
-	if err := q.APIService.GetWithHeaders("/api/v2/torrents/info", &response, headers); err != nil {
+	url := fmt.Sprintf("/api/v2/torrents/info?filter=%s", filter)
+	//TODO: Logger message with url and maybe the headers
+
+	if err := q.APIService.GetWithHeaders(url, &response, headers); err != nil {
 		return fmt.Errorf("error while get torrent info: %w", err)
+	}
+
+	return nil
+}
+
+func (q *QBittorrentService) CheckContent(hash string, content *schema.TorrentContent) error {
+
+	if err := q.SidVerification(); err != nil {
+		return err
+	}
+
+	url := fmt.Sprintf("/api/v2/torrents/files?hash=%s", hash)
+	if err := q.APIService.Get(url, &content); err != nil {
+		return err
 	}
 
 	return nil
