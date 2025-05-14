@@ -1,6 +1,8 @@
 package dtos
 
-import "gorgon/internal/db/model"
+import (
+	"gorgon/internal/db/model"
+)
 
 type ShowDto struct {
 	ShowID    int    `json:"id"`
@@ -53,6 +55,44 @@ type EpisodeDto struct {
 	AirStamp string `json:"airStamp"`
 	AirTime  string `json:"airTime"`
 	Summary  string `json:"summary"`
+}
+
+func (d *ShowDto) CreateDto(
+	ShowId, Updated int,
+	Name, Type, Language, Status, Premiered, Ended, Summary string,
+	Rating struct {
+		Average *float64 `json:"average"`
+	},
+	Scedule struct {
+		Days []string
+		Time string
+	},
+	Externals struct {
+		Imdb    string `json:"imdb"`
+		TheTvdb int    `json:"thetvdb"`
+		TvRage  int    `json:"tvrage"`
+	},
+	Image struct {
+		Medium   string `json:"medium"`
+		Original string `json:"original"`
+	},
+	Genres []string,
+) *ShowDto {
+
+	return &ShowDto{
+		ShowID:    ShowId,
+		Name:      Name,
+		Type:      Type,
+		Language:  Language,
+		Status:    Status,
+		Premiered: Premiered,
+		Ended:     Ended,
+		Summary:   Summary,
+		Rating:    Rating,
+		Externals: Externals,
+		Image:     Image,
+		Genres:    Genres,
+	}
 }
 
 func (d *ShowDto) ToModel(episodes *[]EpisodeDto, seasons *[]SeasonDto) *model.Show {

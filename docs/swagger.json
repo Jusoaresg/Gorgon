@@ -435,13 +435,9 @@
                 "summary": "Check Torrent info",
                 "parameters": [
                     {
-                        "description": "Request Body",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.CheckTorrentRequest"
-                        }
+                        "type": "string",
+                        "name": "status",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -564,14 +560,6 @@
             "type": "object",
             "properties": {
                 "magneticUrl": {
-                    "type": "string"
-                }
-            }
-        },
-        "schema.CheckTorrentRequest": {
-            "type": "object",
-            "properties": {
-                "filter": {
                     "type": "string"
                 }
             }

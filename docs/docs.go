@@ -442,13 +442,9 @@ const docTemplate = `{
                 "summary": "Check Torrent info",
                 "parameters": [
                     {
-                        "description": "Request Body",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.CheckTorrentRequest"
-                        }
+                        "type": "string",
+                        "name": "status",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -571,14 +567,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "magneticUrl": {
-                    "type": "string"
-                }
-            }
-        },
-        "schema.CheckTorrentRequest": {
-            "type": "object",
-            "properties": {
-                "filter": {
                     "type": "string"
                 }
             }

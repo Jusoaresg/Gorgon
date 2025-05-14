@@ -5,6 +5,7 @@ import (
 	"gorgon/config"
 	"gorgon/internal/routes"
 	"gorgon/internal/scheduler"
+	"gorgon/internal/scheduler/cron"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -36,7 +37,9 @@ func main() {
 	e.Use(middleware.Logger())
 
 	routes.InitializeRoutes(e)
-	scheduler.StartDailyUpdate(scheduler.UpdateAllShows)
+	cron.StartDailyUpdate(scheduler.UpdateAllShows)
+	cron.StartSearchNewEpisodes(scheduler.SyncWantedEpisodes)
+	cron.StartVerifySnatched(scheduler.VerifySnatchedDownload)
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", config.Port)))
 }

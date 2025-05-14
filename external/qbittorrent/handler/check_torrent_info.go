@@ -18,7 +18,7 @@ import (
 // @Tags QBittorrent
 // @Accept json
 // @Produce json
-// @Param request body schema.CheckTorrentRequest true "Request Body"
+// @Param request query schema.CheckTorrentRequest true "Request Query Parameters"
 // @Success 200 {object} schema.CheckTorrentResponse
 // @Failure 400 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse
@@ -27,11 +27,11 @@ func CheckTorrentInfo(c echo.Context) error {
 	logger := config.GetLogger()
 	logger.Info("Received request to Check Torrent Info", slog.String("endpoint", "/api/v1/qbittorrent/info"))
 
-	var request schema.CheckTorrentRequest
-	if err := c.Bind(&request); err != nil {
-		logger.Error("Failed to bind request body", slog.String("error", err.Error()))
-		schemas.SendError(c, 500, "Failed to bind request body")
-		return err
+	status := c.QueryParam("status")
+	if status == "" {
+		logger.Error("Missing required 'status' query parameter")
+		schemas.SendError(c, 400, "Missing 'status' query parameter")
+		return fmt.Errorf("Missing 'status' query parameter")
 	}
 
 	torrentService, err := service.NewQBittorrentService(logger)
@@ -42,7 +42,7 @@ func CheckTorrentInfo(c echo.Context) error {
 	}
 
 	var response []schema.CheckTorrentResponse
-	if err := torrentService.CheckTorrents("all", &response); err != nil {
+	if err := torrentService.CheckTorrents(status, &response); err != nil {
 		logger.Error("Error while getting torrent info", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, fmt.Sprintf("Error get torrent info: %s", err.Error()))
 	}

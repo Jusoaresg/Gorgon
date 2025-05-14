@@ -6,6 +6,7 @@ import (
 	"gorgon/external/prowlarr/schema"
 	"gorgon/pkg/services"
 	"log/slog"
+	"net/url"
 )
 
 type ProwlarrSearchService struct {
@@ -28,7 +29,8 @@ func NewProwlarrSearchService(logger *slog.Logger) *ProwlarrSearchService {
 }
 
 func (p *ProwlarrSearchService) Search(request *schema.SearchRequest, model *[]schema.SearchResponse) error {
-	return p.APIService.Get(fmt.Sprintf("/api/v1/search?query='%s'&apikey=%s", request.Query, p.ApiKey), &model)
+	queryEscaped := url.QueryEscape(request.Query)
+	return p.APIService.Get(fmt.Sprintf("/api/v1/search?query='%s'&apikey=%s", queryEscaped, p.ApiKey), &model)
 }
 
 // func (p *ProwlarrSearchService) GetIndexer(id string, model *schema.IndexerResponse) error {

@@ -22,6 +22,7 @@ type SearchResponse struct {
 	Seeders     int     `json:"seeders"`
 	Leechers    int     `json:"leechers"`
 	Protocol    string  `json:"protocol"`
+	Grabs       int     `json:"grabs"`
 }
 
 func (s *SearchResponse) FormatSize() string {

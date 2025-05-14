@@ -43,7 +43,7 @@ func (t *TvMazeSearchService) SearchByTvMazeId(id int) (*dtos.ShowDto, error) {
 
 func (t *TvMazeSearchService) SearchByTheTvDbId(id string) (*dtos.ShowDto, error) {
 	var model dtos.ShowDto
-	if err := t.APIService.Get(fmt.Sprintf("/lookup/shows?thetvdb=%s", t.Url, id), &model); err != nil {
+	if err := t.APIService.Get(fmt.Sprintf("/lookup/shows?thetvdb=%s", id), &model); err != nil {
 		return nil, err
 	}
 	return &model, nil
@@ -51,7 +51,7 @@ func (t *TvMazeSearchService) SearchByTheTvDbId(id string) (*dtos.ShowDto, error
 
 func (t *TvMazeSearchService) SearchByImdb(id string) (*dtos.ShowDto, error) {
 	var model dtos.ShowDto
-	if err := t.APIService.Get(fmt.Sprintf("/lookup/shows?imdb=%s", t.Url, id), &model); err != nil {
+	if err := t.APIService.Get(fmt.Sprintf("/lookup/shows?imdb=%s", id), &model); err != nil {
 		return nil, err
 	}
 	return &model, nil

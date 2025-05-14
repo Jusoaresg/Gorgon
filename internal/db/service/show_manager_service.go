@@ -86,6 +86,16 @@ func (sm *ShowManagerService) UpdateShowWithRelations(show *model.Show) error {
 			existing.Number = season.Number
 
 			tx.Save(existing)
+		} else {
+			newSeason := model.Season{
+				ShowId:   dbShow.ID,
+				SeasonId: season.SeasonId,
+				Number:   season.Number,
+			}
+			if err := tx.Create(&newSeason).Error; err != nil {
+				//TODO: Error message
+				return err
+			}
 		}
 	}
 
@@ -108,6 +118,21 @@ func (sm *ShowManagerService) UpdateShowWithRelations(show *model.Show) error {
 			existing.AirStamp = episode.AirStamp
 
 			tx.Save(existing)
+		} else {
+			newEpisode := model.Episode{
+				ShowId:   dbShow.ID,
+				Name:     episode.Name,
+				Summary:  episode.Summary,
+				Type:     episode.Type,
+				Number:   episode.Number,
+				Season:   episode.Season,
+				AirStamp: episode.AirStamp,
+			}
+
+			if err := tx.Create(&newEpisode).Error; err != nil {
+				//TODO: Error message
+				return err
+			}
 		}
 	}
 
