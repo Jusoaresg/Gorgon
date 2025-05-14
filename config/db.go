@@ -27,6 +27,10 @@ func InitializeDb() (*gorm.DB, error) {
 		return nil, err
 	}
 
+	if err := db.Exec("PRAGMA foreign_keys = ON").Error; err != nil {
+		return nil, err
+	}
+
 	err = db.AutoMigrate(
 		&model.Show{},
 		&model.Episode{},
