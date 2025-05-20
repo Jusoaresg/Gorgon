@@ -45,6 +45,9 @@ func VerifySnatchedDownload() {
 				updated_episode := episode
 				updated_episode.Tracking = model.Tracking.Downloaded()
 				updated_episode.FilePath = &torrent.SavePath
+				qbittorrentService.CheckContent(torrent.Hash, &updated_episode.Content)
+				fmt.Println(updated_episode.Content)
+
 				baseService.UpdateByID(int(episode.ID), &updated_episode)
 				break
 			}

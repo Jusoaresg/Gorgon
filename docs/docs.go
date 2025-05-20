@@ -667,6 +667,9 @@ const docTemplate = `{
                 "fileName": {
                     "type": "string"
                 },
+                "grabs": {
+                    "type": "integer"
+                },
                 "guid": {
                     "type": "string"
                 },

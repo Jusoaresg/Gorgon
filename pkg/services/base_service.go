@@ -32,6 +32,10 @@ func (b *BaseService) UpdateByID(id int, model any) error {
 	return b.DB.Model(model).Where("id = ?", id).Updates(model).Error
 }
 
+func (b *BaseService) UpdateByIDWithSelect(id int, model any, selects ...string) error {
+	return b.DB.Model(model).Where("id = ?", id).Select(selects).Updates(model).Error
+}
+
 func (b *BaseService) GetWithPreload(model any, id int, relations ...string) error {
 	query := b.DB
 	for _, relation := range relations {

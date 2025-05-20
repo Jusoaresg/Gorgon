@@ -60,7 +60,7 @@ func DeleteShow(c echo.Context) error {
 	show := model.Show{}
 
 	baseService := services.NewBaseService()
-	if err := baseService.GetWithPreload(&show, id, "Episodes", "Seasons"); err != nil {
+	if err := baseService.GetWithPreload(&show, id, "Episodes", "Seasons", "Episode_Contents"); err != nil {
 		logger.Error("Error while retrieving show data from database", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, "Error while retrieving anime data from database")
 		return err
@@ -77,6 +77,6 @@ func DeleteShow(c echo.Context) error {
 		return nil
 	}
 
-	schemas.SendSucess(c, "DeleteAnime", show)
+	schemas.SendSucess(c, "DeleteShow", show)
 	return nil
 }

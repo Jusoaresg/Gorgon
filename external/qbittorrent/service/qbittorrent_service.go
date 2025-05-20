@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gorgon/config"
 	"gorgon/external/qbittorrent/schema"
+	"gorgon/internal/db/model"
 	"gorgon/pkg/services"
 	"log/slog"
 	"mime/multipart"
@@ -137,14 +138,18 @@ func (q *QBittorrentService) CheckTorrents(filter string, response *[]schema.Che
 	return nil
 }
 
-func (q *QBittorrentService) CheckContent(hash string, content *schema.TorrentContent) error {
+func (q *QBittorrentService) CheckContent(hash string, content *[]model.EpisodeContent) error {
 
 	if err := q.SidVerification(); err != nil {
 		return err
 	}
 
+	headers := map[string]string{
+		"Cookie": fmt.Sprintf("SID=%s", q.sid),
+	}
+
 	url := fmt.Sprintf("/api/v2/torrents/files?hash=%s", hash)
-	if err := q.APIService.Get(url, &content); err != nil {
+	if err := q.APIService.GetWithHeaders(url, &content, headers); err != nil {
 		return err
 	}
 

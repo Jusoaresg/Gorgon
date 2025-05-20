@@ -40,6 +40,7 @@ func main() {
 	cron.StartDailyUpdate(scheduler.UpdateAllShows)
 	cron.StartSearchNewEpisodes(scheduler.SyncWantedEpisodes)
 	cron.StartVerifySnatched(scheduler.VerifySnatchedDownload)
+	cron.StartVerifyEpisodeWasDeleted(scheduler.VerifyEpisodeWasDeleted)
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", config.Port)))
 }

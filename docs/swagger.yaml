@@ -68,6 +68,8 @@ definitions:
         type: number
       fileName:
         type: string
+      grabs:
+        type: integer
       guid:
         type: string
       indexer:
