@@ -1,6 +1,8 @@
 package model
 
-import "time"
+import (
+	"time"
+)
 
 type TrackingStatus string
 
@@ -32,10 +34,19 @@ type Episode struct {
 	Season   int
 	AirStamp string
 
-	//Installed   bool
 	FilePath    *string
 	Tracking    TrackingStatus `gorm:"type:text;default:'wanted'"`
 	TorrentHash string
+	Content     []EpisodeContent `gorm:"foreignKey:EpisodeId"`
+}
+
+type EpisodeContent struct {
+	ID        uint `gorm:"primaryKey"`
+	EpisodeId int  `gorm:"index"`
+
+	Name    string  `json:"name"`
+	Size    float64 `json:"size"`
+	Is_Seed bool    `json:"is_seed"`
 }
 
 func (e *Episode) Create(
@@ -55,7 +66,6 @@ func (e *Episode) Create(
 		Number:   Number,
 		Season:   Season,
 		AirStamp: AirStamp,
-		//Installed: false,
 	}
 }
 
@@ -77,4 +87,10 @@ func (e *Episode) HasAired() (bool, error) {
 
 	// If the airTime is before or equal the time now, then it has been aired
 	return !airTime.After(time.Now()), nil
+}
+
+func (e *Episode) SetNotInstalled() {
+	e.Tracking = Tracking.Skipped()
+	e.FilePath = nil
+	e.TorrentHash = ""
 }

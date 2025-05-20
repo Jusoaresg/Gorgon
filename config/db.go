@@ -34,6 +34,7 @@ func InitializeDb() (*gorm.DB, error) {
 	err = db.AutoMigrate(
 		&model.Show{},
 		&model.Episode{},
+		&model.EpisodeContent{},
 		&model.Schedule{},
 		&model.Externals{},
 		&model.Image{},
