@@ -33,8 +33,6 @@ func InitializeRoutes(e *echo.Echo) {
 	logger.Debug("Prowlarr route initialized sucessfully")
 	SetupQbittorrentRouter(v1)
 	logger.Debug("QBittorrent route initialized sucessfully")
-	SetupTemplatesRouter(e.Group(""))
-	logger.Debug("Templates route initialized sucessfully")
 
 	logger.Info("Routes initialized", slog.String("basePath", basePath))
 

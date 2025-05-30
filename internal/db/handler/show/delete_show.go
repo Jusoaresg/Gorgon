@@ -2,13 +2,11 @@ package show
 
 import (
 	"errors"
-	"fmt"
 	"gorgon/config"
 	"gorgon/internal/db/model"
 	"gorgon/pkg/schemas"
 	"gorgon/pkg/services"
 	"log/slog"
-	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
@@ -30,24 +28,10 @@ func DeleteShow(c echo.Context) error {
 
 	var request schemas.IdRequest
 
-	isHTMX := c.Request().Header.Get("HX-Request") == "true"
-	if isHTMX {
-		id, err := strconv.ParseInt(c.FormValue("id"), 10, 64)
-		fmt.Println(id)
-		if err != nil {
-			// fmt.Println(err.Error())
-			logger.Error("Error while parsing form value id string to int", slog.String("error", err.Error()))
-			return err
-		}
-		request.Id = int(id)
-
-	} else {
-
-		if err := c.Bind(&request); err != nil {
-			logger.Error("Failed to bind request body", slog.String("error", err.Error()))
-			schemas.SendError(c, 500, "Failed to bind request body")
-			return err
-		}
+	if err := c.Bind(&request); err != nil {
+		logger.Error("Failed to bind request body", slog.String("error", err.Error()))
+		schemas.SendError(c, 500, "Failed to bind request body")
+		return err
 	}
 
 	id := request.Id
@@ -60,7 +44,7 @@ func DeleteShow(c echo.Context) error {
 	show := model.Show{}
 
 	baseService := services.NewBaseService()
-	if err := baseService.GetWithPreload(&show, id, "Episodes", "Seasons", "Episode_Contents"); err != nil {
+	if err := baseService.GetWithPreload(&show, id, "Episodes", "Seasons", "Episodes.Content"); err != nil {
 		logger.Error("Error while retrieving show data from database", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, "Error while retrieving anime data from database")
 		return err
@@ -70,11 +54,6 @@ func DeleteShow(c echo.Context) error {
 		logger.Error("Error while deleting show from databases", slog.Int("id", request.Id), slog.String("error", err.Error()))
 		schemas.SendError(c, 500, "Error while deleting anime from database")
 		return err
-	}
-
-	if isHTMX {
-		c.Response().Header().Set("HX-Redirect", "/")
-		return nil
 	}
 
 	schemas.SendSucess(c, "DeleteShow", show)

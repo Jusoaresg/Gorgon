@@ -297,6 +297,90 @@ const docTemplate = `{
                 }
             }
         },
+        "/database/show/episode/status": {
+            "post": {
+                "description": "Change Episode Tracking Status",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Database/Show/Episode"
+                ],
+                "summary": "Change Episode Status",
+                "parameters": [
+                    {
+                        "description": "Request Body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/episode.ChangeEpisodeTrackingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/database/show/{id}": {
+            "get": {
+                "description": "Getshow",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Database/Show"
+                ],
+                "summary": "Get Show",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Show ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/prowlarr/indexer": {
             "get": {
                 "description": "Get All Prowlarr indexers",
@@ -563,6 +647,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "episode.ChangeEpisodeTrackingRequest": {
+            "type": "object",
+            "properties": {
+                "episode_id": {
+                    "type": "integer"
+                },
+                "tracking": {
+                    "type": "string"
+                }
+            }
+        },
         "schema.AddNewTorrentRequest": {
             "type": "object",
             "properties": {
