@@ -2,8 +2,11 @@ package handler
 
 import (
 	"gorgon/config"
+	"gorgon/external/tvmaze/schema"
 	"gorgon/external/tvmaze/service"
+	"gorgon/internal/db/model"
 	"gorgon/pkg/schemas"
+	"gorgon/pkg/services"
 	"log/slog"
 
 	"github.com/labstack/echo/v4"
@@ -38,6 +41,24 @@ func SearchShowByName(c echo.Context) error {
 		return err
 	}
 
-	schemas.SendSucess(c, "SearchShowByName", &response)
+	baseService := services.NewBaseService()
+
+	var existingShows []model.Show
+	baseService.List(&existingShows)
+
+	existingsMap := make(map[int]bool)
+	for _, s := range existingShows {
+		existingsMap[s.ShowID] = true
+	}
+
+	var enriched []schema.SearchResult
+	for _, r := range *response {
+		enriched = append(enriched, schema.SearchResult{
+			Show:    r.Show,
+			IsAdded: existingsMap[r.Show.ShowID],
+		})
+	}
+
+	schemas.SendSucess(c, "SearchShowByName", &enriched)
 	return nil
 }
