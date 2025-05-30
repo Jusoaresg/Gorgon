@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"time"
 )
 
@@ -93,4 +94,21 @@ func (e *Episode) SetNotInstalled() {
 	e.Tracking = Tracking.Skipped()
 	e.FilePath = nil
 	e.TorrentHash = ""
+}
+
+func (e *Episode) StringToTracking(tracking string) error {
+	switch tracking {
+	case "wanted":
+		e.FilePath = nil
+		e.TorrentHash = ""
+		e.Tracking = Tracking.Wanted()
+	case "skipped":
+		e.FilePath = nil
+		e.TorrentHash = ""
+		e.Tracking = Tracking.Skipped()
+	default:
+		return errors.New("No valid tracking string")
+	}
+
+	return nil
 }
