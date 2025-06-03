@@ -125,6 +125,13 @@ definitions:
       name:
         type: string
     type: object
+  show.AddShowToListRequest:
+    properties:
+      id:
+        type: integer
+      tracking_type:
+        type: string
+    type: object
 info:
   contact:
     email: julianosgreg@gmail.com
@@ -291,14 +298,14 @@ paths:
     post:
       consumes:
       - application/json
-      description: Add Show to List
+      description: Add Show to List, tracking must be "all", "future", or "none"
       parameters:
       - description: Request Body
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/schemas.IdRequest'
+          $ref: '#/definitions/show.AddShowToListRequest'
       produces:
       - application/json
       responses:

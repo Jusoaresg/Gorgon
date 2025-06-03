@@ -3,6 +3,7 @@ package show
 import (
 	"gorgon/config"
 	"gorgon/external/tvmaze/service"
+	"gorgon/internal/db/schema/show"
 	showManager "gorgon/internal/db/service"
 	"gorgon/pkg/schemas"
 	"gorgon/pkg/services"
@@ -14,11 +15,11 @@ import (
 // @BasePath /api/v1
 
 // @Summary Add Show
-// @Description Add Show to List
+// @Description Add Show to List, tracking must be "all", "future", or "none"
 // @Tags Database/Show
 // @Accept json
 // @Produce json
-// @Param request body schemas.IdRequest true "Request Body"
+// @Param request body show.AddShowToListRequest true "Request Body"
 // @Success 200 {object} schemas.DefaultResponse
 // @Failure 400 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse
@@ -27,12 +28,23 @@ func AddShowToList(c echo.Context) error {
 	logger := config.GetLogger()
 	logger.Info("Received request to Add Show To List", slog.String("endpoint", "/api/v1/database/show"), slog.String("method", "POST"))
 
-	var request schemas.IdRequest
+	var request show.AddShowToListRequest
 
 	if err := c.Bind(&request); err != nil {
 		logger.Error("Failed to bind body request")
 		schemas.SendError(c, 500, "Failed to bind body request")
 		return err
+	}
+
+	validTrackings := map[string]bool{
+		"all":    true,
+		"future": true,
+		"none":   true,
+	}
+
+	if !validTrackings[request.TrackingType] {
+		schemas.SendError(c, 400, "Invalid tracking type: must be 'all', 'future', or 'none'")
+		return echo.NewHTTPError(400, "Invalid tracking type")
 	}
 
 	tvMazeService := service.NewTvMazeSearchService(logger)
@@ -49,6 +61,8 @@ func AddShowToList(c echo.Context) error {
 		schemas.SendError(c, 500, err.Error())
 		return err
 	}
+
+	services.ApplyTrackingToEpisodes(episodesDto, request.TrackingType)
 
 	seasonsDto, err := showManagerService.GetSeasons(showDto.ShowID)
 	if err != nil {

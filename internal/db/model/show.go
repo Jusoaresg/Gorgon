@@ -13,16 +13,13 @@ type Show struct {
 	Summary   string
 	Updated   int
 
-	// Relacionamentos
 	Schedule Schedule  `gorm:"foreignKey:ShowId;constraint:OnDelete:CASCADE"`
 	Seasons  []Season  `gorm:"foreignKey:ShowId;constraint:OnDelete:CASCADE"`
 	Episodes []Episode `gorm:"foreignKey:ShowId;constraint:OnDelete:CASCADE"`
 
-	// Structs aninhadas
 	Externals Externals `gorm:"embedded"`
 	Image     Image     `gorm:"embedded"`
 
-	// Campos que precisam ser serializados
 	Genres string `gorm:"type:text"` // Serializar e desserializar manualmente
 }
 
@@ -33,7 +30,6 @@ type Schedule struct {
 	Days   string `gorm:"type:text"`
 }
 
-// Structs aninhadas
 type Externals struct {
 	Tvrage   int
 	Thetvdvb int

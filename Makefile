@@ -1,18 +1,16 @@
-default: run-with-docs
+.PHONY: default docs run-with-docs build
+
+default: 
+	cd assets/front/build && npm run build 
+	$(MAKE) run-with-docs
 
 docs:
 	$(HOME)/go/bin/swag init
 
-templ: 
-	@templ generate --watch --proxy=http://localhost:8080
-
 run-with-docs: docs
-	$(HOME)/go/bin/swag init
-	templ fmt .
-	templ generate
 	go run main.go
 
-build:
+build: docs
 	$(HOME)/go/bin/swag init
-	templ generate
+	cd assets/front/build && npm run build 
 	go build -o ./tmp/main .

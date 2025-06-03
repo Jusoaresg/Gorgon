@@ -212,7 +212,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Add Show to List",
+                "description": "Add Show to List, tracking must be \"all\", \"future\", or \"none\"",
                 "consumes": [
                     "application/json"
                 ],
@@ -230,7 +230,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/schemas.IdRequest"
+                            "$ref": "#/definitions/show.AddShowToListRequest"
                         }
                     }
                 ],
@@ -835,6 +835,17 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "show.AddShowToListRequest": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "tracking_type": {
                     "type": "string"
                 }
             }

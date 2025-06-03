@@ -36,7 +36,7 @@ func InitializeRoutes(e *echo.Echo) {
 
 	logger.Info("Routes initialized", slog.String("basePath", basePath))
 
-	e.GET("/docs", func(c echo.Context) error {
+	v1.GET("docs", func(c echo.Context) error {
 		htmlContent, err := scalar.ApiReferenceHTML(&scalar.Options{
 			CDN:     "https://cdn.jsdelivr.net/npm/@scalar/api-reference@latest",
 			SpecURL: "./docs/swagger.yaml",

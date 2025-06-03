@@ -1,0 +1,142 @@
+/* Add Show Page */
+.add-show-container {
+	width: 100%;
+	max-width: 800px;
+	display: flex;
+	flex-direction: column;
+	gap: 1.5rem;
+}
+
+/* Home Page */
+.home-container {
+	width: 100%;
+	max-width: 1200px;
+	display: flex;
+	flex-direction: column;
+	gap: 2rem;
+}
+
+.categories {
+	display: flex;
+	gap: 1rem;
+	flex-wrap: wrap;
+}
+
+.category {
+	padding: 0.6rem 1.2rem;
+	background-color: var(--nav-bg);
+	border-radius: 20px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.category:hover {
+	background-color: var(--nav-hover);
+}
+
+.category.active {
+	background-color: var(--highlight);
+	color: white;
+}
+
+.shows-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+	gap: 1.5rem;
+}
+
+.show-grid-item {
+	display: flex;
+	flex-direction: column;
+	transition: transform 0.2s ease;
+}
+
+.show-grid-item:hover {
+	transform: translateY(-5px);
+}
+
+.show-poster {
+	position: relative;
+	height: 270px;
+	border-radius: 8px;
+	overflow: hidden;
+	background-color: var(--card-bg);
+}
+
+.show-poster img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.show-overlay {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+	padding: 1rem;
+	opacity: 0;
+	transition: opacity 0.2s ease;
+}
+
+.show-grid-item:hover .show-overlay {
+	opacity: 1;
+}
+
+.show-actions {
+	display: flex;
+	justify-content: center;
+	gap: 0.8rem;
+}
+
+.action-button {
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	background-color: rgba(255, 255, 255, 0.2);
+	color: white;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background-color 0.2s ease;
+	padding: 0;
+}
+
+.action-button:hover {
+	background-color: var(--highlight);
+}
+
+.show-grid-info {
+	padding: 0.8rem 0.5rem;
+}
+
+.show-grid-title {
+	font-size: 1rem;
+	margin-bottom: 0.3rem;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.show-grid-year {
+	color: #999;
+	font-size: 0.8rem;
+	margin-bottom: 0.3rem;
+}
+
+.show-grid-status {
+	font-size: 0.8rem;
+	color: var(--button-bg);
+}
+
+@media (max-width: 768px) {
+	.shows-grid {
+		grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+		gap: 1rem;
+	}
+
+	.show-poster {
+		height: 210px;
+	}
+}
