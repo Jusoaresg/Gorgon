@@ -1,31 +1,35 @@
 # Gorgon
 
-Gorgon is a self-hosted anime management platform written in Go, designed to help users search, organize, and automate anime downloads using services like **Prowlarr**, **qBittorrent**, and **TVMaze**. It features a lightweight, responsive web interface built with **HTMX** and **Templ**, prioritizing minimalism and performance.
+**Gorgon** is a self-hosted series management platform written in Go. It helps users search, organize, and automate series downloads using **Prowlarr**, **qBittorrent**, and **TVMaze**. It features a fast, responsive web UI built with **SvelteKit**, focusing on minimalism and performance.
+
+---
 
 ## ✨ Features
 
-- 🔍 Search for anime using the TVMaze API
-- ⚙️ Manage indexers via Prowlarr
-- ⬇️ Add torrents directly to qBittorrent
-- 🗂️ Organize and browse your downloaded shows
-- 🌐 Clean and interactive UI using HTMX + Templ
+- 🔍 Search for series using the [TVMaze API](https://www.tvmaze.com/api)
+- ⚙️ Manage indexers via [Prowlarr](https://github.com/Prowlarr/Prowlarr)
+- ⬇️ Add torrents directly to [qBittorrent](https://www.qbittorrent.org/)
+- 🗂️ Organize and browse your downloaded series
+- 🌐 Clean, server-side rendered interface built with [SvelteKit](https://kit.svelte.dev/)
+- ⏱️ Automated background tasks via cron
 
-## 📸 Interface
+---
 
-The frontend is fully rendered server-side using [Templ](https://templ.guide/) with interactive elements powered by [HTMX](https://htmx.org/), avoiding the need for heavy JavaScript frameworks.
+## 🛠️ Tech Stack
 
+- [Go](https://golang.org/) — Backend
+- [SvelteKit](https://kit.svelte.dev/) — Frontend (SSR)
+- [SQLite](https://www.sqlite.org/index.html) — Embedded database
+- [TVMaze API](https://www.tvmaze.com/api) — Series metadata
+- [Prowlarr](https://github.com/Prowlarr/Prowlarr) — Torrent indexer management
+- [qBittorrent](https://www.qbittorrent.org/) — Torrent client
 
-## 🛠️ Technologies Used
-
-- **Go** (Backend)
-- **HTMX** (UI interactivity)
-- **Templ** (HTML rendering with Go)
-- **SQLite** (Local database)
-- **Prowlarr** / **TVMaze** / **qBittorrent** (External APIs)
+---
 
 ## 🚀 Getting Started
 
 1. Clone the repository:
+
    ```bash
-   git clone https://github.com/Jusoaresg/Gorgon
+   git clone https://github.com/Jusoaresg/Gorgon.git
    cd Gorgon
