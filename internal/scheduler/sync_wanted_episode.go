@@ -52,14 +52,29 @@ func SyncWantedEpisodes() {
 			)
 			if episode.Tracking == "wanted" || episode.Tracking == "missing" {
 				logger.Info("Searching if episode is avaible", slog.String("Show", show.Name), slog.Int("Episode", episode.Number))
-				request := schema.SearchRequest{
-					Query: fmt.Sprintf("%s S%02dE%02d", show.Name, episode.Season, episode.Number),
+
+				//TODO: Include titleAlias inside the db
+
+				titleAlias := []string{
+					show.Name,
+					strings.ReplaceAll(show.Name, "-", ""),
+					strings.ReplaceAll(show.Name, "'", ""),
+					strings.ReplaceAll(strings.ReplaceAll(show.Name, "'", ""), "-", ""),
 				}
 
 				var response []schema.SearchResponse
-				if err := prowlarrService.Search(&request, &response); err != nil {
-					logger.Error("Error while searching for episodes on prowlarrService", slog.Int("Episode", episode.Number), slog.String("Show", show.Name))
-					continue
+
+				for _, title := range titleAlias {
+					request := schema.SearchRequest{
+						Query: fmt.Sprintf("%s S%02dE%02d", title, episode.Season, episode.Number),
+					}
+
+					var tmpResponse []schema.SearchResponse
+					if err := prowlarrService.Search(&request, &tmpResponse); err != nil {
+						logger.Error("Error while searching for episodes on prowlarrService", slog.Int("Episode", episode.Number), slog.String("Show", show.Name))
+						continue
+					}
+					response = append(response, tmpResponse...)
 				}
 
 				if len(response) == 0 {
