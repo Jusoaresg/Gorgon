@@ -6,8 +6,15 @@ import (
 	"gorgon/external/qbittorrent/schema"
 	"gorgon/external/qbittorrent/service"
 	"gorgon/internal/db/model"
+	"gorgon/pkg/handler"
 	"gorgon/pkg/services"
 )
+
+type EpisodeUpdatedWebsocketSchema struct {
+	Type      string `json:"type"`
+	EpisodeId int    `json:"episodeId"`
+	Tracking  string `json:"tracking"`
+}
 
 func VerifySnatchedDownload() {
 	logger := config.GetLogger()
@@ -49,6 +56,13 @@ func VerifySnatchedDownload() {
 				fmt.Println(updated_episode.Content)
 
 				baseService.UpdateByID(int(episode.ID), &updated_episode)
+
+				var msg EpisodeUpdatedWebsocketSchema
+				msg.Type = "EpisodeTrackingUpdate"
+				msg.EpisodeId = int(episode.ID)
+				msg.Tracking = string(model.Tracking.Downloaded())
+				handler.SendWebSocketMessage(msg)
+
 				break
 			}
 		}

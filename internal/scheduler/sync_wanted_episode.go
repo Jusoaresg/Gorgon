@@ -7,6 +7,7 @@ import (
 	prowlarr "gorgon/external/prowlarr/service"
 	qbittorrent "gorgon/external/qbittorrent/service"
 	"gorgon/internal/db/model"
+	"gorgon/pkg/handler"
 	"gorgon/pkg/services"
 	"log/slog"
 	"sort"
@@ -60,6 +61,7 @@ func SyncWantedEpisodes() {
 					strings.ReplaceAll(show.Name, "-", ""),
 					strings.ReplaceAll(show.Name, "'", ""),
 					strings.ReplaceAll(strings.ReplaceAll(show.Name, "'", ""), "-", ""),
+					strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(show.Name, "'", ""), "-", ""), "!", ""),
 				}
 
 				var response []schema.SearchResponse
@@ -105,6 +107,13 @@ func SyncWantedEpisodes() {
 				episode.TorrentHash = response[0].InfoHash
 				baseService.UpdateByID(int(episode.ID), &episode)
 				logger.Info("Added torrent to qBittorrent", slog.String("Show", show.Name), slog.Int("Episode", episode.Number))
+
+				//TODO: You know
+				var msg EpisodeUpdatedWebsocketSchema
+				msg.Type = "EpisodeTrackingUpdate"
+				msg.EpisodeId = int(episode.ID)
+				msg.Tracking = string(model.Tracking.Snatched())
+				handler.SendWebSocketMessage(msg)
 			}
 		}
 	}
