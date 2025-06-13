@@ -4,8 +4,10 @@ import { PUBLIC_API_BASE_URL } from '$env/static/public';
 import { onMount } from 'svelte';
 import { page } from '$app/stores';
 import { goto } from '$app/navigation';
+import { tick } from 'svelte';
 
 let show = null;
+let socket;
 
 onMount(async () => {
 	const showId = $page.params.id;
@@ -13,7 +15,31 @@ onMount(async () => {
 	const res = await fetch(`/api/v1/database/show/${showId}`)
 	const json = await res.json()
 	show = json.data;
+
+	socket = new WebSocket('ws://localhost:8080/api/v1/ws')
+
+	socket.onopen = () => {
+		console.log("WebSocket connected")
+	};
+
+socket.onmessage = async (event) => {
+	const data = JSON.parse(event.data);
+
+	if (data.type === "EpisodeTrackingUpdate") {
+		// recria todos os episódios com novo objeto para disparar reatividade
+		show.Episodes = show.Episodes.map(episode =>
+			episode.ID === data.episodeId
+				? { ...episode, Tracking: data.tracking }
+				: { ...episode } // clona mesmo se não mudou
+		);
+
+		show = { ...show }; // garante que 'show' também mude
+
+		await tick(); // força update da UI antes de continuar
+	}
+}
 })
+
 
 
 
@@ -123,7 +149,7 @@ async function changeTrackingStatus(event) {
 				</div>
 
 				<div class="episodes-container">
-					{#each show.Episodes.filter(e => e.Season === season.Number) as episode}
+					{#each [...show.Episodes.filter(e => e.Season === season.Number)].reverse() as episode}
 						<EpisodeCard {episode} seasonNumber={season.Number} on:statusChange={changeTrackingStatus} />
 					{/each}
 				</div>

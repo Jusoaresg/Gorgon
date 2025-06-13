@@ -7,6 +7,7 @@ export let seasonNumber;
 const dispatch = createEventDispatcher();
 
 let status = episode.Tracking;
+$: status = episode.Tracking;
 let showDropdown = false;
 let dropdownElement;
 let buttonElement;
