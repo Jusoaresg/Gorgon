@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 
 	"gorgon/internal/db/model"
@@ -11,9 +12,18 @@ import (
 
 func InitializeDb() (*gorm.DB, error) {
 
-	dbPath := "assets/gorgon.db"
+	dbFolder := "assets"
+	dbPath := fmt.Sprintf("%s/%s", dbFolder, "gorgon.db")
 
-	_, err := os.Stat(dbPath)
+	_, err := os.Stat(dbFolder)
+	if os.IsNotExist(err) {
+		err := os.Mkdir(dbFolder, 0700)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	_, err = os.Stat(dbPath)
 	if os.IsNotExist(err) {
 		file, err := os.Create(dbPath)
 		if err != nil {
