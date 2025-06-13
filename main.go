@@ -1,17 +1,21 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"gorgon/config"
-	"gorgon/internal/db/model"
 	"gorgon/internal/routes"
 	"gorgon/internal/scheduler"
 	"gorgon/internal/scheduler/cron"
-	"gorgon/pkg/services"
+	"io/fs"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
+
+//go:embed all:assets/front/build
+var embeddedStaticFiles embed.FS
 
 // @title           Gongon
 // @version         0.1
@@ -28,13 +32,6 @@ func main() {
 
 	e := echo.New()
 
-	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
-		Root:       "./assets/front/build/",
-		Browse:     true,
-		HTML5:      true,
-		IgnoreBase: true,
-	}))
-
 	cors := middleware.CORSConfig{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
@@ -45,19 +42,21 @@ func main() {
 	e.Use(middleware.CORSWithConfig(cors))
 	e.Use(middleware.Logger())
 
-	e.Static("/static", "static")
+	buildFS, err := fs.Sub(embeddedStaticFiles, "assets/front/build")
+	if err != nil {
+		panic(fmt.Errorf("erro ao acessar build embedado: %w", err))
+	}
+
+	e.GET("/favicon.png", echo.WrapHandler(http.FileServer(http.FS(buildFS))))
+	e.GET("/_app/*", echo.WrapHandler(http.FileServer(http.FS(buildFS))))
+	e.GET("/css/*", echo.WrapHandler(http.FileServer(http.FS(buildFS))))
 
 	e.GET("/*", func(c echo.Context) error {
-		return c.File("./assets/front/build/index.html")
-	})
-
-	e.GET("/", func(c echo.Context) error {
-		baseService := services.NewBaseService()
-
-		var shows []model.Show
-		baseService.List(&shows)
-
-		return c.JSON(200, shows)
+		index, err := fs.ReadFile(buildFS, "index.html")
+		if err != nil {
+			panic(err)
+		}
+		return c.Blob(http.StatusOK, echo.MIMETextHTML, index)
 	})
 
 	routes.InitializeRoutes(e)

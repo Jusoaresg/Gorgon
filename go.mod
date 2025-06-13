@@ -4,6 +4,7 @@ go 1.24.1
 
 require (
 	github.com/gin-gonic/gin v1.10.0
+	github.com/gorilla/websocket v1.5.3
 	github.com/swaggo/swag v1.16.4
 	gorm.io/driver/sqlite v1.5.7
 	gorm.io/gorm v1.25.12
