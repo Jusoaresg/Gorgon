@@ -34,6 +34,9 @@ func InitializeRoutes(e *echo.Echo) {
 	SetupQbittorrentRouter(v1)
 	logger.Debug("QBittorrent route initialized sucessfully")
 
+	SetupWebsocketRouter(v1)
+	logger.Debug("WebSocket route initialized sucessfully")
+
 	logger.Info("Routes initialized", slog.String("basePath", basePath))
 
 	v1.GET("docs", func(c echo.Context) error {
