@@ -553,6 +553,53 @@ const docTemplate = `{
                 }
             }
         },
+        "/qbittorrent/info/hash": {
+            "get": {
+                "description": "Check torrent Info By Hash",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QBittorrent"
+                ],
+                "summary": "Check Torrent Info By Hash",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "hash",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schema.CheckTorrentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/tvmaze/search/name": {
             "post": {
                 "description": "Search TvMaze By Show Name",

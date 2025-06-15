@@ -491,6 +491,36 @@ paths:
       summary: Check Torrent info
       tags:
       - QBittorrent
+  /qbittorrent/info/hash:
+    get:
+      consumes:
+      - application/json
+      description: Check torrent Info By Hash
+      parameters:
+      - in: query
+        name: hash
+        type: string
+      - in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schema.CheckTorrentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Check Torrent Info By Hash
+      tags:
+      - QBittorrent
   /tvmaze/search/name:
     post:
       consumes:
