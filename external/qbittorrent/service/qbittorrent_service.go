@@ -62,7 +62,6 @@ func (q *QBittorrentService) Login(request *schema.QBittorrentLoginRequest) erro
 	for _, cookie := range resp.Cookies() {
 		if cookie.Name == "SID" {
 			q.sid = cookie.Value
-			fmt.Println("SID found:", q.sid)
 			return nil
 		}
 	}
@@ -129,6 +128,27 @@ func (q *QBittorrentService) CheckTorrents(filter string, response *[]schema.Che
 	}
 
 	url := fmt.Sprintf("/api/v2/torrents/info?filter=%s", filter)
+	//TODO: Logger message with url and maybe the headers
+
+	if err := q.APIService.GetWithHeaders(url, &response, headers); err != nil {
+		return fmt.Errorf("error while get torrent info: %w", err)
+	}
+
+	return nil
+}
+
+func (q *QBittorrentService) CheckTorrentsWithHash(filter, hash string, response *[]schema.CheckTorrentResponse) error {
+
+	if err := q.SidVerification(); err != nil {
+		return err
+	}
+
+	headers := map[string]string{
+		"Cookie": fmt.Sprintf("SID=%s", q.sid),
+	}
+
+	encodedHash := url.QueryEscape(hash)
+	url := fmt.Sprintf("/api/v2/torrents/info?filter=%s&hashes=%s", filter, encodedHash)
 	//TODO: Logger message with url and maybe the headers
 
 	if err := q.APIService.GetWithHeaders(url, &response, headers); err != nil {
