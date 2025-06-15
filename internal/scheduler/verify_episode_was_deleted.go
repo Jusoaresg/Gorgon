@@ -20,10 +20,7 @@ func VerifyEpisodeWasDeleted() {
 	}
 
 	var episodes []model.Episode
-	if err := baseService.ListWithPreload(&episodes, "Content"); err != nil {
-		logger.Error("Error while getting episode list from db", slog.String("Error", err.Error()))
-		return
-	}
+	baseService.DB.Preload("Content").Where("tracking = ?", "downloaded").Find(&episodes)
 
 	for _, episode := range episodes {
 		if episode.Tracking != "downloaded" {

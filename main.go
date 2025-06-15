@@ -7,6 +7,7 @@ import (
 	"gorgon/internal/routes"
 	"gorgon/internal/scheduler"
 	"gorgon/internal/scheduler/cron"
+	"gorgon/internal/scheduler/workers"
 	"io/fs"
 	"net/http"
 
@@ -61,8 +62,10 @@ func main() {
 
 	routes.InitializeRoutes(e)
 	cron.StartDailyUpdate(scheduler.UpdateAllShows)
-	cron.StartSearchNewEpisodes(scheduler.SyncWantedEpisodes)
-	cron.StartVerifySnatched(scheduler.VerifySnatchedDownload)
+
+	go workers.StartEpisodeSyncWorker(2)
+	go workers.VerifySnatchedDownloadsWorker(5)
+
 	cron.StartVerifyEpisodeWasDeleted(scheduler.VerifyEpisodeWasDeleted)
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", config.Port)))
