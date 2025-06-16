@@ -1,26 +1,28 @@
 package config
 
 import (
+	"embed"
 	"log/slog"
 
-	"gorm.io/gorm"
+	"github.com/jmoiron/sqlx"
 )
 
 var (
 	ConfigPath  string = "assets/config.json"
 	Port        string = "8080"
 	baseApiPath string
-	db          *gorm.DB
+	db          *sqlx.DB
 	logger      *slog.Logger
 )
 
-func Init() error {
+func Init(migrationsFs embed.FS) error {
 	var err error
 
-	db, err = InitializeDb()
+	dbInstance, err := InitializeDb(migrationsFs)
 	if err != nil {
 		return err
 	}
+	db = dbInstance
 
 	InitializeOrUpdateConfigFile()
 
@@ -31,6 +33,9 @@ func GetLogger() *slog.Logger {
 	return NewLogger()
 }
 
-func GetSQLite() *gorm.DB {
+func GetSQLite() *sqlx.DB {
+	if db == nil {
+		panic("database is not initialized")
+	}
 	return db
 }

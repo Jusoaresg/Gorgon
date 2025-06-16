@@ -18,9 +18,12 @@ import (
 //go:embed all:assets/front/build
 var embeddedStaticFiles embed.FS
 
+//go:embed migrations/*
+var embeddedMigrations embed.FS
+
 // @title           Gongon
 // @version         0.1
-// @description     Anime download manager API
+// @description     Show Download Manager API
 // @BasePath /api/v1
 
 // @contact.name   Jusoares
@@ -29,7 +32,7 @@ var embeddedStaticFiles embed.FS
 // @license.name  Apache 2.0
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 func main() {
-	config.Init()
+	config.Init(embeddedMigrations)
 
 	e := echo.New()
 

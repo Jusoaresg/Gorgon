@@ -1,8 +1,10 @@
 package workers
 
 import (
+	"gorgon/config"
 	"gorgon/internal/db/model"
-	"gorgon/pkg/services"
+	"gorgon/internal/db/repository"
+	"log/slog"
 	"sync"
 	"time"
 )
@@ -38,9 +40,19 @@ func VerifySnatchedDownloadsWorker(workerCount int) {
 }
 
 func fetchSnatchedEpisodes() []model.Episode {
-	var episodes []model.Episode
-	var baseService = services.NewBaseService()
-	baseService.DB.Where("tracking = ?", model.StatusSnatched).Limit(100).Find(&episodes)
+	logger := config.GetLogger()
+	episodeRepo := repository.NewEpisodeRepository()
+
+	//TODO: Put an limit of 100 here
+	episodes, err := episodeRepo.ListByTracking(model.TrackingSnatched)
+	if err != nil {
+		logger.Error(
+			"Error fetching snatched episodes",
+			slog.Any("Episodes", episodes),
+			slog.String("worker", "fetchSnatchedEpisodes"),
+			slog.String("error", err.Error()))
+		return nil
+	}
 
 	return episodes
 }

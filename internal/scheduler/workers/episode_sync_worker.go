@@ -1,10 +1,12 @@
 package workers
 
 import (
+	"gorgon/config"
 	"gorgon/internal/db/model"
-	"gorgon/pkg/services"
 	"sync"
 	"time"
+
+	"github.com/jmoiron/sqlx"
 )
 
 func StartEpisodeSyncWorker(workerCount int) {
@@ -38,8 +40,18 @@ func StartEpisodeSyncWorker(workerCount int) {
 
 func fetchWantedEpisodes() []model.Episode {
 	var episodes []model.Episode
-	baseService := services.NewBaseService()
-	baseService.DB.Where("tracking IN ?", []string{"wanted", "missing"}).Limit(20).Find(&episodes)
+	db := config.GetSQLite()
+
+	query, args, err := sqlx.In("SELECT * FROM episodes WHERE tracking IN (?) LIMIT 20", []string{"wanted", "missing"})
+	if err != nil {
+		return nil
+	}
+	query = db.Rebind(query)
+
+	err = db.Select(&episodes, query, args...)
+	if err != nil {
+		return nil
+	}
 
 	return episodes
 }

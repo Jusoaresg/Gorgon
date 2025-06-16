@@ -4,9 +4,10 @@ import (
 	"errors"
 	"gorgon/config"
 	"gorgon/internal/db/model"
+	"gorgon/internal/db/repository"
 	"gorgon/pkg/schemas"
-	"gorgon/pkg/services"
 	"log/slog"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
@@ -24,7 +25,7 @@ import (
 // @Router /database/show [delete]
 func DeleteShow(c echo.Context) error {
 	logger := config.GetLogger()
-	logger.Info("Received request to Delete Anime", slog.String("endpoint", "/api/v1/database/show"))
+	logger.Info("Received request to Delete Show", slog.String("endpoint", "/api/v1/database/show"))
 
 	var request schemas.IdRequest
 
@@ -34,7 +35,14 @@ func DeleteShow(c echo.Context) error {
 		return err
 	}
 
-	id := request.Id
+	idString := strconv.Itoa(request.Id)
+	id64, err := strconv.ParseInt(idString, 10, 64)
+	if err != nil {
+		logger.Error("Failed to parse id to int64", slog.String("error", err.Error()))
+		schemas.SendError(c, 400, "ID cannot be 0")
+		return errors.New("Id cannot be 0")
+	}
+
 	if request.Id == 0 {
 		logger.Error("Invalid ID", slog.String("error", "ID cannot be 0"))
 		schemas.SendError(c, 400, "ID cannot be 0")
@@ -43,18 +51,8 @@ func DeleteShow(c echo.Context) error {
 
 	show := model.Show{}
 
-	baseService := services.NewBaseService()
-	if err := baseService.GetWithPreload(&show, id, "Episodes", "Seasons", "Episodes.Content"); err != nil {
-		logger.Error("Error while retrieving show data from database", slog.String("error", err.Error()))
-		schemas.SendError(c, 500, "Error while retrieving anime data from database")
-		return err
-	}
-
-	if err := baseService.Delete(show.ID, model.Show{}); err != nil {
-		logger.Error("Error while deleting show from databases", slog.Int("id", request.Id), slog.String("error", err.Error()))
-		schemas.SendError(c, 500, "Error while deleting anime from database")
-		return err
-	}
+	showRepo := repository.NewShowRepository()
+	showRepo.DeleteById(id64)
 
 	schemas.SendSucess(c, "DeleteShow", show)
 	return nil

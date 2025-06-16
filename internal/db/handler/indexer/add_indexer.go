@@ -6,12 +6,11 @@ import (
 	"gorgon/external/prowlarr/schema"
 	"gorgon/external/prowlarr/service"
 	"gorgon/internal/db/model"
+	"gorgon/internal/db/repository"
 	"gorgon/pkg/schemas"
-	"gorgon/pkg/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/labstack/echo/v4"
-	"gorm.io/datatypes"
 )
 
 // @BasePath /api/v1
@@ -34,8 +33,7 @@ func AddIndexer(c echo.Context) error {
 		return err
 	}
 
-	baseService := services.NewBaseService()
-
+	indexerRepo := repository.NewIndexerRepository()
 	prowlarrIndexerService := service.NewProwlarrIndexerService(logger)
 
 	var response schema.IndexerResponse
@@ -51,14 +49,16 @@ func AddIndexer(c echo.Context) error {
 	}
 
 	indexer := model.Indexer{
-		IndexerId:      response.Id,
+		IndexerID:      response.Id,
 		Name:           response.Name,
 		DefinitionName: response.DefinitionName,
-		IndexerUrls:    datatypes.JSON(indexerUrlsJSON),
+		IndexerUrls:    string(indexerUrlsJSON),
 		Language:       response.Language,
 	}
 
-	baseService.Add(&indexer)
+	if err := indexerRepo.Create(indexer); err != nil {
+		return err
+	}
 
 	schemas.SendSucess(c, "Add Indexer", indexer)
 	return nil

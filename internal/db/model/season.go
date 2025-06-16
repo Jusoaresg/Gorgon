@@ -1,8 +1,7 @@
 package model
 
 type Season struct {
-	ID       uint `gorm:"primaryKey"`
-	ShowId   int  `gorm:"index"`
-	SeasonId int  `gorm:"index"`
-	Number   int
+	ID     int64 `db:"id"`
+	ShowID int64 `db:"show_id"`
+	Number int   `db:"season_number"`
 }

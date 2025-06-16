@@ -1,9 +1,8 @@
 package indexer
 
 import (
-	"gorgon/internal/db/model"
+	"gorgon/internal/db/repository"
 	"gorgon/pkg/schemas"
-	"gorgon/pkg/services"
 
 	"github.com/labstack/echo/v4"
 )
@@ -19,11 +18,10 @@ import (
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /database/indexer [get]
 func ListIndexers(c echo.Context) error {
-	indexers := []model.Indexer{}
+	indexerRepo := repository.NewIndexerRepository()
 
-	baseService := services.NewBaseService()
-
-	if err := baseService.List(&indexers); err != nil {
+	indexers, err := indexerRepo.List()
+	if err != nil {
 		return err
 	}
 

@@ -19,7 +19,13 @@ func processSnatchedDownloadsWorker(episodesChan <-chan model.Episode) {
 	for episode := range episodesChan {
 		err := jobs.ProcessSingleSnatchedDownload(&episode, *qbittorrentService)
 		if err != nil {
-			logger.Warn("Error processing episode", slog.Int("episodeID", int(episode.ID)), slog.String("error", err.Error()))
+			logger.Error(
+				"Error processing episode",
+				slog.Int("episodeID", int(episode.ID)),
+				slog.Int64("showID", episode.ShowID),
+				slog.String("episodeName", episode.Name),
+				slog.String("worker", "processSnatchedDownloadsWorker"),
+				slog.String("error", err.Error()))
 		}
 	}
 }

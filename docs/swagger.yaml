@@ -136,7 +136,7 @@ info:
   contact:
     email: julianosgreg@gmail.com
     name: Jusoares
-  description: Anime download manager API
+  description: Show Download Manager API
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
@@ -351,6 +351,33 @@ paths:
       summary: Get Show
       tags:
       - Database/Show
+  /database/show/episode/{id}:
+    get:
+      description: List Show Episodes
+      parameters:
+      - description: Show ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: List Show Episodes
+      tags:
+      - Database/Episodes
   /database/show/episode/status:
     post:
       description: Change Episode Tracking Status
@@ -379,6 +406,33 @@ paths:
       summary: Change Episode Status
       tags:
       - Database/Show/Episode
+  /database/show/seasons/{id}:
+    get:
+      description: List Show Seasons
+      parameters:
+      - description: Show ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: List Show Seasons
+      tags:
+      - Database/Seasons
   /prowlarr/indexer:
     get:
       consumes:

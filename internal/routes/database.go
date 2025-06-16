@@ -4,6 +4,7 @@ import (
 	"gorgon/config"
 	"gorgon/internal/db/handler/episode"
 	"gorgon/internal/db/handler/indexer"
+	"gorgon/internal/db/handler/season"
 	"gorgon/internal/db/handler/show"
 	"log/slog"
 
@@ -33,6 +34,15 @@ func SetupDatabaseRouter(v1 *echo.Group) {
 			{
 				episodeGroup.POST("/status", episode.ChangeEpisodeStatus)
 				logger.Info("POST route added to /api/v1/database/show/episode/status")
+
+				episodeGroup.GET("/:id", episode.GetShowEpisodes)
+				logger.Info("GET route added to /api/v1/database/show/episode/:id")
+			}
+
+			seasonsGroup := showGroup.Group("/season")
+			{
+				seasonsGroup.GET("/:id", season.GetShowSeasons)
+				logger.Info("GET route added to /api/v1/database/show/season/:id")
 			}
 		}
 

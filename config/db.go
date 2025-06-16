@@ -1,16 +1,16 @@
 package config
 
 import (
+	"embed"
 	"fmt"
 	"os"
 
-	"gorgon/internal/db/model"
-
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
+	"github.com/jmoiron/sqlx"
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/pressly/goose/v3"
 )
 
-func InitializeDb() (*gorm.DB, error) {
+func InitializeDb(embedMigraton embed.FS) (*sqlx.DB, error) {
 
 	dbFolder := "assets"
 	dbPath := fmt.Sprintf("%s/%s", dbFolder, "gorgon.db")
@@ -32,28 +32,20 @@ func InitializeDb() (*gorm.DB, error) {
 		file.Close()
 	}
 
-	db, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
+	db, err := sqlx.Open("sqlite3", dbPath)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := db.Exec("PRAGMA foreign_keys = ON").Error; err != nil {
-		return nil, err
+	db.MustExec("PRAGMA foreign_keys = ON")
+
+	goose.SetBaseFS(embedMigraton)
+	if err := goose.SetDialect("sqlite3"); err != nil {
+		panic(err)
 	}
 
-	err = db.AutoMigrate(
-		&model.Show{},
-		&model.Episode{},
-		&model.EpisodeContent{},
-		&model.Schedule{},
-		&model.Externals{},
-		&model.Image{},
-		&model.Season{},
-
-		&model.Indexer{},
-	)
-	if err != nil {
-		return nil, err
+	if err := goose.Up(db.DB, "migrations"); err != nil {
+		panic(err)
 	}
 
 	return db, nil

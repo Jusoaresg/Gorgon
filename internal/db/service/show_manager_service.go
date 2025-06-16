@@ -5,32 +5,35 @@ import (
 	"gorgon/config"
 	"gorgon/external/tvmaze/service"
 	"gorgon/internal/db/model"
+	"gorgon/internal/db/repository"
 	"gorgon/pkg/schemas/dtos"
-	"gorgon/pkg/services"
 	"log/slog"
 
-	"gorm.io/gorm"
+	"github.com/jmoiron/sqlx"
 )
 
 type ShowManagerService struct {
-	baseService *services.BaseService
+	EpisodeRepo repository.EpisodeRepository
+	SeasonRepo  repository.SeasonRepository
+	ShowRepo    repository.ShowRepository
 	tvMaze      *service.TvMazeSearchService
-	DB          *gorm.DB
+	DB          *sqlx.DB
 	logger      *slog.Logger
 }
 
 func NewShowManagerService(logger *slog.Logger) *ShowManagerService {
 	return &ShowManagerService{
-		baseService: services.NewBaseService(),
+		EpisodeRepo: repository.NewEpisodeRepository(),
+		SeasonRepo:  repository.NewSeasonRepository(),
+		ShowRepo:    repository.NewShowRepository(),
 		tvMaze:      service.NewTvMazeSearchService(logger),
 		logger:      logger,
 		DB:          config.GetSQLite(),
 	}
 }
 
-// NOTE: Further I will need to change this (showId) to be capable to use others database beyond tvmaze
-func (sm *ShowManagerService) GetEpisodes(showId int) (*[]dtos.EpisodeDto, error) {
-	episodesDto, err := sm.tvMaze.SearchEpisodes(showId)
+func (sm *ShowManagerService) GetEpisodes(tvMazeId int64) (*[]dtos.EpisodeDto, error) {
+	episodesDto, err := sm.tvMaze.SearchEpisodes(tvMazeId)
 	if err != nil {
 		return nil, err
 	}
@@ -38,8 +41,8 @@ func (sm *ShowManagerService) GetEpisodes(showId int) (*[]dtos.EpisodeDto, error
 	return episodesDto, nil
 }
 
-func (sm *ShowManagerService) GetSeasons(showId int) (*[]dtos.SeasonDto, error) {
-	seasonsDto, err := sm.tvMaze.SearchSeasons(showId)
+func (sm *ShowManagerService) GetSeasons(tvMazeId int64) (*[]dtos.SeasonDto, error) {
+	seasonsDto, err := sm.tvMaze.SearchSeasons(tvMazeId)
 	if err != nil {
 		return nil, err
 	}
@@ -47,80 +50,84 @@ func (sm *ShowManagerService) GetSeasons(showId int) (*[]dtos.SeasonDto, error) 
 }
 
 // NOTE: Everything here will need a refactor furthermore, there're lot of problems
-// We need to change the show_id on database for another better name to not confuse
 // This functon call the database a lot of times
 // Probably will be problems with the seasons updating.
-func (sm *ShowManagerService) UpdateShowWithRelations(show *model.Show) error {
-	tx := sm.DB.Begin()
+func (sm *ShowManagerService) UpdateShowWithRelations(showDTO dtos.ShowDto, seasonsDTO []dtos.SeasonDto, episodes []dtos.EpisodeDto) error {
+	showRepo := repository.NewShowRepository()
+	seasonRepo := repository.NewSeasonRepository()
+	episodeRepo := repository.NewEpisodeRepository()
 
-	var dbShow model.Show
-	if err := tx.Where("show_id = ?", show.ShowID).Find(&dbShow).Error; err != nil {
-		tx.Rollback()
+	showModel, err := showRepo.GetByTvMazeID(showDTO.TvMazeID)
+	if err != nil {
+		//TODO: Log message
 		return err
 	}
 
-	if err := tx.Model(&model.Show{}).Where("show_id = ?", show.ShowID).Updates(show).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	var dbSeasons []model.Season
-	if err := tx.Where("show_id = ?", dbShow.ID).Find(&dbSeasons).Error; err != nil {
+	seasonsModel, err := seasonRepo.ListByShowId(showModel.ID)
+	if err != nil {
+		//TODO: Better Log message
 		sm.logger.Error("Error while getting seasons from db to update seasson", slog.String("error", err.Error()))
-		return nil
+		return err
 	}
 
-	seasonMap := make(map[string]*model.Season)
-	for i := range dbSeasons {
-		e := &dbSeasons[i]
-		key := fmt.Sprintf("%d:%d", e.SeasonId, e.Number)
-		seasonMap[key] = e
+	episodesModel, err := episodeRepo.ListByShowId(showModel.ID)
+	if err != nil {
+		//TODO: Log message
+		return err
 	}
 
-	for _, season := range show.Seasons {
+	tx, err := sm.DB.Beginx()
+	if err != nil {
+		return err
+	}
 
-		key := fmt.Sprintf("%d:%d", season.SeasonId, season.Number)
-		if existing, ok := seasonMap[key]; ok {
-			sm.logger.Info("Updating season", slog.Int("show_id", season.ShowId), slog.Int("season_id", season.SeasonId), slog.Int("season_number", season.Number))
-			existing.SeasonId = season.SeasonId
+	if err := sm.ShowRepo.UpdateTx(tx, showModel); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	seasonMap := make(map[int]*model.Season)
+	for i := range seasonsModel {
+		e := &seasonsModel[i]
+		seasonMap[e.Number] = e
+	}
+
+	for _, season := range seasonsModel {
+
+		if existing, ok := seasonMap[season.Number]; ok {
+			sm.logger.Info("Updating season", slog.Int64("ShowID", showModel.ID), slog.Int("SeasonNumber", season.Number))
+
 			existing.Number = season.Number
-
-			tx.Save(existing)
 		} else {
 			newSeason := model.Season{
-				ShowId:   dbShow.ID,
-				SeasonId: season.SeasonId,
-				Number:   season.Number,
+				ShowID: showModel.ID,
+				Number: season.Number,
 			}
-			if err := tx.Create(&newSeason).Error; err != nil {
+			if _, err := sm.SeasonRepo.CreateTx(tx, newSeason); err != nil {
 				//TODO: Error message
 				return err
 			}
 		}
 	}
 
-	var dbEpisodes []model.Episode
-	tx.Where("show_id = ?", dbShow.ID).Find(&dbEpisodes)
 	episodeMap := make(map[string]*model.Episode)
-	for i := range dbEpisodes {
-		e := &dbEpisodes[i]
+	for i := range episodesModel {
+		e := &episodesModel[i]
 		key := fmt.Sprintf("%d:%d", e.Season, e.Number)
 		episodeMap[key] = e
 	}
 
-	for _, episode := range show.Episodes {
+	for _, episode := range episodesModel {
 		key := fmt.Sprintf("%d:%d", episode.Season, episode.Number)
 		if existing, ok := episodeMap[key]; ok {
-			sm.logger.Info("Updating episode", slog.Int("show_id", episode.ShowId), slog.Int("season", episode.Season), slog.String("episode_name", episode.Name))
+			sm.logger.Info("Updating episode", slog.Int64("show_id", episode.ShowID), slog.Int("season", episode.Season), slog.String("episode_name", episode.Name))
 			existing.Name = episode.Name
 			existing.Summary = episode.Summary
 			existing.Type = episode.Type
 			existing.AirStamp = episode.AirStamp
-
-			tx.Save(existing)
 		} else {
 			newEpisode := model.Episode{
-				ShowId:   dbShow.ID,
+				ShowID:   showModel.ID,
 				Name:     episode.Name,
 				Summary:  episode.Summary,
 				Type:     episode.Type,
@@ -129,12 +136,12 @@ func (sm *ShowManagerService) UpdateShowWithRelations(show *model.Show) error {
 				AirStamp: episode.AirStamp,
 			}
 
-			if err := tx.Create(&newEpisode).Error; err != nil {
+			if err := sm.EpisodeRepo.CreateTx(tx, newEpisode); err != nil {
 				//TODO: Error message
 				return err
 			}
 		}
 	}
 
-	return tx.Commit().Error
+	return tx.Commit()
 }

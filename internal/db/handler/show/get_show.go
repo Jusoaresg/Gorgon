@@ -2,9 +2,8 @@ package show
 
 import (
 	"gorgon/config"
-	"gorgon/internal/db/model"
+	"gorgon/internal/db/repository"
 	"gorgon/pkg/schemas"
-	"gorgon/pkg/services"
 	"log/slog"
 	"strconv"
 
@@ -27,16 +26,16 @@ func GetShow(c echo.Context) error {
 	logger.Info("Received request to Get Show", slog.String("endpoint", "/database/show/:id"), slog.String("method", "get"))
 
 	id := c.Param("id")
-	idInt, err := strconv.Atoi(id)
+	id64, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
-		schemas.SendError(c, 400, "Error while converting id to int")
+		schemas.SendError(c, 400, "Error parsing id to int64")
 		return err
 	}
 
-	var show model.Show
-	baseService := services.NewBaseService()
-
-	if err := baseService.GetWithPreload(&show, idInt, "Seasons", "Episodes"); err != nil {
+	//TODO: Maybe returning the episodes and seasons ?
+	showRepo := repository.NewShowRepository()
+	show, err := showRepo.GetById(id64)
+	if err != nil {
 		logger.Error("Error while fetching show from database", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, "Error while fetching show")
 		return err

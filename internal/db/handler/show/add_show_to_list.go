@@ -3,11 +3,15 @@ package show
 import (
 	"gorgon/config"
 	"gorgon/external/tvmaze/service"
+	"gorgon/internal/db/model"
+	"gorgon/internal/db/repository"
 	"gorgon/internal/db/schema/show"
 	showManager "gorgon/internal/db/service"
 	"gorgon/pkg/schemas"
+	"gorgon/pkg/schemas/dtos"
 	"gorgon/pkg/services"
 	"log/slog"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
@@ -50,13 +54,20 @@ func AddShowToList(c echo.Context) error {
 	tvMazeService := service.NewTvMazeSearchService(logger)
 	showManagerService := showManager.NewShowManagerService(logger)
 
-	showDto, err := tvMazeService.SearchByTvMazeId(request.Id)
+	idString := strconv.Itoa(request.Id)
+	id64, err := strconv.ParseInt(idString, 10, 64)
 	if err != nil {
 		schemas.SendError(c, 500, err.Error())
 		return err
 	}
 
-	episodesDto, err := showManagerService.GetEpisodes(showDto.ShowID)
+	showDto, err := tvMazeService.SearchByTvMazeId(id64)
+	if err != nil {
+		schemas.SendError(c, 500, err.Error())
+		return err
+	}
+
+	episodesDto, err := showManagerService.GetEpisodes(showDto.TvMazeID)
 	if err != nil {
 		schemas.SendError(c, 500, err.Error())
 		return err
@@ -64,18 +75,60 @@ func AddShowToList(c echo.Context) error {
 
 	services.ApplyTrackingToEpisodes(episodesDto, request.TrackingType)
 
-	seasonsDto, err := showManagerService.GetSeasons(showDto.ShowID)
+	seasonsDto, err := showManagerService.GetSeasons(showDto.TvMazeID)
 	if err != nil {
 		schemas.SendError(c, 500, err.Error())
 		return err
 	}
 
-	show := showDto.ToModel(episodesDto, seasonsDto)
+	show := showDto.ToModel()
 
-	baseService := services.NewBaseService()
-	if err := baseService.Add(&show); err != nil {
-		logger.Error("Failed to add anime to database", slog.String("error", err.Error()))
-		schemas.SendError(c, 500, "Failed to add anime to database")
+	db := config.GetSQLite()
+	tx, err := db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	showRepo := repository.NewShowRepository()
+	showID, err := showRepo.CreateTx(tx, show)
+	if err != nil {
+		logger.Error("Failed to add show to database", slog.String("error", err.Error()))
+		schemas.SendError(c, 500, "Failed to add show to database")
+		return err
+	}
+	seasons := dtos.SeasonDtoSliceToModel(*seasonsDto, showID)
+	var episodes []model.Episode
+
+	for _, season := range seasons {
+		seasonRepo := repository.NewSeasonRepository()
+		seasonID, err := seasonRepo.CreateTx(tx, season)
+		if err != nil {
+			logger.Error("Failed to add season to database", slog.String("error", err.Error()))
+			schemas.SendError(c, 500, "Failed to add season to database")
+			return err
+		}
+
+		tempEpisodesDTO := *episodesDto
+		for _, episode := range tempEpisodesDTO {
+			if episode.Season == season.Number {
+				ep := episode.ToModel(showID, seasonID)
+				episodes = append(episodes, *ep)
+			}
+		}
+	}
+
+	for _, episode := range episodes {
+		episodeRepo := repository.NewEpisodeRepository()
+		if err := episodeRepo.CreateTx(tx, episode); err != nil {
+			logger.Error("Failed to add episode to database", slog.String("error", err.Error()))
+			schemas.SendError(c, 500, "Failed to add episode to database")
+			return err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		logger.Error("Failed to commit transaction", slog.String("error", err.Error()))
+		schemas.SendError(c, 500, "Failed to commit transaction")
 		return err
 	}
 

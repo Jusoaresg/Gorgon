@@ -2,10 +2,9 @@ package episode
 
 import (
 	"gorgon/config"
-	"gorgon/internal/db/model"
+	"gorgon/internal/db/repository"
 	"gorgon/internal/db/schema/episode"
 	"gorgon/pkg/schemas"
-	"gorgon/pkg/services"
 	"log/slog"
 
 	"github.com/labstack/echo/v4"
@@ -33,21 +32,18 @@ func ChangeEpisodeStatus(c echo.Context) error {
 		return err
 	}
 
-	var episode model.Episode
-	baseService := services.NewBaseService()
+	episodeRepository := repository.NewEpisodeRepository()
 
-	if err := baseService.Get(&episode, request.EpisodeId); err != nil {
+	episode, err := episodeRepository.GetById(request.EpisodeId)
+	if err != nil {
 		logger.Error("Error while fetching episode from database", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, "Error while fetching episode")
 		return err
 	}
 
-	if err := episode.StringToTracking(request.Tracking); err != nil {
-		schemas.SendError(c, 500, "Invalid tracking status")
-		return err
-	}
+	episode.Tracking = request.Tracking
 
-	if err := baseService.UpdateByID(int(episode.ID), &episode); err != nil {
+	if err := episodeRepository.Update(episode); err != nil {
 		schemas.SendError(c, 500, "Failed to update episode tracking status")
 		return err
 	}

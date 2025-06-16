@@ -27,7 +27,7 @@ func NewAPIService(url string, logger *slog.Logger) (a *APIService) {
 	}
 }
 
-func (a *APIService) Get(endpoint string, response interface{}) error {
+func (a *APIService) Get(endpoint string, response any) error {
 	url := fmt.Sprintf("%s%s", a.Url, endpoint)
 
 	resp, err := a.Client.Get(url)
@@ -72,7 +72,7 @@ func (a *APIService) Get(endpoint string, response interface{}) error {
 	return nil
 }
 
-func (a *APIService) GetWithHeaders(endpoint string, response interface{}, headers map[string]string) error {
+func (a *APIService) GetWithHeaders(endpoint string, response any, headers map[string]string) error {
 	url := fmt.Sprintf("%s%s", a.Url, endpoint)
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -95,8 +95,6 @@ func (a *APIService) GetWithHeaders(endpoint string, response interface{}, heade
 		return fmt.Errorf("Error reading response body: %w", err)
 	}
 
-	//fmt.Println("Response Body:", string(body))
-
 	if len(body) == 0 {
 		return fmt.Errorf("Empty response body")
 	}
@@ -108,7 +106,7 @@ func (a *APIService) GetWithHeaders(endpoint string, response interface{}, heade
 	return nil
 }
 
-func (a *APIService) Post(endpoint string, requestData interface{}, response interface{}, headersInfo ...map[string]string) (*http.Response, error) {
+func (a *APIService) Post(endpoint string, requestData any, response any, headersInfo ...map[string]string) (*http.Response, error) {
 	url := fmt.Sprintf("%s%s", a.Url, endpoint)
 
 	var reqBody io.Reader

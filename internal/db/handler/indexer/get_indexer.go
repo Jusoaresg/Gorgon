@@ -1,9 +1,8 @@
 package indexer
 
 import (
-	"gorgon/internal/db/model"
+	"gorgon/internal/db/repository"
 	"gorgon/pkg/schemas"
-	"gorgon/pkg/services"
 
 	"github.com/labstack/echo/v4"
 )
@@ -20,19 +19,16 @@ import (
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /database/indexer/{id} [get]
 func GetIndexer(c echo.Context) error {
-	// id := c.Param("id")
-	// idInt, err := strconv.Atoi(id)
 	var request schemas.IdRequest
 	if err := c.Bind(&request); err != nil {
 		schemas.SendError(c, 400, "Failed to bind request body")
 		return err
 	}
 
-	indexer := model.Indexer{}
+	indexerRepo := repository.NewIndexerRepository()
 
-	baseService := services.NewBaseService()
-
-	if err := baseService.Get(&indexer, request.Id); err != nil {
+	indexer, err := indexerRepo.GetById(request.Id)
+	if err != nil {
 		return err
 	}
 

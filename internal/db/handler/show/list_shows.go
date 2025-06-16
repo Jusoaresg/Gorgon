@@ -2,9 +2,8 @@ package show
 
 import (
 	"gorgon/config"
-	"gorgon/internal/db/model"
+	"gorgon/internal/db/repository"
 	"gorgon/pkg/schemas"
-	"gorgon/pkg/services"
 	"log/slog"
 
 	"github.com/labstack/echo/v4"
@@ -24,11 +23,10 @@ func ListShows(c echo.Context) error {
 	logger := config.GetLogger()
 	logger.Info("Received request to List Shows", slog.String("endpoint", "/database/show"), slog.String("method", "get"))
 
-	var show []model.Show
+	showRepo := repository.NewShowRepository()
 
-	baseService := services.NewBaseService()
-
-	if err := baseService.ListWithPreload(&show, "Seasons", "Episodes"); err != nil {
+	show, err := showRepo.List()
+	if err != nil {
 		logger.Error("Error while fetching shows from database", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, "Error while fetching shows")
 		return err

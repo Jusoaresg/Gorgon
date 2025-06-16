@@ -158,10 +158,9 @@ func (q *QBittorrentService) CheckTorrentsWithHash(filter, hash string, response
 	return nil
 }
 
-func (q *QBittorrentService) CheckContent(hash string, content *[]model.EpisodeContent) error {
-
+func (q *QBittorrentService) GetContent(hash string) ([]model.EpisodeContent, error) {
 	if err := q.SidVerification(); err != nil {
-		return err
+		return nil, err
 	}
 
 	headers := map[string]string{
@@ -169,9 +168,10 @@ func (q *QBittorrentService) CheckContent(hash string, content *[]model.EpisodeC
 	}
 
 	url := fmt.Sprintf("/api/v2/torrents/files?hash=%s", hash)
+	var content []model.EpisodeContent
 	if err := q.APIService.GetWithHeaders(url, &content, headers); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return content, nil
 }

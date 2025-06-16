@@ -7,14 +7,43 @@ import { goto } from '$app/navigation';
 import { tick } from 'svelte';
 
 let show = null;
+let seasons = [];
+let episodes = [];
+
 let socket;
 
 onMount(async () => {
 	const showId = $page.params.id;
 
-	const res = await fetch(`/api/v1/database/show/${showId}`)
-	const json = await res.json()
-	show = json.data;
+	try {
+		const [showRes, seasonsRes, episodesRes] = await Promise.all([
+			fetch(`/api/v1/database/show/${showId}`),
+			fetch(`/api/v1/database/show/season/${showId}`),
+			fetch(`/api/v1/database/show/episode/${showId}`)
+		])
+
+		if (!showRes.ok || !seasonsRes.ok || !episodesRes.ok) {
+			console.error("One or more requests failed", {
+				show: showRes.status,
+				seasons: seasonsRes.status,
+				episodes: episodesRes.status
+			});
+			return;
+		}
+
+		const [showJson, seasonsJson, episodesJson] = await Promise.all([
+			showRes.json(),
+			seasonsRes.json(),
+			episodesRes.json(),
+		])
+
+		show = showJson.data;
+		seasons = seasonsJson.data;
+		episodes = episodesJson.data;
+	}
+	catch (error) {
+		console.error("Unexpected error during show loading", error)
+	}
 
 	socket = new WebSocket('ws://localhost:8080/api/v1/ws')
 
@@ -27,13 +56,11 @@ socket.onmessage = async (event) => {
 
 	if (data.type === "EpisodeTrackingUpdate") {
 		// recria todos os episódios com novo objeto para disparar reatividade
-		show.Episodes = show.Episodes.map(episode =>
+		episodes = episodes.map(episode =>
 			episode.ID === data.episodeId
 				? { ...episode, Tracking: data.tracking }
-				: { ...episode } // clona mesmo se não mudou
+				:  episode
 		);
-
-		show = { ...show }; // garante que 'show' também mude
 
 		await tick(); // força update da UI antes de continuar
 	}
@@ -115,8 +142,8 @@ async function changeTrackingStatus(event) {
 
 		<div class="show-overview">
 			<div class="show-poster">
-				{#if show.Image?.Medium}
-					<img src={show.Image.Medium} alt={`${show.Name} Poster`} />
+				{#if show.ImageMedium}
+					<img src={show.ImageMedium} alt={`${show.Name} Poster`} />
 				{:else}
 					<div class="placeholder-poster">
 						<span>{show.Name.charAt(0)}</span>
@@ -129,7 +156,7 @@ async function changeTrackingStatus(event) {
 		</div>
 
 		<div class="seasons-navigation">
-			{#each show.Seasons as season}
+			{#each seasons as season}
 				<a href={"#season-" + season.Number} class="season-pill">
 					Season {season.Number}
 				</a>
@@ -137,7 +164,7 @@ async function changeTrackingStatus(event) {
 		</div>
 
 		<!-- Temporadas em ordem decrescente -->
-		{#each [...show.Seasons].reverse() as season}
+		{#each [...seasons].reverse() as season}
 			<div id={"season-" + season.Number} class="season-block">
 				<div class="season-header">
 					<h2>Season {season.Number}</h2>
@@ -149,7 +176,7 @@ async function changeTrackingStatus(event) {
 				</div>
 
 				<div class="episodes-container">
-					{#each [...show.Episodes.filter(e => e.Season === season.Number)].reverse() as episode}
+					{#each [...episodes.filter(e => e.Season === season.Number)].reverse() as episode}
 						<EpisodeCard {episode} seasonNumber={season.Number} on:statusChange={changeTrackingStatus} />
 					{/each}
 				</div>

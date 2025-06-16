@@ -7,9 +7,8 @@ import (
 	prowlarr "gorgon/external/prowlarr/service"
 	qbittorrent "gorgon/external/qbittorrent/service"
 	"gorgon/internal/db/model"
-	"gorgon/internal/scheduler"
+	"gorgon/internal/db/repository"
 	"gorgon/pkg/handler"
-	"gorgon/pkg/services"
 	"log/slog"
 	"sort"
 	"strings"
@@ -23,7 +22,7 @@ const cooldownDuration = 5 * time.Minute
 
 func init() {
 	go func() {
-		ticker := time.NewTicker(30 * time.Minute) // ou outro intervalo
+		ticker := time.NewTicker(30 * time.Minute)
 		for range ticker.C {
 			now := time.Now()
 			cooldownCache.Range(func(key, value any) bool {
@@ -38,10 +37,10 @@ func init() {
 
 func ProcessSingleEpisode(ep *model.Episode, prowlarrService prowlarr.ProwlarrSearchService, qbittorrentService qbittorrent.QBittorrentService) error {
 	var logger = config.GetLogger()
-	var baseService = services.NewBaseService()
+	episodeRepo := repository.NewEpisodeRepository()
+	showRepo := repository.NewShowRepository()
 
-	var show model.Show
-	err := baseService.DB.Where("id = ?", ep.ShowId).Find(&show).Error
+	show, err := showRepo.GetById(ep.ShowID)
 	if err != nil {
 		return err
 	}
@@ -130,16 +129,20 @@ func ProcessSingleEpisode(ep *model.Episode, prowlarrService prowlarr.ProwlarrSe
 
 	qbittorrentService.AddTorrent(url)
 
-	ep.Tracking = model.Tracking.Snatched()
+	ep.Tracking = model.TrackingSnatched
 	ep.TorrentHash = response[0].InfoHash
-	baseService.UpdateByID(int(ep.ID), ep)
+
+	if err := episodeRepo.Update(*ep); err != nil {
+		return err
+	}
+
 	logger.Info("Added torrent to qBittorrent", slog.String("Show", show.Name), slog.Int("Episode", ep.Number))
 
 	//TODO: You know
-	var msg scheduler.EpisodeUpdatedWebsocketSchema
+	var msg EpisodeUpdatedWebsocketSchema
 	msg.Type = "EpisodeTrackingUpdate"
-	msg.EpisodeId = int(ep.ID)
-	msg.Tracking = string(model.Tracking.Snatched())
+	msg.EpisodeId = ep.ID
+	msg.Tracking = model.TrackingSnatched
 	handler.SendWebSocketMessage(msg)
 	return nil
 }
@@ -151,7 +154,7 @@ func normalizeTitle(title string) string {
 	)
 	title = replacer.Replace(title)
 	title = strings.ToLower(title)
-	title = strings.Join(strings.Fields(title), " ") // remove espaços duplicados
+	title = strings.Join(strings.Fields(title), " ") // remove duplicated spaces
 	return title
 }
 

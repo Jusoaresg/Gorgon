@@ -2,9 +2,8 @@ package indexer
 
 import (
 	"fmt"
-	"gorgon/internal/db/model"
+	"gorgon/internal/db/repository"
 	"gorgon/pkg/schemas"
-	"gorgon/pkg/services"
 
 	"github.com/labstack/echo/v4"
 )
@@ -26,12 +25,13 @@ func DeleteIndexer(c echo.Context) error {
 		return err
 	}
 
-	baseService := services.NewBaseService()
+	indexerRepo := repository.NewIndexerRepository()
 
-	if err := baseService.DeletePermanently(request.Id, &model.Indexer{}); err != nil {
+	if err := indexerRepo.DeleteById(request.Id); err != nil {
 		schemas.SendError(c, 500, fmt.Sprintf("Error while deleting indexer: %s", err.Error()))
 		return err
 	}
+
 	schemas.SendSucess(c, "Delete Indexer", "")
 	return nil
 }

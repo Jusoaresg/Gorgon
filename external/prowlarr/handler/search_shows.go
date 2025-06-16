@@ -24,7 +24,7 @@ import (
 // @Router /prowlarr/search [post]
 func SearchShows(c echo.Context) error {
 	logger := config.GetLogger()
-	logger.Info("Received request to Search Animes", slog.String("endpoint", "/api/v1/prowlarr/search"), slog.String("method", "POST"))
+	logger.Info("Received request to Search Shows", slog.String("endpoint", "/api/v1/prowlarr/search"), slog.String("method", "POST"))
 
 	var request schema.SearchRequest
 	if err := c.Bind(&request); err != nil {
@@ -37,12 +37,12 @@ func SearchShows(c echo.Context) error {
 
 	var response []schema.SearchResponse
 	if err := searchService.Search(&request, &response); err != nil {
-		logger.Error("Error while search all animes from prowlarr", slog.String("error", err.Error()))
+		logger.Error("Error while search all shows from prowlarr", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, fmt.Sprintf("Error while searching all animes prowlarr: %s", err.Error()))
 		return err
 	}
 
-	logger.Info("Search Animes request successfully", slog.Any("response", response))
-	schemas.SendSucess(c, "Search Animes", response)
+	logger.Info("Search Shows request successfully", slog.Any("response", response))
+	schemas.SendSucess(c, "Search Shows", response)
 	return nil
 }

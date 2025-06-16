@@ -1,16 +1,11 @@
 package model
 
-import (
-	"gorm.io/datatypes"
-	"gorm.io/gorm"
-)
-
 type Indexer struct {
-	gorm.Model
-	IndexerId      int            `json:"id"`
-	Name           string         `json:"name"`
-	Enabled        bool           `json:"enable"`
-	DefinitionName string         `json:"definitionName"`
-	IndexerUrls    datatypes.JSON `json:"indexerUrls"`
-	Language       string         `json:"language"`
+	ID             int64  `db:"id" json:"internalId"`
+	IndexerID      int    `db:"indexer_id" json:"id"`
+	Name           string `db:"name" json:"name"`
+	Enabled        bool   `db:"enabled" json:"enabled"`
+	DefinitionName string `db:"definition_name" json:"definitionName"`
+	IndexerUrls    string `db:"indexer_urls" json:"indexerUrls"`
+	Language       string `db:"language" json:"language"`
 }

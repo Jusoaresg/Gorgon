@@ -4,9 +4,8 @@ import (
 	"gorgon/config"
 	"gorgon/external/tvmaze/schema"
 	"gorgon/external/tvmaze/service"
-	"gorgon/internal/db/model"
+	"gorgon/internal/db/repository"
 	"gorgon/pkg/schemas"
-	"gorgon/pkg/services"
 	"log/slog"
 
 	"github.com/labstack/echo/v4"
@@ -41,21 +40,22 @@ func SearchShowByName(c echo.Context) error {
 		return err
 	}
 
-	baseService := services.NewBaseService()
+	showRepo := repository.NewShowRepository()
+	existingShows, err := showRepo.List()
+	if err != nil {
+		return err
+	}
 
-	var existingShows []model.Show
-	baseService.List(&existingShows)
-
-	existingsMap := make(map[int]bool)
+	existingsMap := make(map[int64]bool)
 	for _, s := range existingShows {
-		existingsMap[s.ShowID] = true
+		existingsMap[s.TvMazeID] = true
 	}
 
 	var enriched []schema.SearchResult
 	for _, r := range *response {
 		enriched = append(enriched, schema.SearchResult{
 			Show:    r.Show,
-			IsAdded: existingsMap[r.Show.ShowID],
+			IsAdded: existingsMap[r.Show.TvMazeID],
 		})
 	}
 

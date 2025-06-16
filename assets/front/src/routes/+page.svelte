@@ -33,7 +33,7 @@ onMount(async () => {
 		<!-- Add extra filters for release data and etc... -->
 	</div>
 
-	{#if shows.length > 0}
+	{#if shows != null && shows.length > 0}
 		<div class="shows-grid">
 			{#each shows as show}
 				<div 
@@ -45,8 +45,8 @@ onMount(async () => {
 				>
 					<input type="hidden" value={ show.ID.toString() } name="id"/>
 					<div class="show-poster">
-						{#if show.Image.Medium != ""}
-							<img src={show.Image.Medium}  alt={show.Name}/>
+						{#if show.ImageMedium != ""}
+							<img src={show.ImageMedium}  alt={show.Name}/>
 						{/if}
 						<div class="show-overlay">
 						</div>

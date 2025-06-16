@@ -1,57 +1,45 @@
 package model
 
 import (
-	"errors"
 	"time"
 )
 
-type TrackingStatus string
-
 const (
-	StatusWanted     TrackingStatus = "wanted"
-	StatusMissing    TrackingStatus = "missing"
-	StatusSkipped    TrackingStatus = "skipped"
-	StatusSnatched   TrackingStatus = "snatched"
-	StatusDownloaded TrackingStatus = "downloaded"
+	TrackingWanted     string = "wanted"
+	TrackingMissing    string = "missing"
+	TrackingSkipped    string = "skipped"
+	TrackingSnatched   string = "snatched"
+	TrackingDownloaded string = "downloaded"
 )
 
-type trackingStatusEnum struct{}
-
-var Tracking = trackingStatusEnum{}
-
-func (trackingStatusEnum) Wanted() TrackingStatus     { return StatusWanted }
-func (trackingStatusEnum) Missing() TrackingStatus    { return StatusMissing }
-func (trackingStatusEnum) Skipped() TrackingStatus    { return StatusSkipped }
-func (trackingStatusEnum) Snatched() TrackingStatus   { return StatusSnatched }
-func (trackingStatusEnum) Downloaded() TrackingStatus { return StatusDownloaded }
-
 type Episode struct {
-	ID       uint `gorm:"primaryKey"`
-	ShowId   int  `gorm:"index"`
-	Name     string
-	Summary  string
-	Type     string
-	Number   int
-	Season   int
-	AirStamp string
+	ID       int64 `db:"id"`
+	ShowID   int64 `db:"show_id"`
+	SeasonID int64 `db:"season_id"`
 
-	FilePath    *string
-	Tracking    TrackingStatus `gorm:"type:text;default:'wanted'"`
-	TorrentHash string
-	Content     []EpisodeContent `gorm:"foreignKey:EpisodeId"`
+	Name     string `db:"name"`
+	Summary  string `db:"summary"`
+	Type     string `db:"type"`
+	Number   int    `db:"number"`
+	Season   int    `db:"season"`
+	AirStamp string `db:"airstamp"`
+
+	FilePath    string `db:"file_path"`
+	Tracking    string `db:"tracking"`
+	TorrentHash string `db:"torrent_hash"`
 }
 
 type EpisodeContent struct {
-	ID        uint `gorm:"primaryKey"`
-	EpisodeId int  `gorm:"index"`
+	ID        int   `db:"id"`
+	EpisodeId int64 `db:"episode_id"`
 
-	Name    string  `json:"name"`
-	Size    float64 `json:"size"`
-	Is_Seed bool    `json:"is_seed"`
+	Name    string  `db:"name"`
+	Size    float64 `db:"size"`
+	Is_Seed bool    `db:"is_seed"`
 }
 
 func (e *Episode) Create(
-	ShowId int,
+	ShowID int64,
 	Name string,
 	Summary string,
 	Type string,
@@ -60,7 +48,7 @@ func (e *Episode) Create(
 	AirStamp string,
 ) *Episode {
 	return &Episode{
-		ShowId:   ShowId,
+		ShowID:   ShowID,
 		Name:     Name,
 		Summary:  Summary,
 		Type:     Type,
@@ -91,24 +79,7 @@ func (e *Episode) HasAired() (bool, error) {
 }
 
 func (e *Episode) SetNotInstalled() {
-	e.Tracking = Tracking.Skipped()
-	e.FilePath = nil
+	e.Tracking = TrackingSkipped
+	e.FilePath = ""
 	e.TorrentHash = ""
-}
-
-func (e *Episode) StringToTracking(tracking string) error {
-	switch tracking {
-	case "wanted":
-		e.FilePath = nil
-		e.TorrentHash = ""
-		e.Tracking = Tracking.Wanted()
-	case "skipped":
-		e.FilePath = nil
-		e.TorrentHash = ""
-		e.Tracking = Tracking.Skipped()
-	default:
-		return errors.New("No valid tracking string")
-	}
-
-	return nil
 }

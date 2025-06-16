@@ -1,42 +1,31 @@
 package model
 
 type Show struct {
-	ID        int    `gorm:"primaryKey"`
-	ShowID    int    `gorm:"index"`
-	Name      string `gorm:"uniqueIndex"`
-	Type      string
-	Language  string
-	Status    string
-	Premiered string
-	Ended     string
-	Rating    *float64
-	Summary   string
-	Updated   int
+	ID        int64    `db:"id"`
+	TvMazeID  int64    `db:"tv_maze_id"`
+	Name      string   `db:"name"`
+	Type      string   `db:"type"`
+	Language  string   `db:"language"`
+	Status    string   `db:"status"`
+	Premiered string   `db:"premiered"`
+	Ended     string   `db:"ended"`
+	Rating    *float64 `db:"rating"`
+	Summary   string   `db:"summary"`
+	Updated   int      `db:"updated"`
 
-	Schedule Schedule  `gorm:"foreignKey:ShowId;constraint:OnDelete:CASCADE"`
-	Seasons  []Season  `gorm:"foreignKey:ShowId;constraint:OnDelete:CASCADE"`
-	Episodes []Episode `gorm:"foreignKey:ShowId;constraint:OnDelete:CASCADE"`
+	TvRage   int `db:"tv_rage"`
+	TheTvDBD int `db:"the_tvdbd"`
+	Imdb     int `db:"imdb"`
 
-	Externals Externals `gorm:"embedded"`
-	Image     Image     `gorm:"embedded"`
+	ImageOriginal string `db:"image_original"`
+	ImageMedium   string `db:"image_medium"`
 
-	Genres string `gorm:"type:text"` // Serializar e desserializar manualmente
+	Genres string `db:"genres"`
 }
 
 type Schedule struct {
-	ID     uint `gorm:"primaryKey"`
-	ShowId int  `gorm:"index"`
-	Time   string
-	Days   string `gorm:"type:text"`
-}
-
-type Externals struct {
-	Tvrage   int
-	Thetvdvb int
-	Imdb     string
-}
-
-type Image struct {
-	Medium   string
-	Original string
+	ID     int64  `db:"id"`
+	ShowId int64  `db:"show_id"`
+	Time   string `db:"time"`
+	Days   string `db:"days"`
 }

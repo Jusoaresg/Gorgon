@@ -2,10 +2,11 @@ package dtos
 
 import (
 	"gorgon/internal/db/model"
+	"strconv"
 )
 
 type ShowDto struct {
-	ShowID    int    `json:"id"`
+	TvMazeID  int64  `json:"id"`
 	Name      string `json:"name"`
 	Type      string `json:"type"`
 	Language  string `json:"language"`
@@ -14,7 +15,7 @@ type ShowDto struct {
 	Ended     string `json:"ended"`
 	Rating    struct {
 		Average *float64 `json:"average"`
-	} `json:"rating,omitempty"`
+	} `json:"rating"`
 	Summary string `json:"summary"`
 	Updated int    `json:"updated"`
 
@@ -36,7 +37,6 @@ type ShowDto struct {
 
 // Always use as slice
 type SeasonDto struct {
-	ShowId       int    `json:"id"`
 	Url          string `json:"url"`
 	Name         string `json:"name,omitempty"`
 	Number       int    `json:"number"`
@@ -44,20 +44,55 @@ type SeasonDto struct {
 	EndDate      string `json:"endDate"`
 }
 
+func (s *SeasonDto) ToModel(showID int64) *model.Season {
+	return &model.Season{
+		ShowID: showID,
+		Number: s.Number,
+	}
+}
+
+func SeasonDtoSliceToModel(seasonDto []SeasonDto, showID int64) []model.Season {
+	var seasons []model.Season
+	for _, season := range seasonDto {
+		seasons = append(seasons, *season.ToModel(showID))
+	}
+	return seasons
+}
+
 // Always use as slice
 type EpisodeDto struct {
-	ShowId   int    `json:"id"`
 	Url      string `json:"url"`
 	Name     string `json:"name"`
 	Season   int    `json:"season"`
 	Number   int    `json:"number"`
 	AirStamp string `json:"airStamp"`
 	Summary  string `json:"summary"`
-	Tracking model.TrackingStatus
+	Tracking string
+}
+
+func (s *EpisodeDto) ToModel(showID int64, seasonID int64) *model.Episode {
+	return &model.Episode{
+		ShowID:   showID,
+		Name:     s.Name,
+		SeasonID: seasonID,
+		Season:   s.Season,
+		Number:   s.Number,
+		AirStamp: s.AirStamp,
+		Summary:  s.Summary,
+		Tracking: s.Tracking,
+	}
+}
+
+func EpisodesDtoSliceToModel(episodeDto []EpisodeDto, showID int64, seasonID int64) []model.Episode {
+	var episodes []model.Episode
+	for _, episode := range episodeDto {
+		episodes = append(episodes, *episode.ToModel(showID, seasonID))
+	}
+	return episodes
 }
 
 func (d *ShowDto) CreateDto(
-	ShowId, Updated int,
+	TvMazeID int64, Updated int,
 	Name, Type, Language, Status, Premiered, Ended, Summary string,
 	Rating struct {
 		Average *float64 `json:"average"`
@@ -79,7 +114,7 @@ func (d *ShowDto) CreateDto(
 ) *ShowDto {
 
 	return &ShowDto{
-		ShowID:    ShowId,
+		TvMazeID:  TvMazeID,
 		Name:      Name,
 		Type:      Type,
 		Language:  Language,
@@ -94,10 +129,11 @@ func (d *ShowDto) CreateDto(
 	}
 }
 
-func (d *ShowDto) ToModel(episodes *[]EpisodeDto, seasons *[]SeasonDto) *model.Show {
+func (d *ShowDto) ToModel() model.Show {
+	imdb, _ := strconv.Atoi(d.Externals.Imdb)
 
 	show := model.Show{
-		ShowID:    d.ShowID,
+		TvMazeID:  d.TvMazeID,
 		Name:      d.Name,
 		Type:      d.Type,
 		Language:  d.Language,
@@ -108,39 +144,12 @@ func (d *ShowDto) ToModel(episodes *[]EpisodeDto, seasons *[]SeasonDto) *model.S
 		Summary:   d.Summary,
 		Updated:   d.Updated,
 
-		Seasons:  make([]model.Season, len(*seasons)),
-		Episodes: make([]model.Episode, len(*episodes)),
+		TvRage:   d.Externals.TvRage,
+		TheTvDBD: d.Externals.TheTvdb,
+		Imdb:     imdb,
 
-		Externals: model.Externals{
-			Tvrage:   d.Externals.TvRage,
-			Thetvdvb: d.Externals.TheTvdb,
-			Imdb:     d.Externals.Imdb,
-		},
-		Image: model.Image{
-			Original: d.Image.Original,
-			Medium:   d.Image.Medium,
-		},
+		ImageOriginal: d.Image.Original,
+		ImageMedium:   d.Image.Medium,
 	}
-
-	for i, season := range *seasons {
-		show.Seasons[i] = model.Season{
-			ShowId:   d.ShowID,
-			SeasonId: season.ShowId,
-			Number:   season.Number,
-		}
-	}
-
-	for i, episode := range *episodes {
-		show.Episodes[i] = model.Episode{
-			ShowId:   episode.ShowId,
-			Name:     episode.Name,
-			Summary:  episode.Summary,
-			Number:   episode.Number,
-			Season:   episode.Season,
-			AirStamp: episode.AirStamp,
-			Tracking: episode.Tracking,
-		}
-	}
-
-	return &show
+	return show
 }

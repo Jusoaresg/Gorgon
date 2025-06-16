@@ -3,7 +3,7 @@ package scheduler
 import (
 	"gorgon/config"
 	"gorgon/external/tvmaze/service"
-	"gorgon/internal/db/model"
+	"gorgon/internal/db/repository"
 	showManager "gorgon/internal/db/service"
 	"gorgon/pkg/services"
 	"log/slog"
@@ -14,10 +14,11 @@ import (
 func UpdateAllShows() {
 	logger := config.GetLogger()
 
-	baseService := services.NewBaseService()
-
-	var shows []model.Show
-	baseService.List(&shows)
+	showRepo := repository.NewShowRepository()
+	shows, err := showRepo.List()
+	if err != nil {
+		return
+	}
 
 	tvMazeService := service.NewTvMazeSearchService(logger)
 	showManagerService := showManager.NewShowManagerService(logger)
@@ -31,35 +32,33 @@ func UpdateAllShows() {
 	}
 
 	for _, showOld := range shows {
-		updatedAt, ok := updates[strconv.Itoa(showOld.ShowID)]
+		updatedAt, ok := updates[strconv.FormatInt(showOld.ID, 10)]
 		if !ok {
 			continue
 		}
 
 		if int64(showOld.Updated) < updatedAt {
-			logger.Info("Updating show", slog.Int("show_id", showOld.ShowID), slog.String("title", showOld.Name))
+			logger.Info("Updating show", slog.Int64("show_id", showOld.ID), slog.String("title", showOld.Name))
 
-			showModel, err := tvMazeService.SearchByTvMazeId(showOld.ShowID)
+			showDTO, err := tvMazeService.SearchByTvMazeId(showOld.ID)
 			if err != nil {
 				logger.Error("Error while searching tvmaze for id while updating shows", slog.String("error", err.Error()))
 				continue
 			}
 
-			episodes, err := showManagerService.GetEpisodes(showModel.ShowID)
+			episodesDTO, err := showManagerService.GetEpisodes(showDTO.TvMazeID)
 			if err != nil {
 				logger.Error("Error while getting episodes for show", slog.String("error", err.Error()))
 				continue
 			}
 
-			seasons, err := showManagerService.GetSeasons(showModel.ShowID)
+			seasonsDTO, err := showManagerService.GetSeasons(showDTO.TvMazeID)
 			if err != nil {
 				logger.Error("Error while getting seasons for show", slog.String("error", err.Error()))
 				continue
 			}
 
-			show := showModel.ToModel(episodes, seasons)
-
-			if err := showManagerService.UpdateShowWithRelations(show); err != nil {
+			if err := showManagerService.UpdateShowWithRelations(*showDTO, *seasonsDTO, *episodesDTO); err != nil {
 				logger.Error("Error while updating shows with relations", slog.String("error", err.Error()))
 				continue
 			}

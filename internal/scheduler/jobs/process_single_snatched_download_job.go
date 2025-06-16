@@ -6,20 +6,21 @@ import (
 	"gorgon/external/qbittorrent/schema"
 	"gorgon/external/qbittorrent/service"
 	"gorgon/internal/db/model"
+	"gorgon/internal/db/repository"
 	"gorgon/pkg/handler"
-	"gorgon/pkg/services"
 )
 
 type EpisodeUpdatedWebsocketSchema struct {
 	Type      string `json:"type"`
-	EpisodeId int    `json:"episodeId"`
+	EpisodeId int64  `json:"episodeId"`
 	Tracking  string `json:"tracking"`
 }
 
 func ProcessSingleSnatchedDownload(ep *model.Episode, qbittorrentService service.QBittorrentService) error {
 	logger := config.GetLogger()
+	episodeRepo := repository.NewEpisodeRepository()
+	episodeContentRepo := repository.NewEpisodeContentRepository()
 
-	var baseService = services.NewBaseService()
 	var torrentResponse []schema.CheckTorrentResponse
 	qbittorrentService.CheckTorrentsWithHash("completed", ep.TorrentHash, &torrentResponse)
 	if len(torrentResponse) == 0 {
@@ -29,19 +30,36 @@ func ProcessSingleSnatchedDownload(ep *model.Episode, qbittorrentService service
 	torrent := torrentResponse[0]
 
 	if torrent.Hash == ep.TorrentHash {
-		logger.Info(fmt.Sprintf("Episode S%02d E%02d %s found - Torrent: %s - State: %s - Progress: %.2f%%", ep.Season, ep.Number, ep.Name, torrent.Name, torrent.State, torrent.Progress*100))
+		logger.Info(fmt.Sprintf("Episode S%02d E%02d %s found - Torrent: %s", ep.Season, ep.Number, ep.Name, torrent.Name))
 
-		updated_episode := ep
-		updated_episode.Tracking = model.Tracking.Downloaded()
-		updated_episode.FilePath = &torrent.SavePath
-		qbittorrentService.CheckContent(torrent.Hash, &updated_episode.Content)
+		ep.Tracking = model.TrackingDownloaded
+		ep.FilePath = torrent.SavePath
 
-		baseService.UpdateByID(int(ep.ID), &updated_episode)
+		contents, err := qbittorrentService.GetContent(torrent.Hash)
+		if err != nil {
+			return err
+		}
+
+		tx, err := config.GetSQLite().Beginx()
+		if err != nil {
+			return err
+		}
+		episodeRepo.UpdateTx(tx, *ep)
+		for _, content := range contents {
+			content.EpisodeId = ep.ID
+			if err := episodeContentRepo.CreateTx(tx, content); err != nil {
+				return err
+			}
+		}
+
+		if err := tx.Commit(); err != nil {
+			return err
+		}
 
 		var msg EpisodeUpdatedWebsocketSchema
 		msg.Type = "EpisodeTrackingUpdate"
-		msg.EpisodeId = int(ep.ID)
-		msg.Tracking = string(model.Tracking.Downloaded())
+		msg.EpisodeId = ep.ID
+		msg.Tracking = model.TrackingDownloaded
 		handler.SendWebSocketMessage(msg)
 		return nil
 	}

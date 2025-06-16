@@ -33,32 +33,32 @@ func (t *TvMazeSearchService) SearchByName(name string) (*[]schema.TvMazeRespons
 	return &model, nil
 }
 
-func (t *TvMazeSearchService) SearchByTvMazeId(id int) (*dtos.ShowDto, error) {
+func (t *TvMazeSearchService) SearchByTvMazeId(tvMazeID int64) (*dtos.ShowDto, error) {
 	var model dtos.ShowDto
-	if err := t.APIService.Get(fmt.Sprintf("/shows/%d", id), &model); err != nil {
+	if err := t.APIService.Get(fmt.Sprintf("/shows/%d", tvMazeID), &model); err != nil {
 		return nil, err
 	}
 	return &model, nil
 }
 
-func (t *TvMazeSearchService) SearchByTheTvDbId(id string) (*dtos.ShowDto, error) {
+func (t *TvMazeSearchService) SearchByTheTvDbId(theTvDBID string) (*dtos.ShowDto, error) {
 	var model dtos.ShowDto
-	if err := t.APIService.Get(fmt.Sprintf("/lookup/shows?thetvdb=%s", id), &model); err != nil {
+	if err := t.APIService.Get(fmt.Sprintf("/lookup/shows?thetvdb=%s", theTvDBID), &model); err != nil {
 		return nil, err
 	}
 	return &model, nil
 }
 
-func (t *TvMazeSearchService) SearchByImdb(id string) (*dtos.ShowDto, error) {
+func (t *TvMazeSearchService) SearchByImdb(imbdID string) (*dtos.ShowDto, error) {
 	var model dtos.ShowDto
-	if err := t.APIService.Get(fmt.Sprintf("/lookup/shows?imdb=%s", id), &model); err != nil {
+	if err := t.APIService.Get(fmt.Sprintf("/lookup/shows?imdb=%s", imbdID), &model); err != nil {
 		return nil, err
 	}
 	return &model, nil
 }
 
 // Episodes
-func (t *TvMazeSearchService) SearchEpisodes(id int) (*[]dtos.EpisodeDto, error) {
+func (t *TvMazeSearchService) SearchEpisodes(id int64) (*[]dtos.EpisodeDto, error) {
 	var model []dtos.EpisodeDto
 	if err := t.APIService.Get(fmt.Sprintf("/shows/%d/episodes", id), &model); err != nil {
 		return nil, err
@@ -67,7 +67,7 @@ func (t *TvMazeSearchService) SearchEpisodes(id int) (*[]dtos.EpisodeDto, error)
 }
 
 // Seasons
-func (t *TvMazeSearchService) SearchSeasons(id int) (*[]dtos.SeasonDto, error) {
+func (t *TvMazeSearchService) SearchSeasons(id int64) (*[]dtos.SeasonDto, error) {
 	var model []dtos.SeasonDto
 	if err := t.APIService.Get(fmt.Sprintf("/shows/%d/seasons", id), &model); err != nil {
 		return nil, err

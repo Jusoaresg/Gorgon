@@ -21,7 +21,13 @@ func processEpisodesWorker(episodesChan <-chan model.Episode) {
 	for episode := range episodesChan {
 		err := jobs.ProcessSingleEpisode(&episode, *prowlarrService, *qbittorrentService)
 		if err != nil {
-			logger.Warn("Error processing episode", slog.Int("episodeID", int(episode.ID)), slog.String("error", err.Error()))
+			logger.Error(
+				"Error processing episode",
+				slog.Int("episodeID", int(episode.ID)),
+				slog.Int64("showID", episode.ShowID),
+				slog.String("episodeName", episode.Name),
+				slog.String("worker", "processEpisodeWorker"),
+				slog.String("error", err.Error()))
 		}
 	}
 }

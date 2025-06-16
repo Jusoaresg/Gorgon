@@ -3,11 +3,11 @@ package handler
 import (
 	"gorgon/config"
 
-	"gorm.io/gorm"
+	"github.com/jmoiron/sqlx"
 )
 
 var (
-	db *gorm.DB
+	db *sqlx.DB
 )
 
 func InitHandler() {
