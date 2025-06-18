@@ -13,6 +13,7 @@ import (
 	"log/slog"
 	"strconv"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 )
 
@@ -29,6 +30,10 @@ import (
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /database/show [post]
 func AddShowToList(c echo.Context) error {
+	return addShowToListHandler(c, config.GetSQLite())
+}
+
+func addShowToListHandler(c echo.Context, db *sqlx.DB) error {
 	logger := config.GetLogger()
 	logger.Info("Received request to Add Show To List", slog.String("endpoint", "/api/v1/database/show"), slog.String("method", "POST"))
 
@@ -52,7 +57,7 @@ func AddShowToList(c echo.Context) error {
 	}
 
 	tvMazeService := service.NewTvMazeSearchService(logger)
-	showManagerService := showManager.NewShowManagerService(logger)
+	showManagerService := showManager.NewShowManagerService(logger, db)
 
 	idString := strconv.Itoa(request.Id)
 	id64, err := strconv.ParseInt(idString, 10, 64)
@@ -83,13 +88,12 @@ func AddShowToList(c echo.Context) error {
 
 	show := showDto.ToModel()
 
-	db := config.GetSQLite()
 	tx, err := db.Beginx()
 	if err != nil {
 		return err
 	}
 
-	showRepo := repository.NewShowRepository()
+	showRepo := repository.NewShowRepository(db)
 	showID, err := showRepo.CreateTx(tx, show)
 	if err != nil {
 		logger.Error("Failed to add show to database", slog.String("error", err.Error()))
@@ -100,7 +104,7 @@ func AddShowToList(c echo.Context) error {
 	var episodes []model.Episode
 
 	for _, season := range seasons {
-		seasonRepo := repository.NewSeasonRepository()
+		seasonRepo := repository.NewSeasonRepository(db)
 		seasonID, err := seasonRepo.CreateTx(tx, season)
 		if err != nil {
 			logger.Error("Failed to add season to database", slog.String("error", err.Error()))
@@ -118,8 +122,8 @@ func AddShowToList(c echo.Context) error {
 	}
 
 	for _, episode := range episodes {
-		episodeRepo := repository.NewEpisodeRepository()
-		if err := episodeRepo.CreateTx(tx, episode); err != nil {
+		episodeRepo := repository.NewEpisodeRepository(db)
+		if _, err := episodeRepo.CreateTx(tx, episode); err != nil {
 			logger.Error("Failed to add episode to database", slog.String("error", err.Error()))
 			schemas.SendError(c, 500, "Failed to add episode to database")
 			return err

@@ -1,7 +1,6 @@
 package config
 
 import (
-	"embed"
 	"log/slog"
 
 	"github.com/jmoiron/sqlx"
@@ -15,10 +14,10 @@ var (
 	logger      *slog.Logger
 )
 
-func Init(migrationsFs embed.FS) error {
+func Init() error {
 	var err error
 
-	dbInstance, err := InitializeDb(migrationsFs)
+	dbInstance, err := InitializeDb()
 	if err != nil {
 		return err
 	}

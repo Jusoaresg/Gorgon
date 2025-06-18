@@ -33,7 +33,7 @@ func GetShow(c echo.Context) error {
 	}
 
 	//TODO: Maybe returning the episodes and seasons ?
-	showRepo := repository.NewShowRepository()
+	showRepo := repository.NewShowRepository(config.GetSQLite())
 	show, err := showRepo.GetById(id64)
 	if err != nil {
 		logger.Error("Error while fetching show from database", slog.String("error", err.Error()))

@@ -27,7 +27,7 @@ func GetIndexer(c echo.Context) error {
 
 	indexerRepo := repository.NewIndexerRepository()
 
-	indexer, err := indexerRepo.GetById(request.Id)
+	indexer, err := indexerRepo.GetById(int(request.Id))
 	if err != nil {
 		return err
 	}

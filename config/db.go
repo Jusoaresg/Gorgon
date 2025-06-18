@@ -1,8 +1,8 @@
 package config
 
 import (
-	"embed"
 	"fmt"
+	"gorgon/migrations"
 	"os"
 
 	"github.com/jmoiron/sqlx"
@@ -10,7 +10,7 @@ import (
 	"github.com/pressly/goose/v3"
 )
 
-func InitializeDb(embedMigraton embed.FS) (*sqlx.DB, error) {
+func InitializeDb() (*sqlx.DB, error) {
 
 	dbFolder := "assets"
 	dbPath := fmt.Sprintf("%s/%s", dbFolder, "gorgon.db")
@@ -32,19 +32,17 @@ func InitializeDb(embedMigraton embed.FS) (*sqlx.DB, error) {
 		file.Close()
 	}
 
-	db, err := sqlx.Open("sqlite3", dbPath)
+	db, err := sqlx.Open("sqlite3", dbPath+"?_foreign_keys=on")
 	if err != nil {
 		return nil, err
 	}
 
-	db.MustExec("PRAGMA foreign_keys = ON")
-
-	goose.SetBaseFS(embedMigraton)
+	goose.SetBaseFS(migrations.MigrationFS)
 	if err := goose.SetDialect("sqlite3"); err != nil {
 		panic(err)
 	}
 
-	if err := goose.Up(db.DB, "migrations"); err != nil {
+	if err := goose.Up(db.DB, "."); err != nil {
 		panic(err)
 	}
 

@@ -18,9 +18,6 @@ import (
 //go:embed all:assets/front/build
 var embeddedStaticFiles embed.FS
 
-//go:embed migrations/*
-var embeddedMigrations embed.FS
-
 // @title           Gongon
 // @version         0.1
 // @description     Show Download Manager API
@@ -32,7 +29,7 @@ var embeddedMigrations embed.FS
 // @license.name  Apache 2.0
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 func main() {
-	config.Init(embeddedMigrations)
+	config.Init()
 
 	e := echo.New()
 

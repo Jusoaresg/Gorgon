@@ -13,15 +13,16 @@ import (
 
 func UpdateAllShows() {
 	logger := config.GetLogger()
+	db := config.GetSQLite()
 
-	showRepo := repository.NewShowRepository()
+	showRepo := repository.NewShowRepository(db)
 	shows, err := showRepo.List()
 	if err != nil {
 		return
 	}
 
 	tvMazeService := service.NewTvMazeSearchService(logger)
-	showManagerService := showManager.NewShowManagerService(logger)
+	showManagerService := showManager.NewShowManagerService(logger, db)
 
 	apiService := services.NewAPIService("http://api.tvmaze.com", logger)
 

@@ -18,7 +18,7 @@ func VerifyEpisodeWasDeleted() {
 		return
 	}
 
-	episodeRepo := repository.NewEpisodeRepository()
+	episodeRepo := repository.NewEpisodeRepository(config.GetSQLite())
 	episodes, err := episodeRepo.ListByTracking(model.TrackingDownloaded)
 	if err != nil {
 		return

@@ -27,7 +27,7 @@ func DeleteIndexer(c echo.Context) error {
 
 	indexerRepo := repository.NewIndexerRepository()
 
-	if err := indexerRepo.DeleteById(request.Id); err != nil {
+	if err := indexerRepo.DeleteById(int(request.Id)); err != nil {
 		schemas.SendError(c, 500, fmt.Sprintf("Error while deleting indexer: %s", err.Error()))
 		return err
 	}

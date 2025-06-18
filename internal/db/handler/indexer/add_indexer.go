@@ -37,7 +37,7 @@ func AddIndexer(c echo.Context) error {
 	prowlarrIndexerService := service.NewProwlarrIndexerService(logger)
 
 	var response schema.IndexerResponse
-	if err := prowlarrIndexerService.GetIndexer(request.Id, &response); err != nil {
+	if err := prowlarrIndexerService.GetIndexer(int(request.Id), &response); err != nil {
 		c.JSON(500, gin.H{"error": "Failed to get indexer"})
 		return err
 	}

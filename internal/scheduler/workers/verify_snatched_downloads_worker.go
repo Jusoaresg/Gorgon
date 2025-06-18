@@ -41,7 +41,7 @@ func VerifySnatchedDownloadsWorker(workerCount int) {
 
 func fetchSnatchedEpisodes() []model.Episode {
 	logger := config.GetLogger()
-	episodeRepo := repository.NewEpisodeRepository()
+	episodeRepo := repository.NewEpisodeRepository(config.GetSQLite())
 
 	//TODO: Put an limit of 100 here
 	episodes, err := episodeRepo.ListByTracking(model.TrackingSnatched)

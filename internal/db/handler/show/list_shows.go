@@ -23,7 +23,7 @@ func ListShows(c echo.Context) error {
 	logger := config.GetLogger()
 	logger.Info("Received request to List Shows", slog.String("endpoint", "/database/show"), slog.String("method", "get"))
 
-	showRepo := repository.NewShowRepository()
+	showRepo := repository.NewShowRepository(config.GetSQLite())
 
 	show, err := showRepo.List()
 	if err != nil {

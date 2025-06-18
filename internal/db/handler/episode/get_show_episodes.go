@@ -32,8 +32,8 @@ func GetShowEpisodes(c echo.Context) error {
 		return err
 	}
 
-	episodeRepo := repository.NewEpisodeRepository()
-	episodes, err := episodeRepo.ListByShowId(idInt64)
+	episodeRepo := repository.NewEpisodeRepository(config.GetSQLite())
+	episodes, err := episodeRepo.ListByShowID(idInt64)
 	if err != nil {
 		logger.Error("Error while fetching show episodes from database", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, "Error while fetching show episodes")

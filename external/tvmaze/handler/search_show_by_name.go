@@ -40,7 +40,7 @@ func SearchShowByName(c echo.Context) error {
 		return err
 	}
 
-	showRepo := repository.NewShowRepository()
+	showRepo := repository.NewShowRepository(config.GetSQLite())
 	existingShows, err := showRepo.List()
 	if err != nil {
 		return err

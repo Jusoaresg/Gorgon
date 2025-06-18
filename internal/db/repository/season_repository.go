@@ -1,19 +1,28 @@
 package repository
 
 import (
-	"gorgon/config"
 	"gorgon/internal/db/model"
 
 	"github.com/jmoiron/sqlx"
 )
 
+type SeasonRepositoryInterface interface {
+	Create(season model.Season) (int64, error)
+	CreateTx(tx *sqlx.Tx, season model.Season) (int64, error)
+	DeleteById(id int64) error
+	GetById(id int64) (model.Season, error)
+	List() ([]model.Season, error)
+	ListByShowId(showID int64) ([]model.Season, error)
+}
+
 type SeasonRepository struct {
 	db *sqlx.DB
 }
 
-func NewSeasonRepository() SeasonRepository {
-	return SeasonRepository{
-		db: config.GetSQLite(),
+// TODO: UPDATE METHOD
+func NewSeasonRepository(db *sqlx.DB) *SeasonRepository {
+	return &SeasonRepository{
+		db: db,
 	}
 }
 
@@ -65,7 +74,7 @@ func (s *SeasonRepository) CreateTx(tx *sqlx.Tx, season model.Season) (int64, er
 	return id, nil
 }
 
-func (s *SeasonRepository) GetById(id int) (model.Season, error) {
+func (s *SeasonRepository) GetById(id int64) (model.Season, error) {
 	var season model.Season
 	if err := s.db.Get(&season, "SELECT * FROM seasons WHERE id = ? LIMIT 1", id); err != nil {
 		return model.Season{}, err
@@ -73,7 +82,7 @@ func (s *SeasonRepository) GetById(id int) (model.Season, error) {
 	return season, nil
 }
 
-func (s *SeasonRepository) DeleteById(id int) error {
+func (s *SeasonRepository) DeleteById(id int64) error {
 	if _, err := s.db.Exec("DELETE FROM seasons WHERE id = ?", id); err != nil {
 		return err
 	}
@@ -95,3 +104,5 @@ func (s *SeasonRepository) ListByShowId(showID int64) ([]model.Season, error) {
 	}
 	return seasons, nil
 }
+
+var _ SeasonRepositoryInterface = (*SeasonRepository)(nil)

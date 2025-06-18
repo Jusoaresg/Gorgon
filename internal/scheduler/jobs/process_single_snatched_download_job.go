@@ -18,7 +18,7 @@ type EpisodeUpdatedWebsocketSchema struct {
 
 func ProcessSingleSnatchedDownload(ep *model.Episode, qbittorrentService service.QBittorrentService) error {
 	logger := config.GetLogger()
-	episodeRepo := repository.NewEpisodeRepository()
+	episodeRepo := repository.NewEpisodeRepository(config.GetSQLite())
 	episodeContentRepo := repository.NewEpisodeContentRepository()
 
 	var torrentResponse []schema.CheckTorrentResponse

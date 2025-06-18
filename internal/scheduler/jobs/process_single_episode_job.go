@@ -37,8 +37,8 @@ func init() {
 
 func ProcessSingleEpisode(ep *model.Episode, prowlarrService prowlarr.ProwlarrSearchService, qbittorrentService qbittorrent.QBittorrentService) error {
 	var logger = config.GetLogger()
-	episodeRepo := repository.NewEpisodeRepository()
-	showRepo := repository.NewShowRepository()
+	episodeRepo := repository.NewEpisodeRepository(config.GetSQLite())
+	showRepo := repository.NewShowRepository(config.GetSQLite())
 
 	show, err := showRepo.GetById(ep.ShowID)
 	if err != nil {

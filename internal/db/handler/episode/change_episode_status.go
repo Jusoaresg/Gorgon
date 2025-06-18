@@ -32,9 +32,9 @@ func ChangeEpisodeStatus(c echo.Context) error {
 		return err
 	}
 
-	episodeRepository := repository.NewEpisodeRepository()
+	episodeRepository := repository.NewEpisodeRepository(config.GetSQLite())
 
-	episode, err := episodeRepository.GetById(request.EpisodeId)
+	episode, err := episodeRepository.GetByID(int64(request.EpisodeId))
 	if err != nil {
 		logger.Error("Error while fetching episode from database", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, "Error while fetching episode")

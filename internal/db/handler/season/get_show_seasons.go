@@ -32,7 +32,7 @@ func GetShowSeasons(c echo.Context) error {
 		return err
 	}
 
-	seasonRepo := repository.NewSeasonRepository()
+	seasonRepo := repository.NewSeasonRepository(config.GetSQLite())
 	seasons, err := seasonRepo.ListByShowId(idInt64)
 	if err != nil {
 		logger.Error("Error while fetching show seasons from database", slog.String("error", err.Error()))

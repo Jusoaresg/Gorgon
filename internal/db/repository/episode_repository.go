@@ -1,23 +1,35 @@
 package repository
 
 import (
-	"gorgon/config"
+	"errors"
 	"gorgon/internal/db/model"
 
 	"github.com/jmoiron/sqlx"
 )
 
+type EpisodeRepositoryInterface interface {
+	Create(episode model.Episode) (int64, error)
+	CreateTx(tx *sqlx.Tx, episode model.Episode) (int64, error)
+	DeleteByID(id int64) error
+	GetByID(id int64) (model.Episode, error)
+	List() ([]model.Episode, error)
+	ListByShowID(showID int64) ([]model.Episode, error)
+	ListByTracking(tracking string) ([]model.Episode, error)
+	Update(episode model.Episode) error
+	UpdateTx(tx *sqlx.Tx, episode model.Episode) error
+}
+
 type EpisodeRepository struct {
 	db *sqlx.DB
 }
 
-func NewEpisodeRepository() EpisodeRepository {
-	return EpisodeRepository{
-		db: config.GetSQLite(),
+func NewEpisodeRepository(db *sqlx.DB) *EpisodeRepository {
+	return &EpisodeRepository{
+		db: db,
 	}
 }
 
-func (s *EpisodeRepository) Create(episode model.Episode) error {
+func (s *EpisodeRepository) Create(episode model.Episode) (int64, error) {
 	query := `
 	INSERT INTO episodes (
 		show_id, 
@@ -46,14 +58,19 @@ func (s *EpisodeRepository) Create(episode model.Episode) error {
 		:torrent_hash
 	) 
 	`
-	if _, err := s.db.NamedExec(query, episode); err != nil {
-		return err
+	result, err := s.db.NamedExec(query, episode)
+	if err != nil {
+		return 0, err
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
 	}
 
-	return nil
+	return id, nil
 }
 
-func (s *EpisodeRepository) CreateTx(tx *sqlx.Tx, episode model.Episode) error {
+func (s *EpisodeRepository) CreateTx(tx *sqlx.Tx, episode model.Episode) (int64, error) {
 	query := `
 	INSERT INTO episodes (
 		show_id, 
@@ -82,14 +99,20 @@ func (s *EpisodeRepository) CreateTx(tx *sqlx.Tx, episode model.Episode) error {
 		:torrent_hash
 	) 
 	`
-	if _, err := tx.NamedExec(query, episode); err != nil {
+	result, err := tx.NamedExec(query, episode)
+	if err != nil {
 		tx.Rollback()
-		return err
+		return 0, err
 	}
-	return nil
+	id, err := result.LastInsertId()
+	if err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+	return id, nil
 }
 
-func (s *EpisodeRepository) GetById(id int) (model.Episode, error) {
+func (s *EpisodeRepository) GetByID(id int64) (model.Episode, error) {
 	var episode model.Episode
 	if err := s.db.Get(&episode, "SELECT * FROM episodes WHERE id = ? LIMIT 1", id); err != nil {
 		return model.Episode{}, err
@@ -97,7 +120,7 @@ func (s *EpisodeRepository) GetById(id int) (model.Episode, error) {
 	return episode, nil
 }
 
-func (s *EpisodeRepository) DeleteById(id string) error {
+func (s *EpisodeRepository) DeleteByID(id int64) error {
 	if _, err := s.db.Exec("DELETE FROM episodes WHERE id = ?", id); err != nil {
 		return err
 	}
@@ -120,7 +143,7 @@ func (s *EpisodeRepository) ListByTracking(tracking string) ([]model.Episode, er
 	return episodes, nil
 }
 
-func (s *EpisodeRepository) ListByShowId(showID int64) ([]model.Episode, error) {
+func (s *EpisodeRepository) ListByShowID(showID int64) ([]model.Episode, error) {
 	var episodes []model.Episode
 	if err := s.db.Select(&episodes, "SELECT * FROM episodes WHERE show_id = ?", showID); err != nil {
 		return []model.Episode{}, err
@@ -144,10 +167,18 @@ func (s *EpisodeRepository) Update(episode model.Episode) error {
 		torrent_hash = :torrent_hash
 	WHERE id = :id
 	`
-	_, err := s.db.NamedExec(query, episode)
+	result, err := s.db.NamedExec(query, episode)
 	if err != nil {
 		return err
 	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return errors.New("no rows updated")
+	}
+
 	return nil
 }
 
@@ -174,3 +205,5 @@ func (s *EpisodeRepository) UpdateTx(tx *sqlx.Tx, episode model.Episode) error {
 	}
 	return nil
 }
+
+var _ EpisodeRepositoryInterface = (*EpisodeRepository)(nil)

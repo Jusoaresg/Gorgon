@@ -27,10 +27,13 @@ func InitializeRoutes(e *echo.Echo) {
 
 	SetupTvMazeRouter(v1)
 	logger.Debug("TvMaze route initialized sucessfully")
+
 	SetupDatabaseRouter(v1)
 	logger.Debug("Database route initialized sucessfully")
+
 	SetupProwlarrRouter(v1)
 	logger.Debug("Prowlarr route initialized sucessfully")
+
 	SetupQbittorrentRouter(v1)
 	logger.Debug("QBittorrent route initialized sucessfully")
 

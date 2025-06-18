@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-	"gorgon/config"
 	"gorgon/external/tvmaze/service"
 	"gorgon/internal/db/model"
 	"gorgon/internal/db/repository"
@@ -21,14 +20,14 @@ type ShowManagerService struct {
 	logger      *slog.Logger
 }
 
-func NewShowManagerService(logger *slog.Logger) *ShowManagerService {
+func NewShowManagerService(logger *slog.Logger, db *sqlx.DB) *ShowManagerService {
 	return &ShowManagerService{
-		EpisodeRepo: repository.NewEpisodeRepository(),
-		SeasonRepo:  repository.NewSeasonRepository(),
-		ShowRepo:    repository.NewShowRepository(),
+		EpisodeRepo: *repository.NewEpisodeRepository(db),
+		SeasonRepo:  *repository.NewSeasonRepository(db),
+		ShowRepo:    *repository.NewShowRepository(db),
 		tvMaze:      service.NewTvMazeSearchService(logger),
 		logger:      logger,
-		DB:          config.GetSQLite(),
+		DB:          db,
 	}
 }
 
@@ -53,24 +52,20 @@ func (sm *ShowManagerService) GetSeasons(tvMazeId int64) (*[]dtos.SeasonDto, err
 // This functon call the database a lot of times
 // Probably will be problems with the seasons updating.
 func (sm *ShowManagerService) UpdateShowWithRelations(showDTO dtos.ShowDto, seasonsDTO []dtos.SeasonDto, episodes []dtos.EpisodeDto) error {
-	showRepo := repository.NewShowRepository()
-	seasonRepo := repository.NewSeasonRepository()
-	episodeRepo := repository.NewEpisodeRepository()
-
-	showModel, err := showRepo.GetByTvMazeID(showDTO.TvMazeID)
+	showModel, err := sm.ShowRepo.GetByTvMazeID(showDTO.TvMazeID)
 	if err != nil {
 		//TODO: Log message
 		return err
 	}
 
-	seasonsModel, err := seasonRepo.ListByShowId(showModel.ID)
+	seasonsModel, err := sm.SeasonRepo.ListByShowId(showModel.ID)
 	if err != nil {
 		//TODO: Better Log message
 		sm.logger.Error("Error while getting seasons from db to update seasson", slog.String("error", err.Error()))
 		return err
 	}
 
-	episodesModel, err := episodeRepo.ListByShowId(showModel.ID)
+	episodesModel, err := sm.EpisodeRepo.ListByShowID(showModel.ID)
 	if err != nil {
 		//TODO: Log message
 		return err
@@ -81,7 +76,7 @@ func (sm *ShowManagerService) UpdateShowWithRelations(showDTO dtos.ShowDto, seas
 		return err
 	}
 
-	if err := sm.ShowRepo.UpdateTx(tx, showModel); err != nil {
+	if err := sm.ShowRepo.UpdateTxByTvMazeID(tx, showModel); err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -136,7 +131,8 @@ func (sm *ShowManagerService) UpdateShowWithRelations(showDTO dtos.ShowDto, seas
 				AirStamp: episode.AirStamp,
 			}
 
-			if err := sm.EpisodeRepo.CreateTx(tx, newEpisode); err != nil {
+			_, err := sm.EpisodeRepo.CreateTx(tx, newEpisode)
+			if err != nil {
 				//TODO: Error message
 				return err
 			}

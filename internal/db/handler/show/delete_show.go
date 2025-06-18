@@ -7,8 +7,8 @@ import (
 	"gorgon/internal/db/repository"
 	"gorgon/pkg/schemas"
 	"log/slog"
-	"strconv"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 )
 
@@ -24,6 +24,10 @@ import (
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /database/show [delete]
 func DeleteShow(c echo.Context) error {
+	return deleteShowHandler(c, config.GetSQLite())
+}
+
+func deleteShowHandler(c echo.Context, db *sqlx.DB) error {
 	logger := config.GetLogger()
 	logger.Info("Received request to Delete Show", slog.String("endpoint", "/api/v1/database/show"))
 
@@ -31,28 +35,28 @@ func DeleteShow(c echo.Context) error {
 
 	if err := c.Bind(&request); err != nil {
 		logger.Error("Failed to bind request body", slog.String("error", err.Error()))
-		schemas.SendError(c, 500, "Failed to bind request body")
+		schemas.SendError(c, 400, "Failed to bind request body")
 		return err
 	}
 
-	idString := strconv.Itoa(request.Id)
-	id64, err := strconv.ParseInt(idString, 10, 64)
-	if err != nil {
-		logger.Error("Failed to parse id to int64", slog.String("error", err.Error()))
-		schemas.SendError(c, 400, "ID cannot be 0")
-		return errors.New("Id cannot be 0")
-	}
-
-	if request.Id == 0 {
-		logger.Error("Invalid ID", slog.String("error", "ID cannot be 0"))
-		schemas.SendError(c, 400, "ID cannot be 0")
-		return errors.New("Id cannot be 0")
+	if request.Id <= 0 {
+		logger.Error("Invalid ID", slog.String("error", "ID must be greater than 0"))
+		schemas.SendError(c, 400, "ID must be greater than 0")
+		return errors.New("ID must be greater than 0")
 	}
 
 	show := model.Show{}
 
-	showRepo := repository.NewShowRepository()
-	showRepo.DeleteById(id64)
+	showRepo := repository.NewShowRepository(db)
+	err := showRepo.DeleteById(request.Id)
+	if err != nil {
+		if errors.Is(err, repository.ErrShowNotFound) {
+			schemas.SendError(c, 404, "Show not found")
+			return err
+		}
+		schemas.SendError(c, 500, "Internal server error")
+		return err
+	}
 
 	schemas.SendSucess(c, "DeleteShow", show)
 	return nil

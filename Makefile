@@ -14,3 +14,6 @@ build: docs
 	$(HOME)/go/bin/swag init
 	cd assets/front/build && npm run build 
 	go build -o ./tmp/main .
+
+test: 
+	go test ./...

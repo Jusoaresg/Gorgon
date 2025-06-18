@@ -1,19 +1,32 @@
 package repository
 
 import (
-	"gorgon/config"
+	"errors"
 	"gorgon/internal/db/model"
 
 	"github.com/jmoiron/sqlx"
 )
 
+var ErrShowNotFound = errors.New("show not found")
+
+type ShowRepositoryInterface interface {
+	Create(show model.Show) (int64, error)
+	CreateTx(tx *sqlx.Tx, show model.Show) (int64, error)
+	GetById(id int64) (model.Show, error)
+	GetByTvMazeID(tvMazeID int64) (model.Show, error)
+	DeleteById(id int64) error
+	List() ([]model.Show, error)
+	UpdateByTvMazeID(show model.Show) error
+	UpdateTxByTvMazeID(tx *sqlx.Tx, show model.Show) error
+}
+
 type ShowRepository struct {
 	db *sqlx.DB
 }
 
-func NewShowRepository() ShowRepository {
-	return ShowRepository{
-		db: config.GetSQLite(),
+func NewShowRepository(db *sqlx.DB) *ShowRepository {
+	return &ShowRepository{
+		db: db,
 	}
 }
 
@@ -137,9 +150,19 @@ func (s *ShowRepository) GetByTvMazeID(tvMazeID int64) (model.Show, error) {
 }
 
 func (s *ShowRepository) DeleteById(id int64) error {
-	if _, err := s.db.Exec("DELETE FROM shows WHERE id = ?", id); err != nil {
+	result, err := s.db.Exec("DELETE FROM shows WHERE id = ?", id)
+	if err != nil {
 		return err
 	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrShowNotFound
+	}
+
 	return nil
 }
 
@@ -151,7 +174,7 @@ func (s *ShowRepository) List() ([]model.Show, error) {
 	return shows, nil
 }
 
-func (s *ShowRepository) Update(show model.Show) error {
+func (s *ShowRepository) UpdateByTvMazeID(show model.Show) error {
 	query := `
 	UPDATE shows SET
 		name = :name,
@@ -171,14 +194,23 @@ func (s *ShowRepository) Update(show model.Show) error {
 		genres = :genres
 	WHERE tv_maze_id = :tv_maze_id
 	`
-	_, err := s.db.NamedExec(query, show)
+
+	result, err := s.db.NamedExec(query, show)
 	if err != nil {
 		return err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrShowNotFound
 	}
 	return nil
 }
 
-func (s *ShowRepository) UpdateTx(tx *sqlx.Tx, show model.Show) error {
+func (s *ShowRepository) UpdateTxByTvMazeID(tx *sqlx.Tx, show model.Show) error {
 	query := `
 	UPDATE shows SET
 		name = :name,
@@ -205,3 +237,5 @@ func (s *ShowRepository) UpdateTx(tx *sqlx.Tx, show model.Show) error {
 	}
 	return nil
 }
+
+var _ ShowRepositoryInterface = (*ShowRepository)(nil)
