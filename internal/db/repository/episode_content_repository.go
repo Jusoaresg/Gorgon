@@ -22,12 +22,14 @@ func (s *EpisodeContentRepository) Create(content model.EpisodeContent) error {
 	INSERT INTO episode_content (
 		episode_id,
 		name,
+	        file_path,
 		size,
 		is_seed
 	) 
 	VALUES (
 		:episode_id,
 		:name,
+		:file_path,
 		:size,
 		:is_seed
 	) 
@@ -44,12 +46,14 @@ func (s *EpisodeContentRepository) CreateTx(tx *sqlx.Tx, content model.EpisodeCo
 	INSERT INTO episode_content (
 		episode_id,
 		name,
+	        file_path,
 		size,
 		is_seed
 	) 
 	VALUES (
 		:episode_id,
 		:name,
+		:file_path,
 		:size,
 		:is_seed
 	) 
@@ -69,7 +73,7 @@ func (s *EpisodeContentRepository) GetById(id int) (model.EpisodeContent, error)
 	return content, nil
 }
 
-func (s *EpisodeContentRepository) GetByEpisodeId(episodeId int) (model.EpisodeContent, error) {
+func (s *EpisodeContentRepository) GetByEpisodeId(episodeId int64) (model.EpisodeContent, error) {
 	var content model.EpisodeContent
 	if err := s.db.Get(&content, "SELECT * FROM episode_content WHERE episode_id = ? LIMIT 1", episodeId); err != nil {
 		return model.EpisodeContent{}, err
@@ -106,6 +110,7 @@ func (s *EpisodeContentRepository) Update(content model.EpisodeContent) error {
 		episode_id = :episode_id,
 		name = :name,
 		size = :size,
+		file_path = :file_path,
 		is_seed = :is_seed,
 	WHERE id = :id
 	`
@@ -121,6 +126,7 @@ func (s *EpisodeContentRepository) UpdateTx(tx *sqlx.Tx, content model.EpisodeCo
 	UPDATE shows SET
 		episode_id = :episode_id,
 		name = :name,
+		file_path = :file_path,
 		size = :size,
 		is_seed = :is_seed,
 	WHERE id = :id

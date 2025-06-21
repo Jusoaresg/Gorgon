@@ -1,0 +1,549 @@
+/* Enhanced Svelte Sonner Toast Styles - FIXED VERSION */
+/* Add these styles to your existing style.css file */
+
+/* Base toast container - much cleaner and modern */
+.custom-toast {
+	background: linear-gradient(135deg, var(--card-bg) 0%, rgba(37, 37, 37, 0.95) 100%);
+	border: 1px solid rgba(125, 0, 163, 0.2);
+	border-radius: 12px;
+	box-shadow:
+		0 20px 40px rgba(0, 0, 0, 0.6),
+		0 0 0 1px rgba(255, 255, 255, 0.05),
+		inset 0 1px 0 rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(16px);
+	padding: 20px 50px 20px 20px;
+	/* Added right padding for close button */
+	min-width: 320px;
+	max-width: 450px;
+	font-family: Arial, sans-serif;
+	position: relative;
+	overflow: hidden;
+	transform: translateY(0);
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	/* Prevent text selection and highlighting */
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	/* Remove default focus/active states */
+	outline: none;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.custom-toast::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(125, 0, 163, 0.5), transparent);
+}
+
+/* Remove any focus/active/selection states that might cause purple highlighting */
+.custom-toast:focus,
+.custom-toast:active,
+.custom-toast::selection {
+	outline: none !important;
+	background: linear-gradient(135deg, var(--card-bg) 0%, rgba(37, 37, 37, 0.95) 100%) !important;
+	-webkit-tap-highlight-color: transparent !important;
+}
+
+/* Enhanced title styling */
+.custom-toast-title {
+	color: var(--text-color);
+	font-weight: 600;
+	font-size: 15px;
+	margin-bottom: 6px;
+	line-height: 1.4;
+	letter-spacing: -0.01em;
+	/* Prevent text selection */
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+/* Enhanced description styling */
+.custom-toast-description {
+	color: var(--text-muted);
+	font-size: 14px;
+	line-height: 1.5;
+	margin: 0;
+	opacity: 0.9;
+	/* Prevent text selection */
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+/* Modern close button - FIXED positioning */
+.custom-close-button {
+	background: rgba(255, 255, 255, 0.05);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	color: var(--text-muted);
+	cursor: pointer;
+	padding: 6px;
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+	position: absolute;
+	top: 12px;
+	/* Reduced from 16px */
+	right: 12px;
+	/* Reduced from 16px */
+	width: 28px;
+	height: 28px;
+	backdrop-filter: blur(4px);
+	z-index: 10;
+	/* Ensure it's above other content */
+	/* Remove default button styles */
+	outline: none;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.custom-close-button:hover {
+	background: rgba(255, 255, 255, 0.1);
+	border-color: rgba(255, 255, 255, 0.2);
+	color: var(--text-color);
+	transform: scale(1.05);
+}
+
+.custom-close-button:focus {
+	outline: none;
+	box-shadow: 0 0 0 2px rgba(125, 0, 163, 0.5);
+}
+
+.custom-close-button:active {
+	transform: scale(0.95);
+}
+
+/* Premium action button */
+.custom-action-button {
+	background: linear-gradient(135deg, var(--button-bg) 0%, #00E575 100%);
+	color: var(--bg-color);
+	border: none;
+	border-radius: 8px;
+	padding: 10px 18px;
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+	margin-top: 12px;
+	margin-right: 10px;
+	box-shadow: 0 4px 12px rgba(0, 255, 127, 0.3);
+	position: relative;
+	overflow: hidden;
+	outline: none;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.custom-action-button::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: -100%;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+	transition: left 0.5s;
+}
+
+.custom-action-button:hover {
+	background: linear-gradient(135deg, var(--button-hover) 0%, #00B85C 100%);
+	transform: translateY(-1px);
+	box-shadow: 0 6px 20px rgba(0, 255, 127, 0.4);
+}
+
+.custom-action-button:hover::before {
+	left: 100%;
+}
+
+.custom-action-button:focus {
+	outline: none;
+	box-shadow: 0 0 0 2px rgba(0, 255, 127, 0.5);
+}
+
+/* Elegant cancel button */
+.custom-cancel-button {
+	background: rgba(255, 255, 255, 0.05);
+	color: var(--text-muted);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 8px;
+	padding: 10px 18px;
+	font-size: 13px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+	margin-top: 12px;
+	backdrop-filter: blur(4px);
+	outline: none;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.custom-cancel-button:hover {
+	background: rgba(255, 255, 255, 0.1);
+	color: var(--text-color);
+	border-color: rgba(255, 255, 255, 0.2);
+	transform: translateY(-1px);
+}
+
+.custom-cancel-button:focus {
+	outline: none;
+	box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+}
+
+/* Success toast - premium green styling */
+.custom-toast-success {
+	background: linear-gradient(135deg, var(--card-bg) 0%, rgba(37, 37, 37, 0.95) 100%);
+	border: 1px solid rgba(0, 255, 127, 0.3);
+	border-left: 4px solid var(--button-bg);
+	border-radius: 12px;
+	box-shadow:
+		0 20px 40px rgba(0, 0, 0, 0.6),
+		0 0 20px rgba(0, 255, 127, 0.1),
+		inset 0 1px 0 rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(16px);
+	padding: 20px 50px 20px 20px;
+	/* Added right padding for close button */
+	min-width: 320px;
+	max-width: 450px;
+	font-family: Arial, sans-serif;
+	position: relative;
+	overflow: hidden;
+	/* Prevent highlighting */
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	outline: none;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.custom-toast-success::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(0, 255, 127, 0.6), transparent);
+}
+
+/* Remove focus/active states for success toast */
+.custom-toast-success:focus,
+.custom-toast-success:active {
+	outline: none !important;
+	background: linear-gradient(135deg, var(--card-bg) 0%, rgba(37, 37, 37, 0.95) 100%) !important;
+}
+
+/* Error toast - dramatic red styling */
+.custom-toast-error {
+	background: linear-gradient(135deg, var(--card-bg) 0%, rgba(37, 37, 37, 0.95) 100%);
+	border: 1px solid rgba(255, 71, 87, 0.3);
+	border-left: 4px solid #ff4757;
+	border-radius: 12px;
+	box-shadow:
+		0 20px 40px rgba(0, 0, 0, 0.6),
+		0 0 20px rgba(255, 71, 87, 0.1),
+		inset 0 1px 0 rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(16px);
+	padding: 20px 50px 20px 20px;
+	/* Added right padding for close button */
+	min-width: 320px;
+	max-width: 450px;
+	font-family: Arial, sans-serif;
+	position: relative;
+	overflow: hidden;
+	/* Prevent highlighting */
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	outline: none;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.custom-toast-error::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(255, 71, 87, 0.6), transparent);
+}
+
+.custom-toast-error:focus,
+.custom-toast-error:active {
+	outline: none !important;
+	background: linear-gradient(135deg, var(--card-bg) 0%, rgba(37, 37, 37, 0.95) 100%) !important;
+}
+
+/* Warning toast - vibrant orange styling */
+.custom-toast-warning {
+	background: linear-gradient(135deg, var(--card-bg) 0%, rgba(37, 37, 37, 0.95) 100%);
+	border: 1px solid rgba(255, 165, 2, 0.3);
+	border-left: 4px solid #ffa502;
+	border-radius: 12px;
+	box-shadow:
+		0 20px 40px rgba(0, 0, 0, 0.6),
+		0 0 20px rgba(255, 165, 2, 0.1),
+		inset 0 1px 0 rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(16px);
+	padding: 20px 50px 20px 20px;
+	/* Added right padding for close button */
+	min-width: 320px;
+	max-width: 450px;
+	font-family: Arial, sans-serif;
+	position: relative;
+	overflow: hidden;
+	/* Prevent highlighting */
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	outline: none;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.custom-toast-warning::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(255, 165, 2, 0.6), transparent);
+}
+
+.custom-toast-warning:focus,
+.custom-toast-warning:active {
+	outline: none !important;
+	background: linear-gradient(135deg, var(--card-bg) 0%, rgba(37, 37, 37, 0.95) 100%) !important;
+}
+
+/* Info toast - stunning purple styling */
+.custom-toast-info {
+	background: linear-gradient(135deg, var(--card-bg) 0%, rgba(37, 37, 37, 0.95) 100%);
+	border: 1px solid rgba(125, 0, 163, 0.4);
+	border-left: 4px solid var(--highlight);
+	border-radius: 12px;
+	box-shadow:
+		0 20px 40px rgba(0, 0, 0, 0.6),
+		0 0 20px rgba(125, 0, 163, 0.2),
+		inset 0 1px 0 rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(16px);
+	padding: 20px 50px 20px 20px;
+	/* Added right padding for close button */
+	min-width: 320px;
+	max-width: 450px;
+	font-family: Arial, sans-serif;
+	position: relative;
+	overflow: hidden;
+	/* Prevent highlighting */
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	outline: none;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.custom-toast-info::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(125, 0, 163, 0.8), transparent);
+}
+
+.custom-toast-info:focus,
+.custom-toast-info:active {
+	outline: none !important;
+	background: linear-gradient(135deg, var(--card-bg) 0%, rgba(37, 37, 37, 0.95) 100%) !important;
+}
+
+/* Loading toast - subtle animated styling */
+.custom-toast-loading {
+	background: linear-gradient(135deg, var(--card-bg) 0%, rgba(37, 37, 37, 0.95) 100%);
+	border: 1px solid rgba(153, 153, 153, 0.2);
+	border-left: 4px solid var(--text-muted);
+	border-radius: 12px;
+	box-shadow:
+		0 20px 40px rgba(0, 0, 0, 0.6),
+		inset 0 1px 0 rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(16px);
+	padding: 20px 50px 20px 20px;
+	/* Added right padding for close button */
+	min-width: 320px;
+	max-width: 450px;
+	font-family: Arial, sans-serif;
+	position: relative;
+	overflow: hidden;
+	/* Prevent highlighting */
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	outline: none;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.custom-toast-loading::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(153, 153, 153, 0.4), transparent);
+	animation: shimmer 2s infinite;
+}
+
+.custom-toast-loading:focus,
+.custom-toast-loading:active {
+	outline: none !important;
+	background: linear-gradient(135deg, var(--card-bg) 0%, rgba(37, 37, 37, 0.95) 100%) !important;
+}
+
+@keyframes shimmer {
+	0% {
+		transform: translateX(-100%);
+	}
+
+	100% {
+		transform: translateX(100%);
+	}
+}
+
+/* Enhanced title colors with better contrast */
+.custom-toast-success-title {
+	color: #00FF7F;
+	font-weight: 600;
+	font-size: 15px;
+	margin-bottom: 6px;
+	line-height: 1.4;
+	letter-spacing: -0.01em;
+	text-shadow: 0 0 10px rgba(0, 255, 127, 0.3);
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+.custom-toast-error-title {
+	color: #ff6b7a;
+	font-weight: 600;
+	font-size: 15px;
+	margin-bottom: 6px;
+	line-height: 1.4;
+	letter-spacing: -0.01em;
+	text-shadow: 0 0 10px rgba(255, 71, 87, 0.3);
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+.custom-toast-warning-title {
+	color: #ffb02e;
+	font-weight: 600;
+	font-size: 15px;
+	margin-bottom: 6px;
+	line-height: 1.4;
+	letter-spacing: -0.01em;
+	text-shadow: 0 0 10px rgba(255, 165, 2, 0.3);
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+.custom-toast-info-title {
+	color: #9d4edd;
+	font-weight: 600;
+	font-size: 15px;
+	margin-bottom: 6px;
+	line-height: 1.4;
+	letter-spacing: -0.01em;
+	text-shadow: 0 0 10px rgba(125, 0, 163, 0.4);
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+.custom-toast-loading-title {
+	color: var(--text-color);
+	font-weight: 600;
+	font-size: 15px;
+	margin-bottom: 6px;
+	line-height: 1.4;
+	letter-spacing: -0.01em;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+/* Add subtle hover animation to all toasts */
+.custom-toast:hover,
+.custom-toast-success:hover,
+.custom-toast-error:hover,
+.custom-toast-warning:hover,
+.custom-toast-info:hover,
+.custom-toast-loading:hover {
+	transform: translateY(-2px) scale(1.02);
+	box-shadow:
+		0 25px 50px rgba(0, 0, 0, 0.7),
+		0 0 0 1px rgba(255, 255, 255, 0.1),
+		inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* Additional global styles to prevent purple highlighting */
+* {
+	-webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent text selection on the entire toast container */
+[data-sonner-toast] {
+	-webkit-user-select: none !important;
+	-moz-user-select: none !important;
+	-ms-user-select: none !important;
+	user-select: none !important;
+	-webkit-tap-highlight-color: transparent !important;
+}
+
+
+/* Evita efeitos de clique e focus em toasts */
+.custom-toast,
+.custom-toast * {
+	-webkit-tap-highlight-color: transparent !important;
+	-webkit-user-select: none !important;
+	-moz-user-select: none !important;
+	-ms-user-select: none !important;
+	user-select: none !important;
+	outline: none !important;
+	box-shadow: none !important;
+}
+
+/* Remove qualquer efeito visual de active/focus */
+.custom-toast:active,
+.custom-toast:focus,
+.custom-toast:focus-visible,
+.custom-toast:focus-within {
+	background: linear-gradient(135deg, var(--card-bg) 0%, rgba(37, 37, 37, 0.95) 100%) !important;
+	box-shadow:
+		0 20px 40px rgba(0, 0, 0, 0.6),
+		0 0 0 1px rgba(255, 255, 255, 0.05),
+		inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+	outline: none !important;
+	border-color: transparent !important;
+	transform: none !important;
+}

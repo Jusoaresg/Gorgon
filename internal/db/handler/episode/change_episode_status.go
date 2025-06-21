@@ -2,6 +2,7 @@ package episode
 
 import (
 	"gorgon/config"
+	event "gorgon/internal/db/events/episode"
 	"gorgon/internal/db/repository"
 	"gorgon/internal/db/schema/episode"
 	"gorgon/pkg/schemas"
@@ -34,21 +35,23 @@ func ChangeEpisodeStatus(c echo.Context) error {
 
 	episodeRepository := repository.NewEpisodeRepository(config.GetSQLite())
 
-	episode, err := episodeRepository.GetByID(int64(request.EpisodeId))
+	ep, err := episodeRepository.GetByID(int64(request.EpisodeId))
 	if err != nil {
 		logger.Error("Error while fetching episode from database", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, "Error while fetching episode")
 		return err
 	}
 
-	episode.Tracking = request.Tracking
+	ep.Tracking = request.Tracking
 
-	if err := episodeRepository.Update(episode); err != nil {
+	if err := episodeRepository.Update(ep); err != nil {
 		schemas.SendError(c, 500, "Failed to update episode tracking status")
 		return err
 	}
 
-	logger.Info("Successfully updated episode", slog.Any("Episode", episode))
-	schemas.SendSucess(c, "Get Show", episode)
+	event.EmitEpisodeTrackingUpdatedEvent(ep.ID, ep.Tracking)
+
+	logger.Info("Successfully updated episode", slog.Any("Episode", ep))
+	schemas.SendSucess(c, "Get Show", ep)
 	return nil
 }

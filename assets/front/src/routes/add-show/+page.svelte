@@ -4,6 +4,10 @@ import { goto } from '$app/navigation';
 import { PUBLIC_API_BASE_URL } from '$env/static/public'
 import SearchForm from '$lib/components/SearchForm.svelte'
 
+// Styles
+import '$lib/styles/pages/add-show.css';
+import '$lib/styles/components/search-form.css';
+
 let shows = [];
 let currentShow = null;
 
@@ -35,22 +39,6 @@ async function addShow(showID) {
 	if (!show) return;
 
 	try {
-		// const res = await fetch(`${PUBLIC_API_BASE_URL}/database/show`, {
-		// 	method: 'POST',
-		// 	headers: { 'Content-Type': 'application/json' },
-		// 	body: JSON.stringify({ id: Number(showID) })
-		// });
-		//
-		// if(!res.ok) {
-		// 	console.error('Failed to add show', await res.text());
-		// 	return
-		// }
-		//
-		// show.IsAdded = true;
-		// shows = [...shows];
-		//
-		// currentShow = show;
-
 		sessionStorage.setItem('showToEdit', JSON.stringify({
 			Show: show.Show,
 			isAdded: show.IsAdded

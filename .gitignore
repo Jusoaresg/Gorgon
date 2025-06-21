@@ -1,5 +1,6 @@
 assets/config.json
 assets/last_update.txt
+assets/downloads
 tmp/*
 *.db
 *_templ.go

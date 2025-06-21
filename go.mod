@@ -4,7 +4,6 @@ go 1.24.1
 
 require (
 	github.com/gin-gonic/gin v1.10.0
-	github.com/go-playground/assert/v2 v2.2.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/mattn/go-sqlite3 v1.14.22

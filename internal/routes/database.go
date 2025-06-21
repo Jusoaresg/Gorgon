@@ -37,6 +37,9 @@ func SetupDatabaseRouter(v1 *echo.Group) {
 
 				episodeGroup.GET("/:id", episode.GetShowEpisodes)
 				logger.Info("GET route added to /api/v1/database/show/episode/:id")
+
+				episodeGroup.DELETE("/:id", episode.DeleteDownloadedEpisode)
+				logger.Info("DELETE route added to /api/v1/database/show/episode/:id")
 			}
 
 			seasonsGroup := showGroup.Group("/season")

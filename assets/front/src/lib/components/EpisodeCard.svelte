@@ -1,98 +1,35 @@
 <script>
 import { createEventDispatcher, onMount, tick } from 'svelte';
+import { slide, fade, fly, scale } from 'svelte/transition';
+import EpisodeChangeTrackingModal from '$lib/components/EpisodeChangeTrackingModal.svelte';
+import EpisodeDeleteModal from '$lib/components/EpisodeDeleteModal.svelte';
+import EpisodeManualSearchModal from '$lib/components/EpisodeManualSearchModal.svelte';
+
+//Styles
+import '$lib/styles/components/episode-card.css';
 
 export let episode;
 export let seasonNumber;
 
 const dispatch = createEventDispatcher();
 
-let status = episode.Tracking;
+let episodeModal = false;
+let showSummary = false;
+let showDeleteConfirm = false; // New state for delete confirmation
+let episodeManualSearch = false;
+
 $: status = episode.Tracking;
-let showDropdown = false;
-let dropdownElement;
-let buttonElement;
-let portalTarget;
 
 const statusOptions = ['wanted', 'skipped'];
 
-function changeStatus(newStatus) {
-	status = newStatus;
-	showDropdown = false;
-	dispatch('statusChange', { id: episode.ID, newStatus });
+function toggleSummary() {
+	showSummary = !showSummary;
 }
 
-async function toggleDropdown() {
-	showDropdown = !showDropdown;
-
-	if (showDropdown && buttonElement) {
-		await tick(); // Wait for DOM update
-		positionDropdown();
-	}
+async function deleteEpisode(event) {
+	dispatch('deleteEpisode', { id: episode.ID });
+	showDeleteConfirm = false;
 }
-
-function positionDropdown() {
-	if (!buttonElement || !dropdownElement) return;
-
-	const buttonRect = buttonElement.getBoundingClientRect();
-	const dropdownRect = dropdownElement.getBoundingClientRect();
-
-	// Position dropdown below button
-	dropdownElement.style.position = 'fixed';
-	dropdownElement.style.top = `${buttonRect.bottom + 8}px`;
-	dropdownElement.style.left = `${buttonRect.right - dropdownRect.width}px`;
-
-	// Ensure dropdown stays within viewport
-	const viewportWidth = window.innerWidth;
-	const viewportHeight = window.innerHeight;
-
-	if (buttonRect.right - dropdownRect.width < 0) {
-		dropdownElement.style.left = `${buttonRect.left}px`;
-	}
-
-	if (buttonRect.bottom + dropdownRect.height + 8 > viewportHeight) {
-		dropdownElement.style.top = `${buttonRect.top - dropdownRect.height - 8}px`;
-	}
-}
-
-function handleClickOutside(event) {
-	if (dropdownElement && !dropdownElement.contains(event.target) && 
-		buttonElement && !buttonElement.contains(event.target)) {
-		showDropdown = false;
-	}
-}
-
-function handleEscapeKey(event) {
-	if (event.key === 'Escape') {
-		showDropdown = false;
-	}
-}
-
-onMount(() => {
-	// Create portal target
-	portalTarget = document.createElement('div');
-	portalTarget.style.position = 'absolute';
-	portalTarget.style.top = '0';
-	portalTarget.style.left = '0';
-	portalTarget.style.zIndex = '9999';
-	document.body.appendChild(portalTarget);
-
-	document.addEventListener('click', handleClickOutside);
-	document.addEventListener('keydown', handleEscapeKey);
-	window.addEventListener('scroll', () => {
-		if (showDropdown) positionDropdown();
-	});
-	window.addEventListener('resize', () => {
-		if (showDropdown) positionDropdown();
-	});
-
-	return () => {
-		document.removeEventListener('click', handleClickOutside);
-		document.removeEventListener('keydown', handleEscapeKey);
-		if (portalTarget && portalTarget.parentNode) {
-			portalTarget.parentNode.removeChild(portalTarget);
-		}
-	};
-});
 
 function getStatusClass(status) {
 	switch (status.toLowerCase()) {
@@ -136,10 +73,32 @@ function formatDate(dateStr) {
 	</div>
 	<div class="episode-content">
 		<div class="episode-header">
-			<h3 class="episode-title">
+			<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<h3 class="episode-title" on:click={toggleSummary} style="cursor: pointer;">
 				{episode.Name}
+				{#if episode.Summary}
+					<i class="fas fa-chevron-{showSummary ? 'up' : 'down'}" style="margin-left: 8px; font-size: 0.8em; opacity: 0.7;"></i>
+				{/if}
 			</h3>
 			<div class="episode-actions">
+
+				<!-- Delete button - only show for downloaded episodes -->
+				{#if status.toLowerCase() === 'downloaded'}
+					<button 
+						aria-label="delete episode"
+						class="episode-btn delete-btn" 
+						title="Delete Episode"
+						on:click={async () => {
+							showDeleteConfirm = false;
+							await tick();
+							showDeleteConfirm = true;
+						}}
+					>
+						<i class="fas fa-trash"></i>
+					</button>
+				{/if}
+
 				<button 
 					aria-hidden="true" 
 					class="episode-btn force-search-btn" 
@@ -151,15 +110,24 @@ function formatDate(dateStr) {
 					aria-hidden="true" 
 					class="episode-btn manual-search-btn" 
 					title="Manual Search"
+					on:click={async () => {
+						episodeManualSearch = false;
+						await tick();
+						episodeManualSearch = true;
+					}}
 				>
 					<i class="fas fa-list"></i>
 				</button>
+				
 				<button 
-					bind:this={buttonElement}
-					aria-hidden="true" 
+					aria-label="tracking"
 					class={"episode-btn episode-status-toggle " + getStatusClass(status)} 
 					title="Change Tracking Status"
-					on:click={toggleDropdown}
+					on:click={async () => {
+						episodeModal = false;
+						await tick();
+						episodeModal = true;
+					}}
 				>
 					<i class={getStatusIcon(status)}></i>
 				</button>
@@ -174,8 +142,8 @@ function formatDate(dateStr) {
 					</span>
 				</div>
 			{/if}
-			{#if episode.Summary}
-				<div class="episode-summary mt-2">
+			{#if episode.Summary && showSummary}
+				<div class="episode-summary mt-2" transition:fade={{duration: 200}}>
 					{@html episode.Summary}
 				</div>
 			{/if}
@@ -183,203 +151,154 @@ function formatDate(dateStr) {
 	</div>
 </div>
 
-<!-- Portal dropdown -->
-{#if showDropdown && portalTarget}
-	<div bind:this={dropdownElement} class="status-dropdown portal-dropdown">
-		{#each statusOptions as option}
-			<div
-				class="dropdown-item"
-				class:selected={option === status}
-				data-status={option}
-				on:click={() => changeStatus(option)}
-				role="button"
-				tabindex="0"
-				on:keydown={(e) => e.key === 'Enter' && changeStatus(option)}
-			>
-				<i class={getStatusIcon(option)}></i>
-				{option}
-			</div>
-		{/each}
-	</div>
-{/if}
+<EpisodeManualSearchModal
+	show={episodeManualSearch}
+	episode={episode}
+	on:close={() => { episodeManualSearch = false }}
+/>
+
+<EpisodeDeleteModal 
+	show={showDeleteConfirm} 
+	episode={episode} 
+	on:deleteEpisode={deleteEpisode}
+	on:close={() => { showDeleteConfirm = false }}
+/>
+
+<EpisodeChangeTrackingModal
+	show={episodeModal}
+	episode={episode}
+	on:close={() => { episodeModal = false }}
+/>
 
 <style>
-:global(.portal-dropdown) {
-	position: fixed !important;
-	z-index: 9999 !important;
-	background-color: var(--card-bg);
-	border: 2px solid rgba(255, 255, 255, 0.1);
-	border-radius: 8px;
-	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
-	min-width: 140px;
-	padding: 0.5rem 0;
-	backdrop-filter: blur(10px);
-	animation: dropdownFadeIn 0.15s ease-out;
+.episode-title:hover {
+	color: var(--highlight);
 }
 
-:global(.portal-dropdown) {
-	position: fixed !important;
-	z-index: 9999 !important;
-	background-color: var(--card-bg);
-	border: 2px solid rgba(255, 255, 255, 0.1);
-	border-radius: 8px;
-	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
-	min-width: 140px;
-	padding: 0.5rem 0;
-	backdrop-filter: blur(10px);
-	animation: portalDropdownFadeIn 0.15s ease-out;
-	/* Ensure it appears above everything */
-	pointer-events: auto;
+.delete-btn {
+	background-color: rgba(231, 76, 60, 0.2);
+	color: #e74c3c;
 }
 
-:global(.portal-dropdown .dropdown-item) {
+.delete-btn:hover {
+	background-color: rgba(231, 76, 60, 0.3);
+	color: #fff;
+}
+
+.modal-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.7);
 	display: flex;
 	align-items: center;
-	gap: 0.75rem;
-	padding: 0.75rem 1rem;
-	cursor: pointer;
-	transition: all 0.2s ease;
-	color: var(--text-color);
-	font-size: 0.9rem;
-	text-transform: capitalize;
-	border: none;
+	justify-content: center;
+	z-index: 10000;
+}
+
+.delete-modal {
+	background-color: var(--card-bg);
+	border-radius: 12px;
+	border: 2px solid rgba(255, 255, 255, 0.1);
+	box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+	max-width: 400px;
+	width: 90%;
+	max-height: 90vh;
+	overflow: hidden;
+}
+
+.modal-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 1.5rem;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-close {
 	background: none;
-	width: 100%;
-	text-align: left;
-	white-space: nowrap;
+	border: none;
+	color: var(--text-color);
+	font-size: 1.25rem;
+	cursor: pointer;
+	padding: 0.25rem;
+	border-radius: 4px;
+	transition: background-color 0.2s ease;
 }
 
-:global(.portal-dropdown .dropdown-item:hover) {
-	background-color: rgba(255, 255, 255, 0.15);
-	color: white;
-}
-
-:global(.portal-dropdown .dropdown-item.selected) {
-	background-color: var(--highlight);
-	color: white;
-}
-
-:global(.portal-dropdown .dropdown-item.selected:hover) {
-	background-color: var(--highlight);
-	opacity: 0.9;
-}
-
-:global(.portal-dropdown .dropdown-item i) {
-	width: 14px;
-	text-align: center;
-	font-size: 0.85rem;
-	flex-shrink: 0;
-}
-
-@keyframes portalDropdownFadeIn {
-from {
-	opacity: 0;
-	transform: translateY(-8px) scale(0.95);
-}
-to {
-	opacity: 1;
-	transform: translateY(0) scale(1);
-}
-}
-
-:global(.portal-dropdown .dropdown-item[data-status="downloaded"]:hover:not(.selected)) {
-	background-color: rgba(39, 174, 96, 0.8);
-	color: white;
-}
-
-:global(.portal-dropdown .dropdown-item[data-status="missing"]:hover:not(.selected)) {
-	background-color: rgba(231, 76, 60, 0.8);
-	color: white;
-}
-
-:global(.portal-dropdown .dropdown-item[data-status="wanted"]:hover:not(.selected)) {
-	background-color: rgba(243, 156, 18, 0.8);
-	color: white;
-}
-
-:global(.portal-dropdown .dropdown-item[data-status="skipped"]:hover:not(.selected)) {
-	background-color: rgba(127, 140, 141, 0.8);
-	color: white;
-}
-
-:global(.portal-dropdown .dropdown-item[data-status="snatched"]:hover:not(.selected)) {
-	background-color: rgba(52, 152, 219, 0.8);
-	color: white;
-}
-
-:global(.portal-dropdown .dropdown-item:focus) {
-	outline: 2px solid var(--highlight);
-	outline-offset: -2px;
+.modal-close:hover {
 	background-color: rgba(255, 255, 255, 0.1);
 }
 
-:global(.portal-dropdown) {
-	z-index: 99999 !important;
+.modal-body {
+	padding: 1.5rem;
 }
 
-:global(.portal-dropdown .dropdown-item:not(:last-child)) {
-	border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+.episode-info-text {
+	background-color: rgba(255, 255, 255, 0.05);
+	padding: 0.75rem;
+	border-radius: 6px;
+	border-left: 3px solid var(--highlight);
 }
 
-:global(.portal-dropdown .dropdown-item:first-child) {
-	border-top-left-radius: 6px;
-	border-top-right-radius: 6px;
+.warning-text {
+	color: #e74c3c;
+	font-weight: 500;
+	margin-bottom: 0 !important;
 }
 
-:global(.portal-dropdown .dropdown-item:last-child) {
-	border-bottom-left-radius: 6px;
-	border-bottom-right-radius: 6px;
+.modal-actions {
+	display: flex;
+	gap: 0.75rem;
+	padding: 1.5rem;
+	border-top: 1px solid rgba(255, 255, 255, 0.1);
+	justify-content: flex-end;
+}
+
+.btn {
+	padding: 0.75rem 1.5rem;
+	border: none;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 0.9rem;
+	font-weight: 500;
+	transition: all 0.2s ease;
+	min-width: 80px;
+}
+
+.btn-secondary {
+	background-color: rgba(255, 255, 255, 0.1);
+	color: var(--text-color);
+}
+
+.btn-secondary:hover {
+	background-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-danger {
+	background-color: #e74c3c;
+	color: white;
+}
+
+.btn-danger:hover {
+	background-color: #c0392b;
+	transform: translateY(-1px);
 }
 
 @media (max-width: 768px) {
-	:global(.portal-dropdown) {
-		min-width: 120px;
-		font-size: 0.85rem;
+	.delete-modal {
+		margin: 1rem;
+		width: calc(100% - 2rem);
 	}
-
-	:global(.portal-dropdown .dropdown-item) {
-		padding: 0.6rem 0.8rem;
-		gap: 0.6rem;
+	
+	.modal-actions {
+		flex-direction: column-reverse;
 	}
-
-	:global(.portal-dropdown .dropdown-item i) {
-		width: 12px;
-		font-size: 0.8rem;
+	
+	.btn {
+		width: 100%;
 	}
-}
-
-.episode-actions {
-	position: relative;
-	display: flex;
-	gap: 0.5rem;
-}
-
-.episode-btn.episode-status-toggle:active {
-	transform: scale(0.95);
-}
-
-/* Loading state for dropdown (optional) */
-:global(.portal-dropdown.loading) {
-	pointer-events: none;
-	opacity: 0.7;
-}
-
-:global(.portal-dropdown.loading::after) {
-	content: '';
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	width: 20px;
-	height: 20px;
-	border: 2px solid transparent;
-	border-top: 2px solid var(--highlight);
-	border-radius: 50%;
-	animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-0% { transform: translate(-50%, -50%) rotate(0deg); }
-100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 </style>

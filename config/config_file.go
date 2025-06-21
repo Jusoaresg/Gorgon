@@ -11,16 +11,16 @@ import (
 func InitializeOrUpdateConfigFile() error {
 	var updated bool
 	config := schemas.ConfigFile{
-		ProwlarrApiKey:             "",
-		ProwlarrHost:               "",
-		ProwlarrPort:               "",
-		QBittorrentHost:            "",
-		QBittorrentPort:            "",
-		QBittorrentUsername:        "",
-		QBittorrentPassword:        "",
-		QBittorrentDownloadFolder:  "",
-		DefaultShowInfoFolder:      "assets/shows",
-		DefaultInstalledShowFolder: "$HOME/Videos/show",
+		ProwlarrApiKey:            "",
+		ProwlarrHost:              "",
+		ProwlarrPort:              "",
+		QBittorrentHost:           "",
+		QBittorrentPort:           "",
+		QBittorrentUsername:       "",
+		QBittorrentPassword:       "",
+		QBittorrentDownloadFolder: "assets/downloads",
+		DefaultShowInfoFolder:     "assets/shows",
+		ShowsFolder:               "/home/juliano/Videos/shows",
 	}
 
 	if _, err := os.Stat(ConfigPath); os.IsNotExist(err) {

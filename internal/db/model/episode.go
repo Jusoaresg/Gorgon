@@ -24,7 +24,6 @@ type Episode struct {
 	Season   int    `db:"season"`
 	AirStamp string `db:"airstamp"`
 
-	FilePath    string `db:"file_path"`
 	Tracking    string `db:"tracking"`
 	TorrentHash string `db:"torrent_hash"`
 }
@@ -33,9 +32,10 @@ type EpisodeContent struct {
 	ID        int   `db:"id"`
 	EpisodeId int64 `db:"episode_id"`
 
-	Name    string  `db:"name"`
-	Size    float64 `db:"size"`
-	Is_Seed bool    `db:"is_seed"`
+	Name     string  `db:"name"`
+	FilePath string  `db:"file_path"`
+	Size     float64 `db:"size"`
+	Is_Seed  bool    `db:"is_seed"`
 }
 
 func (e *Episode) Create(
@@ -80,6 +80,5 @@ func (e *Episode) HasAired() (bool, error) {
 
 func (e *Episode) SetNotInstalled() {
 	e.Tracking = TrackingSkipped
-	e.FilePath = ""
 	e.TorrentHash = ""
 }

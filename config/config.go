@@ -25,6 +25,8 @@ func Init() error {
 
 	InitializeOrUpdateConfigFile()
 
+	InitializeDownloadFolders()
+
 	return nil
 }
 

@@ -11,6 +11,6 @@ type ConfigFile struct {
 	QBittorrentPassword       string `json:"qBittorrentPassword"`
 	QBittorrentDownloadFolder string `json:"qBittorrentDownloadFolder"`
 
-	DefaultShowInfoFolder      string `json:"defaultShowInfoFolder"`
-	DefaultInstalledShowFolder string `json:"defaultInstallShowFolder"`
+	DefaultShowInfoFolder string `json:"defaultShowInfoFolder"`
+	ShowsFolder           string `json:"showsFolder"`
 }

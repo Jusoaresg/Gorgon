@@ -23,6 +23,9 @@ func SetupProwlarrRouter(v1 *echo.Group) {
 		{
 			searchGroup.POST("", handler.SearchShows)
 			logger.Info("POSTS route added to /api/v1/prowlarr/search")
+
+			searchGroup.POST("/episode", handler.SearchShowsEpisodes)
+			logger.Info("POSTS route added to /api/v1/prowlarr/search/episode")
 		}
 	}
 	logger.Info("Prowlarr routes added successfully", slog.String("endpoint", "/api/v1/prowlarr"))

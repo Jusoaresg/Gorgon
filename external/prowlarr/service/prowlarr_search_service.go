@@ -30,7 +30,13 @@ func NewProwlarrSearchService(logger *slog.Logger) *ProwlarrSearchService {
 
 func (p *ProwlarrSearchService) Search(request *schema.SearchRequest, model *[]schema.SearchResponse) error {
 	queryEscaped := url.QueryEscape(request.Query)
-	return p.APIService.Get(fmt.Sprintf("/api/v1/search?query='%s'&apikey=%s", queryEscaped, p.ApiKey), &model)
+	return p.APIService.Get(fmt.Sprintf("/api/v1/search?query=%s&apikey=%s", queryEscaped, p.ApiKey), &model)
+}
+
+func (p *ProwlarrSearchService) SearchByType(request *schema.SearchByTypeRequest, model *[]schema.SearchResponse) error {
+	queryEscaped := url.QueryEscape(request.Query)
+	typeEscaped := url.QueryEscape(request.Type)
+	return p.APIService.Get(fmt.Sprintf("/api/v1/search?query=%s&type=%s&apikey=%s", queryEscaped, typeEscaped, p.ApiKey), &model)
 }
 
 // func (p *ProwlarrSearchService) GetIndexer(id string, model *schema.IndexerResponse) error {

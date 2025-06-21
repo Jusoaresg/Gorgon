@@ -1,0 +1,162 @@
+.episode-card {
+	display: flex;
+	background-color: var(--card-bg);
+	border-radius: 8px;
+	overflow: hidden;
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.episode-card:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.episode-content {
+	flex: 1;
+	padding: 1rem 1.5rem;
+}
+
+.episode-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 0.5rem;
+}
+
+.episode-title {
+	font-size: 1.2rem;
+	margin: 0;
+	color: var(--text-color);
+}
+
+.episode-actions {
+	display: flex;
+	position: relative;
+	gap: 0.5rem;
+	/* align-items: center; */
+}
+
+.episode-btn.episode-status-toggle:active {
+	transform: scale(0.95);
+}
+
+.episode-btn {
+	width: 32px;
+	height: 32px;
+	border-radius: 4px;
+	background-color: rgba(255, 255, 255, 0.1);
+	color: var(--text-color);
+	border: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.episode-btn:hover {
+	background-color: rgba(255, 255, 255, 0.2);
+}
+
+.episode-info {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.episode-date {
+	color: #999;
+	font-size: 0.9rem;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.air-date i {
+	font-size: 0.8rem;
+}
+
+.episode-summary {
+	color: #BBB;
+	font-size: 0.95rem;
+	line-height: 1.5;
+}
+
+.episode-summary p {
+	margin: 0;
+}
+
+dropdown-content a.dropdown-item {
+	color: #2ecc71;
+}
+
+.delete-btn {
+	background-color: rgba(231, 76, 60, 0.2) !important;
+	color: #e74c3c !important;
+	border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.delete-btn:hover {
+	background-color: rgba(231, 76, 60, 0.4) !important;
+	color: #fff !important;
+	border-color: rgba(231, 76, 60, 0.5);
+	transform: translateY(-1px);
+	box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
+}
+
+.delete-btn:active {
+	transform: scale(0.95) !important;
+}
+
+.delete-btn {
+	animation: deleteButtonFadeIn 0.3s ease-out;
+}
+
+@keyframes deleteButtonFadeIn {
+	from {
+		opacity: 0;
+		transform: scale(0.8);
+	}
+
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes spin {
+	0% {
+		transform: translate(-50%, -50%) rotate(0deg);
+	}
+
+	100% {
+		transform: translate(-50%, -50%) rotate(360deg);
+	}
+}
+
+@media (max-width: 768px) {
+	.episode-card {
+		flex-direction: column;
+	}
+
+	.episode-header {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.5rem;
+	}
+
+	.episode-actions {
+		width: 100%;
+		justify-content: flex-end;
+	}
+
+	.episode-actions {
+		flex-wrap: wrap;
+		justify-content: flex-end;
+	}
+
+	.delete-btn {
+		order: -1;
+		/* Place delete button first on mobile for easier access */
+	}
+}

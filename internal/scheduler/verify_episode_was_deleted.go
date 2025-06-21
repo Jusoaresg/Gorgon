@@ -1,12 +1,12 @@
 package scheduler
 
 import (
-	"fmt"
 	"gorgon/config"
 	"gorgon/internal/db/model"
 	"gorgon/internal/db/repository"
 	"log/slog"
 	"os"
+	"path/filepath"
 )
 
 func VerifyEpisodeWasDeleted() {
@@ -39,7 +39,8 @@ func VerifyEpisodeWasDeleted() {
 		logger.Debug("Downloaded episode found", slog.Int("Episode Number", episode.Number), slog.String("Episode Name", episode.Name))
 		for _, episode_content := range contents {
 
-			filePath := fmt.Sprintf("/home/juliano/Videos/downloads/%s", episode_content.Name)
+			fileFolder := filepath.Join("assets", configFile.QBittorrentDownloadFolder, episode_content.Name)
+			filePath, _ := filepath.Abs(fileFolder)
 
 			_, err := os.Stat(filePath)
 			if os.IsNotExist(err) {

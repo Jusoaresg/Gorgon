@@ -1,25 +1,25 @@
 /* Show page specific styles */
-.show-container {
+.show-page .show-container {
 	width: 100%;
-	max-width: 80%;
+	max-width: 90%;
+	margin: 2rem auto;
 	display: flex;
 	flex-direction: column;
-	gap: 2rem;
 }
 
-.show-header {
+.show-page .show-header {
 	text-align: center;
 	margin-bottom: 1rem;
 }
 
-.show-header h1 {
+.show-page .show-header h1 {
 	margin-bottom: 0.5rem;
 	color: var(--text-color);
 	font-size: 2.5rem;
 	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.show-header h1::after {
+.show-page .show-header h1::after {
 	content: '';
 	position: absolute;
 	bottom: -10px;
@@ -30,7 +30,7 @@
 	background-color: var(--highlight);
 }
 
-.show-meta {
+.show-page .show-meta {
 	display: flex;
 	justify-content: center;
 	gap: 1.2rem;
@@ -39,12 +39,12 @@
 	font-size: 0.95rem;
 }
 
-.show-status {
+.show-page .show-status {
 	color: var(--button-bg);
 	font-weight: bold;
 }
 
-.show-overview {
+.show-page .show-overview {
 	display: flex;
 	gap: 2rem;
 	background-color: var(--nav-bg);
@@ -53,7 +53,7 @@
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.show-poster {
+.show-page .show-poster {
 	flex: 0 0 200px;
 	height: 300px;
 	border-radius: 8px;
@@ -61,13 +61,13 @@
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-.show-poster img {
+.show-page .show-poster img {
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
 }
 
-.placeholder-poster {
+.show-page .placeholder-poster {
 	width: 100%;
 	height: 100%;
 	background: linear-gradient(135deg, var(--card-bg) 0%, var(--highlight) 100%);
@@ -79,24 +79,24 @@
 	color: rgba(255, 255, 255, 0.5);
 }
 
-.show-summary {
+.show-page .show-summary {
 	flex: 1;
 	line-height: 1.6;
 	font-size: 1.05rem;
 }
 
-.show-summary p {
+.show-page .show-summary p {
 	margin-bottom: 1rem;
 }
 
-.show-actions {
+.show-page .show-actions {
 	display: flex;
 	gap: 1rem;
 	margin-top: 1.5rem;
 	flex-wrap: wrap;
 }
 
-.action-btn {
+.show-page .action-btn {
 	background-color: var(--card-bg);
 	color: var(--text-color);
 	border: none;
@@ -110,28 +110,32 @@
 	transition: all 0.2s ease;
 }
 
-.action-btn:hover {
+.show-page .action-btn:hover {
 	background-color: var(--highlight);
 	color: white;
 }
 
-.action-btn i {
+.show-page .action-btn i {
 	font-size: 1rem;
 }
 
-.refresh-btn:hover {
+.show-page .refresh-btn:hover {
 	background-color: #3498db;
 }
 
-.search-all-btn:hover {
+.show-page .search-all-btn:hover {
 	background-color: #2ecc71;
 }
 
-button.action-btn.delete-show-btn:hover {
+.show-page .bulky-edit-btn:hover {
+	background-color: #9b59b6;
+}
+
+.show-page button.action-btn.delete-show-btn:hover {
 	background-color: #e74c3c;
 }
 
-.seasons-navigation {
+.show-page .seasons-navigation {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 0.6rem;
@@ -139,7 +143,7 @@ button.action-btn.delete-show-btn:hover {
 	margin: 1rem 0;
 }
 
-.season-pill {
+.show-page .season-pill {
 	background-color: var(--nav-bg);
 	padding: 0.6rem 1.2rem;
 	border-radius: 20px;
@@ -147,61 +151,69 @@ button.action-btn.delete-show-btn:hover {
 	font-weight: 500;
 }
 
-.season-pill:hover {
+.show-page .season-pill:hover {
 	background-color: var(--highlight);
 	color: white;
 	transform: translateY(-2px);
 }
 
-.season-block {
+.show-page .season-block {
 	margin-bottom: 3rem;
 	scroll-margin-top: 2rem;
 }
 
-.season-header {
+.show-page .season-header {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	margin-bottom: 1.5rem;
 }
 
-.season-block h2 {
+.show-page .season-toggle-btn {
+	background: none;
+	border: none;
+	color: var(--text-color);
 	font-size: 1.5rem;
-	padding-bottom: 0.5rem;
-	border-bottom: 2px solid var(--highlight);
-	display: inline-block;
-	margin: 0;
+	font-weight: bold;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0;
+	transition: color 0.2s ease;
 }
 
-.season-actions {
+.show-page .season-toggle-btn:hover {
+	color: var(--highlight);
+}
+
+.show-page .season-toggle-btn i {
+	font-size: 1rem;
+	transition: transform 0.2s ease;
+}
+
+.show-page .season-block h2 {
+	margin: 0;
+	padding: 0;
+	border: none;
+}
+
+.show-page .season-actions {
 	display: flex;
 	gap: 0.5rem;
 }
 
-.season-search-btn:hover {
+.show-page .season-search-btn:hover {
 	background-color: #f39c12;
 }
 
-.episodes-container {
+.show-page .episodes-container {
 	display: flex;
 	flex-direction: column;
 	gap: 1rem;
 }
 
-.episode-card {
-	display: flex;
-	background-color: var(--card-bg);
-	border-radius: 8px;
-	overflow: hidden;
-	transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.episode-card:hover {
-	transform: translateY(-3px);
-	box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-}
-
-.episode-number {
+.show-page .episode-number {
 	flex: 0 0 50px;
 	background-color: var(--highlight);
 	color: white;
@@ -214,182 +226,106 @@ button.action-btn.delete-show-btn:hover {
 	position: relative;
 }
 
-.absolute-number {
+.show-page .absolute-number {
 	position: absolute;
 	bottom: 5px;
 	font-size: 0.75rem;
 	opacity: 0.8;
 }
 
-.episode-content {
-	flex: 1;
-	padding: 1rem 1.5rem;
-}
-
-.episode-header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 0.5rem;
-}
-
-.episode-title {
-	font-size: 1.2rem;
-	margin: 0;
-	color: var(--text-color);
-}
-
-.episode-actions {
-	display: flex;
-	gap: 0.5rem;
-}
-
-.episode-btn {
-	width: 32px;
-	height: 32px;
-	border-radius: 4px;
-	background-color: rgba(255, 255, 255, 0.1);
-	color: var(--text-color);
-	border: none;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-	transition: all 0.2s ease;
-}
-
-.episode-btn:hover {
-	background-color: rgba(255, 255, 255, 0.2);
-}
-
-.episode-btn-changer {
+.show-page .episode-btn-changer {
 	width: auto !important;
 	margin: 0px 5px;
 }
 
-.episode-info {
-	display: flex;
-	flex-direction: column;
-	gap: 0.5rem;
-}
-
-.episode-date {
-	color: #999;
-	font-size: 0.9rem;
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-}
-
-.air-date i {
-	font-size: 0.8rem;
-}
-
-.episode-summary {
-	color: #BBB;
-	font-size: 0.95rem;
-	line-height: 1.5;
-}
-
-.episode-summary p {
-	margin: 0;
-}
-
-.status-downloaded {
+.show-page .status-downloaded {
 	background-color: #27ae60;
 }
 
-.status-missing {
+.show-page .status-missing {
 	background-color: #e74c3c;
 }
 
-.status-wanted {
+.show-page .status-wanted {
 	background-color: #f39c12;
 }
 
-.status-skipped {
+.show-page .status-skipped {
 	background-color: #7f8c8d;
 }
 
-.status-unknown {
+.show-page .status-unknown {
 	background-color: #95a5a6;
 }
 
-.status-snatched {
+.show-page .status-snatched {
 	background-color: #3498db !important;
 }
 
-.aired {
+.show-page .aired {
 	color: #2ecc71;
 }
 
-.not-aired {
+.show-page .not-aired {
 	color: #f39c12;
 }
 
-.no-date,
+.show-page .no-date,
 .invalid-date {
 	color: #95a5a6;
 }
 
-dropdown-content a.dropdown-item {
-	color: #2ecc71;
+.show-page button {
+	padding: 0.8rem 1.5rem;
+	font-size: 1rem;
+	font-weight: bold;
 }
 
-@media (max-width: 768px) {
-	.show-container {
-		max-width: 95%;
-	}
+.show-page {
+	@media (max-width: 768px) {
+		.show-container {
+			max-width: 95%;
+		}
 
-	.show-overview {
-		flex-direction: column;
-		padding: 1.5rem;
-		gap: 1.5rem;
-	}
+		.show-overview {
+			flex-direction: column;
+			padding: 1.5rem;
+			gap: 1.5rem;
+		}
 
-	.show-poster {
-		flex: 0 0 auto;
-		height: 280px;
-		max-width: 180px;
-		margin: 0 auto;
-	}
+		.show-poster {
+			flex: 0 0 auto;
+			height: 280px;
+			max-width: 180px;
+			margin: 0 auto;
+		}
 
-	.episode-card {
-		flex-direction: column;
-	}
+		.episode-number {
+			flex-direction: row;
+			padding: 0.5rem;
+			width: 100%;
+			gap: 0.5rem;
+			justify-content: center;
+		}
 
-	.episode-number {
-		flex-direction: row;
-		padding: 0.5rem;
-		width: 100%;
-		gap: 0.5rem;
-		justify-content: center;
-	}
+		.absolute-number {
+			position: static;
+			opacity: 0.8;
+		}
 
-	.absolute-number {
-		position: static;
-		opacity: 0.8;
-	}
+		.show-meta {
+			flex-direction: column;
+			gap: 0.5rem;
+		}
 
-	.episode-header {
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 0.5rem;
-	}
+		.season-header {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 1rem;
+		}
 
-	.episode-actions {
-		width: 100%;
-		justify-content: flex-end;
-	}
-
-	.show-meta {
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-
-	.season-header {
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 1rem;
+		.season-toggle-btn {
+			font-size: 1.2rem;
+		}
 	}
 }

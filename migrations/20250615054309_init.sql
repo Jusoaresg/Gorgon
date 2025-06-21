@@ -57,7 +57,6 @@ CREATE TABLE episodes(
 	season INTEGER NOT NULL,
 	airstamp TEXT,
 
-	file_path TEXT,
 	tracking TEXT DEFAULT 'wanted',
 	torrent_hash TEXT,
 
@@ -71,6 +70,7 @@ CREATE TABLE episode_content(
 
 	name TEXT,
 	size REAL,
+	file_path TEXT,
 	is_seed BOOLEAN,
 
 	FOREIGN KEY(episode_id) REFERENCES episodes(id) ON DELETE CASCADE

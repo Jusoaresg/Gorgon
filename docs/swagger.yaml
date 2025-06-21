@@ -352,6 +352,32 @@ paths:
       tags:
       - Database/Show
   /database/show/episode/{id}:
+    delete:
+      description: Delete Downloaded Episode
+      parameters:
+      - description: Episode ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Delete Downloaded Episode
+      tags:
+      - Database/Episodes
     get:
       description: List Show Episodes
       parameters:
@@ -488,7 +514,67 @@ paths:
       summary: Search For Shows
       tags:
       - Prowlarr/Search
+  /prowlarr/search/episode:
+    post:
+      description: Search show episodes on prowlarr indexers
+      parameters:
+      - description: Request Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.IdRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/schema.SearchResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Search For Show Episodes
+      tags:
+      - Prowlarr/Search
   /qbittorrent/add:
+    post:
+      consumes:
+      - application/json
+      description: Add New Torrent
+      parameters:
+      - description: Request Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.AddNewTorrentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schema.AddNewTorrentRequest'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Add Torrent
+      tags:
+      - QBittorrent
+  /qbittorrent/add/episode:
     post:
       consumes:
       - application/json

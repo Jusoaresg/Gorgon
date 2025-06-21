@@ -8,6 +8,10 @@
     import { error } from "@sveltejs/kit";
     import { onMount } from "svelte";
     import { fade } from "svelte/transition";
+    import { toast } from "svelte-sonner";
+
+    // Styles
+    import '$lib/styles/pages/add-show-edit.css'
 
     let show = null;
     let isAdded = false;
@@ -49,6 +53,7 @@
 	    } catch(e) {
 		    return error;
 	    } finally {
+		    toast.success("Show added successfuly.");
 		    loading = false;
 	    }
         }
@@ -61,6 +66,7 @@
     </script>
 
 {#if show}
+	<div class="add-show-edit-page">
 <div class="edit-container">
 	<div class="edit-header">
 		<h1>Configure Show Settings</h1>
@@ -223,5 +229,6 @@
 
 	{/if}
 
+</div>
 </div>
 {/if}

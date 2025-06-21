@@ -1,18 +1,18 @@
-.edit-container {
+.add-show-edit-page .edit-container {
 	width: 100%;
 	max-width: 80%;
-	margin: 0 auto;
+	margin: 2.5rem auto;
 	display: flex;
 	flex-direction: column;
 	gap: 2rem;
 }
 
-.edit-header {
+.add-show-edit-page .edit-header {
 	text-align: center;
 	margin-bottom: 1rem;
 }
 
-.edit-header h1 {
+.add-show-edit-page .edit-header h1 {
 	margin-bottom: 0.5rem;
 	color: var(--text-color);
 	font-size: 2.5rem;
@@ -20,7 +20,7 @@
 	position: relative;
 }
 
-.edit-header h1::after {
+.add-show-edit-page .edit-header h1::after {
 	content: '';
 	position: absolute;
 	bottom: -10px;
@@ -31,13 +31,13 @@
 	background-color: var(--highlight);
 }
 
-.edit-subtitle {
+.add-show-edit-page .edit-subtitle {
 	color: #BBB;
 	font-size: 1.1rem;
 	margin-top: 1.5rem;
 }
 
-.show-preview {
+.add-show-edit-page .show-preview {
 	display: flex;
 	gap: 2rem;
 	background-color: var(--nav-bg);
@@ -47,7 +47,7 @@
 	margin-bottom: 2rem;
 }
 
-.show-poster {
+.add-show-edit-page .show-poster {
 	flex: 0 0 200px;
 	height: 300px;
 	border-radius: 8px;
@@ -55,13 +55,13 @@
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-.show-poster img {
+.add-show-edit-page .show-poster img {
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
 }
 
-.placeholder-poster {
+.add-show-edit-page .placeholder-poster {
 	width: 100%;
 	height: 100%;
 	background: linear-gradient(135deg, var(--card-bg) 0%, var(--highlight) 100%);
@@ -73,17 +73,17 @@
 	color: rgba(255, 255, 255, 0.5);
 }
 
-.show-info {
+.add-show-edit-page .show-info {
 	flex: 1;
 }
 
-.show-title {
+.add-show-edit-page .show-title {
 	font-size: 2rem;
 	margin-bottom: 1rem;
 	color: var(--text-color);
 }
 
-.show-meta {
+.add-show-edit-page .show-meta {
 	display: flex;
 	gap: 1.5rem;
 	margin-bottom: 1.5rem;
@@ -92,18 +92,18 @@
 	flex-wrap: wrap;
 }
 
-.show-status {
+.add-show-edit-page .show-status {
 	color: var(--button-bg);
 	font-weight: bold;
 }
 
-.show-summary {
+.add-show-edit-page .show-summary {
 	line-height: 1.6;
 	font-size: 1.05rem;
 	color: #CCC;
 }
 
-.configuration-section {
+.add-show-edit-page .configuration-section {
 	background-color: var(--nav-bg);
 	padding: 2rem;
 	border-radius: 10px;
@@ -111,7 +111,7 @@
 	margin-bottom: 2rem;
 }
 
-.section-title {
+.add-show-edit-page .section-title {
 	font-size: 1.5rem;
 	margin-bottom: 1.5rem;
 	color: var(--text-color);
@@ -120,25 +120,25 @@
 	display: inline-block;
 }
 
-.form-group {
+.add-show-edit-page .form-group {
 	margin-bottom: 1.5rem;
 }
 
-.form-label {
+.add-show-edit-page .form-label {
 	display: block;
 	margin-bottom: 0.5rem;
 	font-weight: 500;
 	color: var(--text-color);
 }
 
-.form-description {
+.add-show-edit-page .form-description {
 	font-size: 0.9rem;
 	color: #999;
 	margin-bottom: 0.8rem;
 	line-height: 1.4;
 }
 
-.form-control {
+.add-show-edit-page .form-control {
 	width: 100%;
 	padding: 0.8rem;
 	background-color: var(--input-bg);
@@ -148,19 +148,19 @@
 	font-size: 1rem;
 }
 
-.form-control:focus {
+.add-show-edit-page .form-control:focus {
 	outline: none;
 	border-color: var(--highlight);
 	box-shadow: 0 0 0 2px rgba(125, 0, 163, 0.2);
 }
 
-.radio-group {
+.add-show-edit-page .radio-group {
 	display: flex;
 	flex-direction: column;
 	gap: 1rem;
 }
 
-.radio-option {
+.add-show-edit-page .radio-option {
 	display: flex;
 	align-items: center;
 	padding: 1rem;
@@ -171,60 +171,60 @@
 	transition: all 0.2s ease;
 }
 
-.radio-option:hover {
+.add-show-edit-page .radio-option:hover {
 	border-color: var(--highlight);
 	background-color: var(--input-bg);
 }
 
-.radio-option input[type="radio"] {
+.add-show-edit-page .radio-option input[type="radio"] {
 	margin-right: 1rem;
 	width: 18px;
 	height: 18px;
 	accent-color: var(--highlight);
 }
 
-.radio-content {
+.add-show-edit-page .radio-content {
 	flex: 1;
 }
 
-.radio-title {
+.add-show-edit-page .radio-title {
 	font-weight: 600;
 	margin-bottom: 0.3rem;
 	color: var(--text-color);
 }
 
-.radio-description {
+.add-show-edit-page .radio-description {
 	font-size: 0.9rem;
 	color: #BBB;
 	line-height: 1.4;
 }
 
-.checkbox-group {
+.add-show-edit-page .checkbox-group {
 	display: flex;
 	flex-direction: column;
 	gap: 0.8rem;
 }
 
-.checkbox-option {
+.add-show-edit-page .checkbox-option {
 	display: flex;
 	align-items: center;
 	gap: 0.8rem;
 }
 
-.checkbox-option input[type="checkbox"] {
+.add-show-edit-page .checkbox-option input[type="checkbox"] {
 	width: 18px;
 	height: 18px;
 	accent-color: var(--highlight);
 }
 
-.quality-grid {
+.add-show-edit-page .quality-grid {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 	gap: 1rem;
 	margin-top: 0.8rem;
 }
 
-.quality-option {
+.add-show-edit-page .quality-option {
 	display: flex;
 	align-items: center;
 	gap: 0.5rem;
@@ -235,31 +235,31 @@
 	transition: background-color 0.2s ease;
 }
 
-.quality-option:hover {
+.add-show-edit-page .quality-option:hover {
 	background-color: var(--input-bg);
 }
 
-.quality-option input[type="checkbox"] {
+.add-show-edit-page .quality-option input[type="checkbox"] {
 	width: 16px;
 	height: 16px;
 	accent-color: var(--highlight);
 }
 
-.season-selector {
+.add-show-edit-page .season-selector {
 	background-color: var(--card-bg);
 	padding: 1.5rem;
 	border-radius: 8px;
 	margin-top: 1rem;
 }
 
-.season-grid {
+.add-show-edit-page .season-grid {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
 	gap: 0.8rem;
 	margin-top: 1rem;
 }
 
-.season-option {
+.add-show-edit-page .season-option {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -271,18 +271,18 @@
 	transition: all 0.2s ease;
 }
 
-.season-option:hover {
+.add-show-edit-page .season-option:hover {
 	background-color: var(--highlight);
 	color: white;
 }
 
-.season-option input[type="checkbox"] {
+.add-show-edit-page .season-option input[type="checkbox"] {
 	width: 16px;
 	height: 16px;
 	accent-color: var(--highlight);
 }
 
-.action-buttons {
+.add-show-edit-page .action-buttons {
 	display: flex;
 	gap: 1rem;
 	justify-content: center;
@@ -290,7 +290,7 @@
 	flex-wrap: wrap;
 }
 
-.btn {
+.add-show-edit-page .btn {
 	padding: 1rem 2rem;
 	border: none;
 	border-radius: 6px;
@@ -303,37 +303,37 @@
 	gap: 0.5rem;
 }
 
-.btn-primary {
+.add-show-edit-page .btn-primary {
 	background-color: var(--button-bg);
 	color: #121212;
 }
 
-.btn-primary:hover {
+.add-show-edit-page .btn-primary:hover {
 	background-color: var(--button-hover);
 	transform: translateY(-2px);
 }
 
-.btn-secondary {
+.add-show-edit-page .btn-secondary {
 	background-color: var(--card-bg);
 	color: var(--text-color);
 	border: 1px solid var(--border-color);
 }
 
-.btn-secondary:hover {
+.add-show-edit-page .btn-secondary:hover {
 	background-color: var(--input-bg);
 	border-color: var(--highlight);
 }
 
-.btn-danger {
+.add-show-edit-page .btn-danger {
 	background-color: #e74c3c;
 	color: white;
 }
 
-.btn-danger:hover {
+.add-show-edit-page .btn-danger:hover {
 	background-color: #c0392b;
 }
 
-.progress-indicator {
+.add-show-edit-page .progress-indicator {
 	display: flex;
 	justify-content: center;
 	gap: 1rem;
@@ -343,7 +343,7 @@
 	border-radius: 6px;
 }
 
-.spinner {
+.add-show-edit-page .spinner {
 	width: 20px;
 	height: 20px;
 	border: 2px solid var(--border-color);
@@ -362,43 +362,45 @@
 	}
 }
 
-@media (max-width: 768px) {
-	.edit-container {
-		max-width: 95%;
-	}
+.add-show-edit-page {
+	@media (max-width: 768px) {
+		.edit-container {
+			max-width: 95%;
+		}
 
-	.show-preview {
-		flex-direction: column;
-		padding: 1.5rem;
-		gap: 1.5rem;
-	}
+		.show-preview {
+			flex-direction: column;
+			padding: 1.5rem;
+			gap: 1.5rem;
+		}
 
-	.show-poster {
-		flex: 0 0 auto;
-		height: 280px;
-		max-width: 180px;
-		margin: 0 auto;
-	}
+		.show-poster {
+			flex: 0 0 auto;
+			height: 280px;
+			max-width: 180px;
+			margin: 0 auto;
+		}
 
-	.show-meta {
-		flex-direction: column;
-		gap: 0.5rem;
-	}
+		.show-meta {
+			flex-direction: column;
+			gap: 0.5rem;
+		}
 
-	.quality-grid {
-		grid-template-columns: 1fr;
-	}
+		.quality-grid {
+			grid-template-columns: 1fr;
+		}
 
-	.season-grid {
-		grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-	}
+		.season-grid {
+			grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+		}
 
-	.action-buttons {
-		flex-direction: column;
-	}
+		.action-buttons {
+			flex-direction: column;
+		}
 
-	.btn {
-		width: 100%;
-		justify-content: center;
+		.btn {
+			width: 100%;
+			justify-content: center;
+		}
 	}
 }

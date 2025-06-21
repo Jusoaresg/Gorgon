@@ -5,9 +5,12 @@ import (
 	"gorgon/config"
 	"gorgon/external/qbittorrent/schema"
 	"gorgon/external/qbittorrent/service"
+	"gorgon/internal/db/events/episode"
 	"gorgon/internal/db/model"
 	"gorgon/internal/db/repository"
-	"gorgon/pkg/handler"
+	"gorgon/internal/paths"
+	"gorgon/utils"
+	"log/slog"
 )
 
 type EpisodeUpdatedWebsocketSchema struct {
@@ -20,6 +23,10 @@ func ProcessSingleSnatchedDownload(ep *model.Episode, qbittorrentService service
 	logger := config.GetLogger()
 	episodeRepo := repository.NewEpisodeRepository(config.GetSQLite())
 	episodeContentRepo := repository.NewEpisodeContentRepository()
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		return err
+	}
 
 	var torrentResponse []schema.CheckTorrentResponse
 	qbittorrentService.CheckTorrentsWithHash("completed", ep.TorrentHash, &torrentResponse)
@@ -33,12 +40,14 @@ func ProcessSingleSnatchedDownload(ep *model.Episode, qbittorrentService service
 		logger.Info(fmt.Sprintf("Episode S%02d E%02d %s found - Torrent: %s", ep.Season, ep.Number, ep.Name, torrent.Name))
 
 		ep.Tracking = model.TrackingDownloaded
-		ep.FilePath = torrent.SavePath
 
 		contents, err := qbittorrentService.GetContent(torrent.Hash)
 		if err != nil {
 			return err
 		}
+
+		showRepo := repository.NewShowRepository(config.GetSQLite())
+		show, err := showRepo.GetById(ep.ShowID)
 
 		tx, err := config.GetSQLite().Beginx()
 		if err != nil {
@@ -46,9 +55,23 @@ func ProcessSingleSnatchedDownload(ep *model.Episode, qbittorrentService service
 		}
 		episodeRepo.UpdateTx(tx, *ep)
 		for _, content := range contents {
+			content.FilePath = torrent.SavePath
 			content.EpisodeId = ep.ID
 			if err := episodeContentRepo.CreateTx(tx, content); err != nil {
 				return err
+			}
+
+			symlinkPath, err := utils.SymlinkPathForEpisode(cfg.ShowsFolder, show.Name, *ep, content)
+			if err != nil {
+				return err
+			}
+			episodeDownloadFolder, err := paths.GetEpisodeDownloadFile(content.Name)
+			if err != nil {
+				return err
+			}
+
+			if err := utils.CreateSymlink(episodeDownloadFolder, symlinkPath); err != nil {
+				logger.Error("Failed to create symlink", slog.String("from", episodeDownloadFolder), slog.String("to", symlinkPath), slog.String("error", err.Error()))
 			}
 		}
 
@@ -56,11 +79,8 @@ func ProcessSingleSnatchedDownload(ep *model.Episode, qbittorrentService service
 			return err
 		}
 
-		var msg EpisodeUpdatedWebsocketSchema
-		msg.Type = "EpisodeTrackingUpdate"
-		msg.EpisodeId = ep.ID
-		msg.Tracking = model.TrackingDownloaded
-		handler.SendWebSocketMessage(msg)
+		episode.EmitEpisodeTrackingUpdatedEvent(ep.ID, model.TrackingDownloaded)
+
 		return nil
 	}
 	logger.Info(fmt.Sprintf("Episode S%02d E%02d %s not found between the progress torrents.", ep.Season, ep.Number, ep.Name))

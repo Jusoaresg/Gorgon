@@ -1,0 +1,107 @@
+.add-show-container {
+	width: 100%;
+	max-width: 800px;
+	margin: 2.5rem auto;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 1.5rem;
+}
+
+/* Results Container */
+.results-container {
+	margin-top: 1rem;
+	padding: 1.5rem;
+	background-color: var(--nav-bg);
+	border-radius: 8px;
+	min-height: 200px;
+}
+
+/* Show Card */
+.show-result {
+	display: flex;
+	gap: 1rem;
+	padding: 1rem;
+	border-radius: 4px;
+	background-color: var(--card-bg);
+	margin-bottom: 1rem;
+	transition: transform 0.2s ease;
+}
+
+.show-result:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.show-image {
+	width: 80px;
+	height: 120px;
+	background-color: var(--card-bg);
+	border-radius: 4px;
+	overflow: hidden;
+}
+
+.show-image img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+
+.show-info {
+	flex: 1;
+}
+
+.show-title {
+	font-size: 1.2rem;
+	margin-bottom: 0.5rem;
+	color: var(--text-color);
+}
+
+.add-button {
+	align-self: flex-start;
+	background-color: var(--highlight);
+	color: white;
+	padding: 0.4rem 1rem;
+	border-radius: 4px;
+	font-size: 0.9rem;
+	transition: opacity 0.2s ease;
+}
+
+.add-button:hover {
+	opacity: 0.9;
+}
+
+button.add-button.added {
+	background-color: #4CAF50 !important;
+	cursor: not-allowed;
+	opacity: 0.8;
+}
+
+button.add-button.added:hover {
+	opacity: 0.8;
+}
+
+button.add-button.added::after {
+	content: " ✓";
+}
+
+.empty-state {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 150px;
+	color: #777;
+	text-align: center;
+}
+
+@media (max-width: 768px) {
+	.show-result {
+		flex-direction: column;
+	}
+
+	.show-image {
+		width: 100%;
+		height: 160px;
+	}
+}

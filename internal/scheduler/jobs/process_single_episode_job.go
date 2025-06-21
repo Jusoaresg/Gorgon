@@ -6,9 +6,10 @@ import (
 	"gorgon/external/prowlarr/schema"
 	prowlarr "gorgon/external/prowlarr/service"
 	qbittorrent "gorgon/external/qbittorrent/service"
+	"gorgon/internal/db/events/episode"
 	"gorgon/internal/db/model"
 	"gorgon/internal/db/repository"
-	"gorgon/pkg/handler"
+	"gorgon/utils"
 	"log/slog"
 	"sort"
 	"strings"
@@ -63,7 +64,7 @@ func ProcessSingleEpisode(ep *model.Episode, prowlarrService prowlarr.ProwlarrSe
 
 	//TODO: Include titleAlias inside the db
 	titleAlias := []string{
-		normalizeTitle(show.Name),
+		utils.NormalizeTitle(show.Name),
 	}
 
 	var mu sync.Mutex
@@ -138,24 +139,9 @@ func ProcessSingleEpisode(ep *model.Episode, prowlarrService prowlarr.ProwlarrSe
 
 	logger.Info("Added torrent to qBittorrent", slog.String("Show", show.Name), slog.Int("Episode", ep.Number))
 
-	//TODO: You know
-	var msg EpisodeUpdatedWebsocketSchema
-	msg.Type = "EpisodeTrackingUpdate"
-	msg.EpisodeId = ep.ID
-	msg.Tracking = model.TrackingSnatched
-	handler.SendWebSocketMessage(msg)
-	return nil
-}
+	episode.EmitEpisodeTrackingUpdatedEvent(ep.ID, model.TrackingSnatched)
 
-func normalizeTitle(title string) string {
-	replacer := strings.NewReplacer(
-		"-", " ", "_", " ", ".", " ",
-		"'", "", "\"", "", ":", "", "!", "", ",", "",
-	)
-	title = replacer.Replace(title)
-	title = strings.ToLower(title)
-	title = strings.Join(strings.Fields(title), " ") // remove duplicated spaces
-	return title
+	return nil
 }
 
 func score(t schema.SearchResponse) int {

@@ -1,6 +1,9 @@
 <script>
     import { createEventDispatcher } from "svelte";
 
+    // Styles
+    import '$lib/styles/components/search-form.css';
+
 	export let placeholder = "PlaceHolder";
 	export let hasButton = false;
 	export let live = false;

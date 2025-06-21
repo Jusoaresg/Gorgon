@@ -40,7 +40,6 @@ func (s *EpisodeRepository) Create(episode model.Episode) (int64, error) {
 		number,
 		season,
 		airstamp,
-		file_path,
 		tracking,
 		torrent_hash
 	) 
@@ -53,7 +52,6 @@ func (s *EpisodeRepository) Create(episode model.Episode) (int64, error) {
 		:number,
 		:season,
 		:airstamp,
-		:file_path,
 		:tracking,
 		:torrent_hash
 	) 
@@ -81,7 +79,6 @@ func (s *EpisodeRepository) CreateTx(tx *sqlx.Tx, episode model.Episode) (int64,
 		number,
 		season,
 		airstamp,
-		file_path,
 		tracking,
 		torrent_hash
 	) 
@@ -94,7 +91,6 @@ func (s *EpisodeRepository) CreateTx(tx *sqlx.Tx, episode model.Episode) (int64,
 		:number,
 		:season,
 		:airstamp,
-		:file_path,
 		:tracking,
 		:torrent_hash
 	) 
@@ -162,7 +158,6 @@ func (s *EpisodeRepository) Update(episode model.Episode) error {
 		number = :number,
 		season = :season,
 		airstamp = :airstamp,
-		file_path = :file_path,
 		tracking = :tracking,
 		torrent_hash = :torrent_hash
 	WHERE id = :id
@@ -193,7 +188,6 @@ func (s *EpisodeRepository) UpdateTx(tx *sqlx.Tx, episode model.Episode) error {
 		number = :number,
 		season = :season,
 		airstamp = :airstamp,
-		file_path = :file_path,
 		tracking = :tracking,
 		torrent_hash = :torrent_hash
 	WHERE id = :id

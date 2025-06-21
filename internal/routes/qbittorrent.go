@@ -16,6 +16,9 @@ func SetupQbittorrentRouter(r *echo.Group) {
 		qbitorrentRouter.POST("add", handler.AddNewTorrent)
 		logger.Info("POST route added to /api/v1/qbittorrent/add")
 
+		qbitorrentRouter.POST("add/episode", handler.AddEpisodeTorrent)
+		logger.Info("POST route added to /api/v1/qbittorrent/add/episode")
+
 		qbitorrentRouter.GET("info", handler.CheckTorrentInfo)
 		logger.Info("GET route added to /api/v1/qbittorrent/info")
 
