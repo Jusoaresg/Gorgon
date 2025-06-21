@@ -189,6 +189,7 @@
 								<div class="release-actions">
 									{#if release.infoUrl}
 										<button 
+											aria-label="infoUrl"
 											class="episode-btn info-btn" 
 											on:click={() => openInfoUrl(release.infoUrl)}
 											title="View on {release.indexer}"
