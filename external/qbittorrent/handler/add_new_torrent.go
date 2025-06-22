@@ -53,6 +53,6 @@ func AddNewTorrent(c echo.Context) error {
 		schemas.SendError(c, 500, fmt.Sprintf("Error while adding torrent: %s", err.Error()))
 	}
 
-	schemas.SendSucess(c, "AddNewTorrent", request)
+	schemas.SendSuccess(c, "AddNewTorrent", request)
 	return nil
 }

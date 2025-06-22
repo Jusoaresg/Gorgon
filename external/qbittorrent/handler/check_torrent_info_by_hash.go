@@ -49,6 +49,6 @@ func CheckTorrentInfoByHash(c echo.Context) error {
 	}
 
 	logger.Info("Check Torrent info by hash request successfully", slog.Any("response", response))
-	schemas.SendSucess(c, "CheckTorrentInfoByHash", response)
+	schemas.SendSuccess(c, "CheckTorrentInfoByHash", response)
 	return nil
 }

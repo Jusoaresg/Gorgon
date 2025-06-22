@@ -136,6 +136,6 @@ func addShowToListHandler(c echo.Context, db *sqlx.DB) error {
 		return err
 	}
 
-	schemas.SendSucess(c, "Add Show To List", &show)
+	schemas.SendSuccess(c, "Add Show To List", &show)
 	return nil
 }

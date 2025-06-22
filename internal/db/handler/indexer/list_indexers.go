@@ -25,6 +25,6 @@ func ListIndexers(c echo.Context) error {
 		return err
 	}
 
-	schemas.SendSucess(c, "List Indexers", indexers)
+	schemas.SendSuccess(c, "List Indexers", indexers)
 	return nil
 }

@@ -60,6 +60,6 @@ func AddIndexer(c echo.Context) error {
 		return err
 	}
 
-	schemas.SendSucess(c, "Add Indexer", indexer)
+	schemas.SendSuccess(c, "Add Indexer", indexer)
 	return nil
 }

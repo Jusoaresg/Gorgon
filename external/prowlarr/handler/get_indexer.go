@@ -36,6 +36,6 @@ func GetIndexer(c echo.Context) error {
 	}
 
 	logger.Info("Get Indexer request successfully", slog.Any("response", indexers))
-	schemas.SendSucess(c, "Get Indexer", indexers)
+	schemas.SendSuccess(c, "Get Indexer", indexers)
 	return nil
 }

@@ -32,6 +32,6 @@ func DeleteIndexer(c echo.Context) error {
 		return err
 	}
 
-	schemas.SendSucess(c, "Delete Indexer", "")
+	schemas.SendSuccess(c, "Delete Indexer", "")
 	return nil
 }

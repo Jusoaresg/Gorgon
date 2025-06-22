@@ -71,6 +71,6 @@ func searchShowsEpisodesHandler(c echo.Context, db *sqlx.DB) error {
 	}
 
 	logger.Info("Search Shows Episodes request successfully", slog.Any("response", response))
-	schemas.SendSucess(c, "Search Shows", response)
+	schemas.SendSuccess(c, "Search Shows", response)
 	return nil
 }

@@ -7,10 +7,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func SendSucess(c echo.Context, handler string, data interface{}) {
+func SendSuccess(c echo.Context, handler string, data interface{}) {
 	c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	c.JSONPretty(200, gin.H{
-		"message": fmt.Sprintf("Operation from handler %s successfull", handler),
+		"message": fmt.Sprintf("Operation from handler %s successful", handler),
 		"data":    data,
 	}, "  ")
 }

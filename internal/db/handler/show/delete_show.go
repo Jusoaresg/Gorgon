@@ -58,6 +58,6 @@ func deleteShowHandler(c echo.Context, db *sqlx.DB) error {
 		return err
 	}
 
-	schemas.SendSucess(c, "DeleteShow", show)
+	schemas.SendSuccess(c, "DeleteShow", show)
 	return nil
 }

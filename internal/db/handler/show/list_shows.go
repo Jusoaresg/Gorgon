@@ -33,6 +33,6 @@ func ListShows(c echo.Context) error {
 	}
 
 	logger.Info("Successfully fetched shows", slog.Int("count", len(show)))
-	schemas.SendSucess(c, "List Shows", show)
+	schemas.SendSuccess(c, "List Shows", show)
 	return nil
 }

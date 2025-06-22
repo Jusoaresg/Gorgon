@@ -41,6 +41,6 @@ func GetShowEpisodes(c echo.Context) error {
 	}
 
 	logger.Info("Successfully fetched show episodes")
-	schemas.SendSucess(c, "Get Show Episodes", episodes)
+	schemas.SendSuccess(c, "Get Show Episodes", episodes)
 	return nil
 }

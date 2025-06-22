@@ -48,6 +48,6 @@ func CheckTorrentInfo(c echo.Context) error {
 	}
 
 	logger.Info("Check Torrent info request successfully", slog.Any("response", response))
-	schemas.SendSucess(c, "CheckTorrentInfo", response)
+	schemas.SendSuccess(c, "CheckTorrentInfo", response)
 	return nil
 }

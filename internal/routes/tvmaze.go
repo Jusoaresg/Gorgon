@@ -26,5 +26,5 @@ func SetupTvMazeRouter(v1 *echo.Group) {
 		}
 
 	}
-	logger.Info("TvMaze routes added succesfully", slog.String("endpoint", "/api/v1/tvmaze/"))
+	logger.Info("TvMaze routes added successfully", slog.String("endpoint", "/api/v1/tvmaze/"))
 }

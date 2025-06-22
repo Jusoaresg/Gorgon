@@ -59,6 +59,6 @@ func SearchShowByName(c echo.Context) error {
 		})
 	}
 
-	schemas.SendSucess(c, "SearchShowByName", &enriched)
+	schemas.SendSuccess(c, "SearchShowByName", &enriched)
 	return nil
 }

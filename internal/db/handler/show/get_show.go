@@ -42,6 +42,6 @@ func GetShow(c echo.Context) error {
 	}
 
 	logger.Info("Successfully fetched show", slog.Any("Show", show))
-	schemas.SendSucess(c, "Get Show", show)
+	schemas.SendSuccess(c, "Get Show", show)
 	return nil
 }

@@ -43,6 +43,6 @@ func SearchShows(c echo.Context) error {
 	}
 
 	logger.Info("Search Shows request successfully", slog.Any("response", response))
-	schemas.SendSucess(c, "Search Shows", response)
+	schemas.SendSuccess(c, "Search Shows", response)
 	return nil
 }

@@ -52,6 +52,6 @@ func ChangeEpisodeStatus(c echo.Context) error {
 	event.EmitEpisodeTrackingUpdatedEvent(ep.ID, ep.Tracking)
 
 	logger.Info("Successfully updated episode", slog.Any("Episode", ep))
-	schemas.SendSucess(c, "Get Show", ep)
+	schemas.SendSuccess(c, "Get Show", ep)
 	return nil
 }

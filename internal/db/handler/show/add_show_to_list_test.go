@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAddShowToList_Sucess(t *testing.T) {
+func TestAddShowToList_Success(t *testing.T) {
 	e := echo.New()
 	_ = e
 

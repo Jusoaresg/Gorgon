@@ -101,6 +101,6 @@ func deleteDownloadedEpisodeHandler(c echo.Context, db *sqlx.DB) error {
 	episode.EmitEpisodeTrackingUpdatedEvent(ep.ID, model.TrackingSkipped)
 
 	logger.Info("Successfully deleted downloaded episode", slog.String("FilePath", filePath))
-	schemas.SendSucess(c, "Delete Downloaded Episode", episodeContent)
+	schemas.SendSuccess(c, "Delete Downloaded Episode", episodeContent)
 	return nil
 }

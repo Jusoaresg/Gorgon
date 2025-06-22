@@ -37,6 +37,6 @@ func SearchShowByTvMazeId(c echo.Context) error {
 		return err
 	}
 
-	schemas.SendSucess(c, "Search Show By TvMaze Id", &response)
+	schemas.SendSuccess(c, "Search Show By TvMaze Id", &response)
 	return nil
 }
