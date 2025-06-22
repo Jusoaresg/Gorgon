@@ -1,23 +1,26 @@
 package repository
 
 import (
-	"github.com/jusoaresg/gorgon/config"
+	"errors"
+
 	"github.com/jusoaresg/gorgon/internal/episode_content/model"
 
 	"github.com/jmoiron/sqlx"
 )
 
+var ErrShowNotFound = errors.New("show not found")
+
 type EpisodeContentRepository struct {
 	db *sqlx.DB
 }
 
-func NewEpisodeContentRepository() EpisodeContentRepository {
+func NewEpisodeContentRepository(db *sqlx.DB) EpisodeContentRepository {
 	return EpisodeContentRepository{
-		db: config.GetSQLite(),
+		db: db,
 	}
 }
 
-func (s *EpisodeContentRepository) Create(content model.EpisodeContent) error {
+func (s *EpisodeContentRepository) Create(content model.EpisodeContent) (int64, error) {
 	query := `
 	INSERT INTO episode_content (
 		episode_id,
@@ -34,14 +37,19 @@ func (s *EpisodeContentRepository) Create(content model.EpisodeContent) error {
 		:is_seed
 	) 
 	`
-	if _, err := s.db.NamedExec(query, content); err != nil {
-		return err
+	result, err := s.db.NamedExec(query, content)
+	if err != nil {
+		return 0, err
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
 	}
 
-	return nil
+	return id, nil
 }
 
-func (s *EpisodeContentRepository) CreateTx(tx *sqlx.Tx, content model.EpisodeContent) error {
+func (s *EpisodeContentRepository) CreateTx(tx *sqlx.Tx, content model.EpisodeContent) (int64, error) {
 	query := `
 	INSERT INTO episode_content (
 		episode_id,
@@ -58,14 +66,20 @@ func (s *EpisodeContentRepository) CreateTx(tx *sqlx.Tx, content model.EpisodeCo
 		:is_seed
 	) 
 	`
-	if _, err := tx.NamedExec(query, content); err != nil {
+	result, err := tx.NamedExec(query, content)
+	if err != nil {
 		tx.Rollback()
-		return err
+		return 0, err
 	}
-	return nil
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
 }
 
-func (s *EpisodeContentRepository) GetById(id int) (model.EpisodeContent, error) {
+func (s *EpisodeContentRepository) GetById(id int64) (model.EpisodeContent, error) {
 	var content model.EpisodeContent
 	if err := s.db.Get(&content, "SELECT * FROM episode_content WHERE id = ? LIMIT 1", id); err != nil {
 		return model.EpisodeContent{}, err
@@ -81,7 +95,7 @@ func (s *EpisodeContentRepository) GetByEpisodeId(episodeId int64) (model.Episod
 	return content, nil
 }
 
-func (s *EpisodeContentRepository) DeleteById(id int) error {
+func (s *EpisodeContentRepository) DeleteById(id int64) error {
 	if _, err := s.db.Exec("DELETE FROM episode_content WHERE id = ?", id); err != nil {
 		return err
 	}
@@ -90,7 +104,7 @@ func (s *EpisodeContentRepository) DeleteById(id int) error {
 
 func (s *EpisodeContentRepository) List() ([]model.EpisodeContent, error) {
 	var contents []model.EpisodeContent
-	if err := s.db.Select(&contents, "SELECT * FROM episodes"); err != nil {
+	if err := s.db.Select(&contents, "SELECT * FROM episode_content"); err != nil {
 		return []model.EpisodeContent{}, err
 	}
 	return contents, nil
@@ -106,29 +120,37 @@ func (s *EpisodeContentRepository) ListByEpisodeId(episodeID int64) ([]model.Epi
 
 func (s *EpisodeContentRepository) Update(content model.EpisodeContent) error {
 	query := `
-	UPDATE shows SET
+	UPDATE episode_content SET
 		episode_id = :episode_id,
 		name = :name,
 		size = :size,
 		file_path = :file_path,
-		is_seed = :is_seed,
+		is_seed = :is_seed
 	WHERE id = :id
 	`
-	_, err := s.db.NamedExec(query, content)
+	result, err := s.db.NamedExec(query, content)
 	if err != nil {
 		return err
 	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrShowNotFound
+	}
+
 	return nil
 }
 
 func (s *EpisodeContentRepository) UpdateTx(tx *sqlx.Tx, content model.EpisodeContent) error {
 	query := `
-	UPDATE shows SET
+	UPDATE episode_content SET
 		episode_id = :episode_id,
 		name = :name,
 		file_path = :file_path,
 		size = :size,
-		is_seed = :is_seed,
+		is_seed = :is_seed
 	WHERE id = :id
 	`
 	_, err := tx.NamedExec(query, content)

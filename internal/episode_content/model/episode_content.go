@@ -1,7 +1,7 @@
 package model
 
 type EpisodeContent struct {
-	ID        int   `db:"id"`
+	ID        int64 `db:"id"`
 	EpisodeId int64 `db:"episode_id"`
 
 	Name     string  `db:"name"`

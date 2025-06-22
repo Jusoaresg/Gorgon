@@ -23,8 +23,9 @@ type EpisodeUpdatedWebsocketSchema struct {
 
 func ProcessSingleSnatchedDownload(ep *model.Episode, qbittorrentService service.QBittorrentService) error {
 	logger := config.GetLogger()
-	episodeRepo := episodeRepository.NewEpisodeRepository(config.GetSQLite())
-	episodeContentRepo := epContentRepository.NewEpisodeContentRepository()
+	db := config.GetSQLite()
+	episodeRepo := episodeRepository.NewEpisodeRepository(db)
+	episodeContentRepo := epContentRepository.NewEpisodeContentRepository(db)
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		return err
@@ -59,7 +60,7 @@ func ProcessSingleSnatchedDownload(ep *model.Episode, qbittorrentService service
 		for _, content := range contents {
 			content.FilePath = torrent.SavePath
 			content.EpisodeId = ep.ID
-			if err := episodeContentRepo.CreateTx(tx, content); err != nil {
+			if _, err := episodeContentRepo.CreateTx(tx, content); err != nil {
 				return err
 			}
 

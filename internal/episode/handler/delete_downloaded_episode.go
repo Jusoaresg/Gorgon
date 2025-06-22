@@ -51,7 +51,7 @@ func deleteDownloadedEpisodeHandler(c echo.Context, db *sqlx.DB) error {
 	}
 
 	epRepo := episodeRepository.NewEpisodeRepository(db)
-	epContentRepo := epContentRepository.NewEpisodeContentRepository()
+	epContentRepo := epContentRepository.NewEpisodeContentRepository(db)
 	showRepo := showRepository.NewShowRepository(db)
 
 	ep, err := epRepo.GetByID(idInt64)

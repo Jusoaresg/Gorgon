@@ -3,6 +3,7 @@ package testutils
 import (
 	"fmt"
 	episodeModel "github.com/jusoaresg/gorgon/internal/episode/model"
+	epContentModel "github.com/jusoaresg/gorgon/internal/episode_content/model"
 	seasonModel "github.com/jusoaresg/gorgon/internal/season/model"
 	showModel "github.com/jusoaresg/gorgon/internal/show/model"
 	"math/rand"
@@ -21,6 +22,15 @@ func MakeFakeEpisode() episodeModel.Episode {
 		Number:   rand.Int(),
 		Season:   rand.Int(),
 		AirStamp: time.Now().GoString(),
+	}
+}
+
+func MakeFakeEpisodeContent() epContentModel.EpisodeContent {
+	return epContentModel.EpisodeContent{
+		Name:     fmt.Sprintf("Episode Content %d", rand.Int()),
+		FilePath: fmt.Sprintf("File path"),
+		Size:     rand.Float64(),
+		Is_Seed:  true,
 	}
 }
 

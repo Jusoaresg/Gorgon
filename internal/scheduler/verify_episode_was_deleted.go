@@ -12,6 +12,7 @@ import (
 
 func VerifyEpisodeWasDeleted() {
 	logger := config.GetLogger()
+	db := config.GetSQLite()
 
 	configFile, err := config.LoadConfig()
 	_ = configFile
@@ -19,13 +20,13 @@ func VerifyEpisodeWasDeleted() {
 		return
 	}
 
-	episodeRepo := episodeRepositoy.NewEpisodeRepository(config.GetSQLite())
+	episodeRepo := episodeRepositoy.NewEpisodeRepository(db)
 	episodes, err := episodeRepo.ListByTracking(model.TrackingDownloaded)
 	if err != nil {
 		return
 	}
 
-	episodeContentRepo := epContentRepository.NewEpisodeContentRepository()
+	episodeContentRepo := epContentRepository.NewEpisodeContentRepository(db)
 
 	for _, episode := range episodes {
 		contents, err := episodeContentRepo.ListByEpisodeId(episode.ID)
