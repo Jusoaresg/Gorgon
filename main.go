@@ -3,11 +3,11 @@ package main
 import (
 	"embed"
 	"fmt"
-	"gorgon/config"
-	"gorgon/internal/routes"
-	"gorgon/internal/scheduler"
-	"gorgon/internal/scheduler/cron"
-	"gorgon/internal/scheduler/workers"
+	"github.com/jusoaresg/gorgon/config"
+	"github.com/jusoaresg/gorgon/internal/routes"
+	"github.com/jusoaresg/gorgon/internal/scheduler"
+	"github.com/jusoaresg/gorgon/internal/scheduler/cron"
+	"github.com/jusoaresg/gorgon/internal/scheduler/workers"
 	"io/fs"
 	"net/http"
 

@@ -2,12 +2,12 @@ package handler
 
 import (
 	"fmt"
-	"gorgon/config"
-	"gorgon/external/prowlarr/schema"
-	"gorgon/external/prowlarr/service"
-	"gorgon/internal/db/repository"
-	"gorgon/pkg/schemas"
-	"gorgon/utils"
+	"github.com/jusoaresg/gorgon/config"
+	"github.com/jusoaresg/gorgon/external/prowlarr/schema"
+	"github.com/jusoaresg/gorgon/external/prowlarr/service"
+	"github.com/jusoaresg/gorgon/internal/db/repository"
+	"github.com/jusoaresg/gorgon/pkg/schemas"
+	"github.com/jusoaresg/gorgon/utils"
 	"log/slog"
 
 	"github.com/jmoiron/sqlx"

@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"gorgon/internal/db/model"
-	"gorgon/testutils"
+	"github.com/jusoaresg/gorgon/internal/db/model"
+	"github.com/jusoaresg/gorgon/testutils"
 	"math/rand"
 	"testing"
 

@@ -2,8 +2,8 @@ package indexer
 
 import (
 	"fmt"
-	"gorgon/internal/db/repository"
-	"gorgon/pkg/schemas"
+	"github.com/jusoaresg/gorgon/internal/db/repository"
+	"github.com/jusoaresg/gorgon/pkg/schemas"
 
 	"github.com/labstack/echo/v4"
 )

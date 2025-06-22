@@ -1,11 +1,11 @@
 package episode
 
 import (
-	"gorgon/config"
-	event "gorgon/internal/db/events/episode"
-	"gorgon/internal/db/repository"
-	"gorgon/internal/db/schema/episode"
-	"gorgon/pkg/schemas"
+	"github.com/jusoaresg/gorgon/config"
+	event "github.com/jusoaresg/gorgon/internal/db/events/episode"
+	"github.com/jusoaresg/gorgon/internal/db/repository"
+	"github.com/jusoaresg/gorgon/internal/db/schema/episode"
+	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"log/slog"
 
 	"github.com/labstack/echo/v4"

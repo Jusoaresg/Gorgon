@@ -1,9 +1,9 @@
 package scheduler
 
 import (
-	"gorgon/config"
-	"gorgon/internal/db/model"
-	"gorgon/internal/db/repository"
+	"github.com/jusoaresg/gorgon/config"
+	"github.com/jusoaresg/gorgon/internal/db/model"
+	"github.com/jusoaresg/gorgon/internal/db/repository"
 	"log/slog"
 	"os"
 	"path/filepath"

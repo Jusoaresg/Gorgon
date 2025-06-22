@@ -1,9 +1,9 @@
 package services
 
 import (
-	"gorgon/config"
-	"gorgon/internal/db/model"
-	"gorgon/pkg/schemas/dtos"
+	"github.com/jusoaresg/gorgon/config"
+	"github.com/jusoaresg/gorgon/internal/db/model"
+	"github.com/jusoaresg/gorgon/pkg/schemas/dtos"
 	"log/slog"
 	"time"
 )

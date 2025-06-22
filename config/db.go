@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	"gorgon/migrations"
+	"github.com/jusoaresg/gorgon/migrations"
 	"os"
 
 	"github.com/jmoiron/sqlx"

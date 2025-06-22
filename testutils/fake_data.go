@@ -2,7 +2,7 @@ package testutils
 
 import (
 	"fmt"
-	"gorgon/internal/db/model"
+	"github.com/jusoaresg/gorgon/internal/db/model"
 	"math/rand"
 	"time"
 )

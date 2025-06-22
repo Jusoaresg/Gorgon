@@ -1,8 +1,8 @@
 package workers
 
 import (
-	"gorgon/config"
-	"gorgon/internal/db/model"
+	"github.com/jusoaresg/gorgon/config"
+	"github.com/jusoaresg/gorgon/internal/db/model"
 	"sync"
 	"time"
 

@@ -2,9 +2,9 @@ package service
 
 import (
 	"fmt"
-	"gorgon/external/tvmaze/schema"
-	"gorgon/pkg/schemas/dtos"
-	"gorgon/pkg/services"
+	"github.com/jusoaresg/gorgon/external/tvmaze/schema"
+	"github.com/jusoaresg/gorgon/pkg/schemas/dtos"
+	"github.com/jusoaresg/gorgon/pkg/services"
 	"log/slog"
 	"net/url"
 )

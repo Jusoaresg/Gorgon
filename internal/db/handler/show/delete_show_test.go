@@ -3,9 +3,9 @@ package show
 import (
 	"bytes"
 	"encoding/json"
-	"gorgon/internal/db/repository"
-	"gorgon/pkg/schemas"
-	"gorgon/testutils"
+	"github.com/jusoaresg/gorgon/internal/db/repository"
+	"github.com/jusoaresg/gorgon/pkg/schemas"
+	"github.com/jusoaresg/gorgon/testutils"
 	"net/http"
 	"net/http/httptest"
 	"testing"

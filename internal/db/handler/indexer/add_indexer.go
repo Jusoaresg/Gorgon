@@ -2,12 +2,12 @@ package indexer
 
 import (
 	"encoding/json"
-	"gorgon/config"
-	"gorgon/external/prowlarr/schema"
-	"gorgon/external/prowlarr/service"
-	"gorgon/internal/db/model"
-	"gorgon/internal/db/repository"
-	"gorgon/pkg/schemas"
+	"github.com/jusoaresg/gorgon/config"
+	"github.com/jusoaresg/gorgon/external/prowlarr/schema"
+	"github.com/jusoaresg/gorgon/external/prowlarr/service"
+	"github.com/jusoaresg/gorgon/internal/db/model"
+	"github.com/jusoaresg/gorgon/internal/db/repository"
+	"github.com/jusoaresg/gorgon/pkg/schemas"
 
 	"github.com/gin-gonic/gin"
 	"github.com/labstack/echo/v4"

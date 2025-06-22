@@ -688,7 +688,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/schemas.ErrorResponse'
-      summary: Seach Show By Name
+      summary: Search Show By Name
       tags:
       - TvMaze/Search
   /tvmaze/search/tvmaze:
@@ -718,7 +718,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/schemas.ErrorResponse'
-      summary: Seach Show By TvMaze ID
+      summary: Search Show By TvMaze ID
       tags:
       - TvMaze/Search
 swagger: "2.0"

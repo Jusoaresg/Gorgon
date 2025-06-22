@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"gorgon/testutils"
+	"github.com/jusoaresg/gorgon/testutils"
 	"math/rand"
 	"testing"
 

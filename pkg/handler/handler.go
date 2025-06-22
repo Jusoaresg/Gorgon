@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"gorgon/config"
+	"github.com/jusoaresg/gorgon/config"
 
 	"github.com/jmoiron/sqlx"
 )

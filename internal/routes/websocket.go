@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"gorgon/config"
-	"gorgon/pkg/handler"
+	"github.com/jusoaresg/gorgon/config"
+	"github.com/jusoaresg/gorgon/pkg/handler"
 	"log/slog"
 
 	"github.com/labstack/echo/v4"

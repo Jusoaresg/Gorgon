@@ -1,8 +1,8 @@
 package episode
 
 import (
-	"gorgon/internal/event"
-	"gorgon/pkg/handler"
+	"github.com/jusoaresg/gorgon/internal/event"
+	"github.com/jusoaresg/gorgon/pkg/handler"
 )
 
 func EmitEpisodeTrackingUpdatedEvent(episodeID int64, tracking string) {

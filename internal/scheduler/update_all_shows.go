@@ -1,11 +1,11 @@
 package scheduler
 
 import (
-	"gorgon/config"
-	"gorgon/external/tvmaze/service"
-	"gorgon/internal/db/repository"
-	showManager "gorgon/internal/db/service"
-	"gorgon/pkg/services"
+	"github.com/jusoaresg/gorgon/config"
+	"github.com/jusoaresg/gorgon/external/tvmaze/service"
+	"github.com/jusoaresg/gorgon/internal/db/repository"
+	showManager "github.com/jusoaresg/gorgon/internal/db/service"
+	"github.com/jusoaresg/gorgon/pkg/services"
 	"log/slog"
 	"strconv"
 	"time"

@@ -2,10 +2,10 @@ package routes
 
 import (
 	"fmt"
-	"gorgon/config"
-	"gorgon/docs"
-	"gorgon/pkg/handler"
-	"gorgon/pkg/schemas"
+	"github.com/jusoaresg/gorgon/config"
+	"github.com/jusoaresg/gorgon/docs"
+	"github.com/jusoaresg/gorgon/pkg/handler"
+	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"log/slog"
 
 	"github.com/MarceloPetrucio/go-scalar-api-reference"
@@ -26,19 +26,19 @@ func InitializeRoutes(e *echo.Echo) {
 	v1 := e.Group(basePath)
 
 	SetupTvMazeRouter(v1)
-	logger.Debug("TvMaze route initialized sucessfully")
+	logger.Debug("TvMaze route initialized successfully")
 
 	SetupDatabaseRouter(v1)
-	logger.Debug("Database route initialized sucessfully")
+	logger.Debug("Database route initialized successfully")
 
 	SetupProwlarrRouter(v1)
-	logger.Debug("Prowlarr route initialized sucessfully")
+	logger.Debug("Prowlarr route initialized successfully")
 
 	SetupQbittorrentRouter(v1)
-	logger.Debug("QBittorrent route initialized sucessfully")
+	logger.Debug("QBittorrent route initialized successfully")
 
 	SetupWebsocketRouter(v1)
-	logger.Debug("WebSocket route initialized sucessfully")
+	logger.Debug("WebSocket route initialized successfully")
 
 	logger.Info("Routes initialized", slog.String("basePath", basePath))
 

@@ -1,13 +1,13 @@
 package episode
 
 import (
-	"gorgon/config"
-	"gorgon/internal/db/events/episode"
-	"gorgon/internal/db/model"
-	"gorgon/internal/db/repository"
-	"gorgon/internal/paths"
-	"gorgon/pkg/schemas"
-	"gorgon/utils"
+	"github.com/jusoaresg/gorgon/config"
+	"github.com/jusoaresg/gorgon/internal/db/events/episode"
+	"github.com/jusoaresg/gorgon/internal/db/model"
+	"github.com/jusoaresg/gorgon/internal/db/repository"
+	"github.com/jusoaresg/gorgon/internal/paths"
+	"github.com/jusoaresg/gorgon/pkg/schemas"
+	"github.com/jusoaresg/gorgon/utils"
 	"log/slog"
 	"strconv"
 

@@ -2,10 +2,10 @@ package handler
 
 import (
 	"fmt"
-	"gorgon/config"
-	"gorgon/external/qbittorrent/schema"
-	"gorgon/external/qbittorrent/service"
-	"gorgon/pkg/schemas"
+	"github.com/jusoaresg/gorgon/config"
+	"github.com/jusoaresg/gorgon/external/qbittorrent/schema"
+	"github.com/jusoaresg/gorgon/external/qbittorrent/service"
+	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"log/slog"
 
 	"github.com/labstack/echo/v4"

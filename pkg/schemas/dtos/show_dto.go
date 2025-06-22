@@ -1,7 +1,7 @@
 package dtos
 
 import (
-	"gorgon/internal/db/model"
+	"github.com/jusoaresg/gorgon/internal/db/model"
 	"strconv"
 )
 

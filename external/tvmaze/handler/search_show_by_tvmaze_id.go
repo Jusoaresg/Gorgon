@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"gorgon/config"
-	"gorgon/external/tvmaze/service"
-	"gorgon/pkg/schemas"
+	"github.com/jusoaresg/gorgon/config"
+	"github.com/jusoaresg/gorgon/external/tvmaze/service"
+	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"log/slog"
 
 	"github.com/labstack/echo/v4"
@@ -11,7 +11,7 @@ import (
 
 // @BasePath /api/v1
 
-// @Summary Seach Show By TvMaze ID
+// @Summary Search Show By TvMaze ID
 // @Description Search TvMaze By TvMaze ID
 // @Tags TvMaze/Search
 // @Accept json

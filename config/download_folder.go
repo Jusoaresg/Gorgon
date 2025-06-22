@@ -1,7 +1,7 @@
 package config
 
 import (
-	"gorgon/utils"
+	"github.com/jusoaresg/gorgon/utils"
 	"path/filepath"
 )
 

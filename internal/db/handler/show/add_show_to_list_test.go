@@ -3,8 +3,8 @@ package show
 import (
 	"bytes"
 	"encoding/json"
-	"gorgon/internal/db/schema/show"
-	"gorgon/testutils"
+	"github.com/jusoaresg/gorgon/internal/db/schema/show"
+	"github.com/jusoaresg/gorgon/testutils"
 	"net/http"
 	"net/http/httptest"
 	"testing"

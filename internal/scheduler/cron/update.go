@@ -1,7 +1,7 @@
 package cron
 
 import (
-	"gorgon/config"
+	"github.com/jusoaresg/gorgon/config"
 	"time"
 )
 

@@ -1,6 +1,6 @@
 package schema
 
-import "gorgon/pkg/schemas/dtos"
+import "github.com/jusoaresg/gorgon/pkg/schemas/dtos"
 
 type TvMazeResponse struct {
 	Score float64      `json:"score"`

@@ -2,7 +2,7 @@ package repository
 
 import (
 	"errors"
-	"gorgon/internal/db/model"
+	"github.com/jusoaresg/gorgon/internal/db/model"
 
 	"github.com/jmoiron/sqlx"
 )

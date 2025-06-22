@@ -2,14 +2,14 @@ package jobs
 
 import (
 	"fmt"
-	"gorgon/config"
-	"gorgon/external/qbittorrent/schema"
-	"gorgon/external/qbittorrent/service"
-	"gorgon/internal/db/events/episode"
-	"gorgon/internal/db/model"
-	"gorgon/internal/db/repository"
-	"gorgon/internal/paths"
-	"gorgon/utils"
+	"github.com/jusoaresg/gorgon/config"
+	"github.com/jusoaresg/gorgon/external/qbittorrent/schema"
+	"github.com/jusoaresg/gorgon/external/qbittorrent/service"
+	"github.com/jusoaresg/gorgon/internal/db/events/episode"
+	"github.com/jusoaresg/gorgon/internal/db/model"
+	"github.com/jusoaresg/gorgon/internal/db/repository"
+	"github.com/jusoaresg/gorgon/internal/paths"
+	"github.com/jusoaresg/gorgon/utils"
 	"log/slog"
 )
 

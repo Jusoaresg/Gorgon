@@ -1,7 +1,7 @@
 package testutils
 
 import (
-	"gorgon/migrations"
+	"github.com/jusoaresg/gorgon/migrations"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/pressly/goose/v3"

@@ -1,15 +1,15 @@
 package show
 
 import (
-	"gorgon/config"
-	"gorgon/external/tvmaze/service"
-	"gorgon/internal/db/model"
-	"gorgon/internal/db/repository"
-	"gorgon/internal/db/schema/show"
-	showManager "gorgon/internal/db/service"
-	"gorgon/pkg/schemas"
-	"gorgon/pkg/schemas/dtos"
-	"gorgon/pkg/services"
+	"github.com/jusoaresg/gorgon/config"
+	"github.com/jusoaresg/gorgon/external/tvmaze/service"
+	"github.com/jusoaresg/gorgon/internal/db/model"
+	"github.com/jusoaresg/gorgon/internal/db/repository"
+	"github.com/jusoaresg/gorgon/internal/db/schema/show"
+	showManager "github.com/jusoaresg/gorgon/internal/db/service"
+	"github.com/jusoaresg/gorgon/pkg/schemas"
+	"github.com/jusoaresg/gorgon/pkg/schemas/dtos"
+	"github.com/jusoaresg/gorgon/pkg/services"
 	"log/slog"
 	"strconv"
 

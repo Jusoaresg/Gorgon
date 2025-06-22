@@ -825,7 +825,7 @@ const docTemplate = `{
                 "tags": [
                     "TvMaze/Search"
                 ],
-                "summary": "Seach Show By Name",
+                "summary": "Search Show By Name",
                 "parameters": [
                     {
                         "description": "Request Body",
@@ -871,7 +871,7 @@ const docTemplate = `{
                 "tags": [
                     "TvMaze/Search"
                 ],
-                "summary": "Seach Show By TvMaze ID",
+                "summary": "Search Show By TvMaze ID",
                 "parameters": [
                     {
                         "description": "Request Body",

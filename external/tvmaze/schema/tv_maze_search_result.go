@@ -1,7 +1,7 @@
 package schema
 
 import (
-	"gorgon/pkg/schemas/dtos"
+	"github.com/jusoaresg/gorgon/pkg/schemas/dtos"
 )
 
 type SearchResult struct {

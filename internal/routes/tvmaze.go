@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"gorgon/config"
-	"gorgon/external/tvmaze/handler"
+	"github.com/jusoaresg/gorgon/config"
+	"github.com/jusoaresg/gorgon/external/tvmaze/handler"
 	"log/slog"
 
 	"github.com/labstack/echo/v4"

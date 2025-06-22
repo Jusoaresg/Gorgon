@@ -2,9 +2,9 @@ package service
 
 import (
 	"fmt"
-	"gorgon/config"
-	"gorgon/external/prowlarr/schema"
-	"gorgon/pkg/services"
+	"github.com/jusoaresg/gorgon/config"
+	"github.com/jusoaresg/gorgon/external/prowlarr/schema"
+	"github.com/jusoaresg/gorgon/pkg/services"
 	"log/slog"
 	"net/url"
 )

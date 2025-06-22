@@ -3,7 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"gorgon/pkg/schemas"
+	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"os"
 	"reflect"
 )

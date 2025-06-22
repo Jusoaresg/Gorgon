@@ -1,9 +1,9 @@
 package show
 
 import (
-	"gorgon/config"
-	"gorgon/internal/db/repository"
-	"gorgon/pkg/schemas"
+	"github.com/jusoaresg/gorgon/config"
+	"github.com/jusoaresg/gorgon/internal/db/repository"
+	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"log/slog"
 	"strconv"
 

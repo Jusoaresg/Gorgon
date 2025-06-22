@@ -2,10 +2,10 @@ package show
 
 import (
 	"errors"
-	"gorgon/config"
-	"gorgon/internal/db/model"
-	"gorgon/internal/db/repository"
-	"gorgon/pkg/schemas"
+	"github.com/jusoaresg/gorgon/config"
+	"github.com/jusoaresg/gorgon/internal/db/model"
+	"github.com/jusoaresg/gorgon/internal/db/repository"
+	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"log/slog"
 
 	"github.com/jmoiron/sqlx"

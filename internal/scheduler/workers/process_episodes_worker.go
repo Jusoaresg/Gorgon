@@ -1,11 +1,11 @@
 package workers
 
 import (
-	"gorgon/config"
-	prowlarr "gorgon/external/prowlarr/service"
-	qbittorrent "gorgon/external/qbittorrent/service"
-	"gorgon/internal/db/model"
-	"gorgon/internal/scheduler/jobs"
+	"github.com/jusoaresg/gorgon/config"
+	prowlarr "github.com/jusoaresg/gorgon/external/prowlarr/service"
+	qbittorrent "github.com/jusoaresg/gorgon/external/qbittorrent/service"
+	"github.com/jusoaresg/gorgon/internal/db/model"
+	"github.com/jusoaresg/gorgon/internal/scheduler/jobs"
 	"log/slog"
 )
 

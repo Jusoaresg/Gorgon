@@ -1,11 +1,11 @@
 package routes
 
 import (
-	"gorgon/config"
-	"gorgon/internal/db/handler/episode"
-	"gorgon/internal/db/handler/indexer"
-	"gorgon/internal/db/handler/season"
-	"gorgon/internal/db/handler/show"
+	"github.com/jusoaresg/gorgon/config"
+	"github.com/jusoaresg/gorgon/internal/db/handler/episode"
+	"github.com/jusoaresg/gorgon/internal/db/handler/indexer"
+	"github.com/jusoaresg/gorgon/internal/db/handler/season"
+	"github.com/jusoaresg/gorgon/internal/db/handler/show"
 	"log/slog"
 
 	"github.com/labstack/echo/v4"

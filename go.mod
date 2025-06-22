@@ -1,4 +1,4 @@
-module gorgon
+module github.com/jusoaresg/gorgon
 
 go 1.24.1
 

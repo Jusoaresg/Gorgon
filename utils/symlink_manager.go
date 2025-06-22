@@ -2,7 +2,7 @@ package utils
 
 import (
 	"fmt"
-	"gorgon/internal/db/model"
+	"github.com/jusoaresg/gorgon/internal/db/model"
 	"os"
 	"path/filepath"
 )
