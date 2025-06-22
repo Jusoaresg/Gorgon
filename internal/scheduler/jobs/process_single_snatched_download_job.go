@@ -5,10 +5,12 @@ import (
 	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/external/qbittorrent/schema"
 	"github.com/jusoaresg/gorgon/external/qbittorrent/service"
-	"github.com/jusoaresg/gorgon/internal/db/events/episode"
-	"github.com/jusoaresg/gorgon/internal/db/model"
-	"github.com/jusoaresg/gorgon/internal/db/repository"
+	"github.com/jusoaresg/gorgon/internal/episode/events"
+	"github.com/jusoaresg/gorgon/internal/episode/model"
+	episodeRepository "github.com/jusoaresg/gorgon/internal/episode/repository"
+	epContentRepository "github.com/jusoaresg/gorgon/internal/episode_content/repository"
 	"github.com/jusoaresg/gorgon/internal/paths"
+	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
 	"github.com/jusoaresg/gorgon/utils"
 	"log/slog"
 )
@@ -21,8 +23,8 @@ type EpisodeUpdatedWebsocketSchema struct {
 
 func ProcessSingleSnatchedDownload(ep *model.Episode, qbittorrentService service.QBittorrentService) error {
 	logger := config.GetLogger()
-	episodeRepo := repository.NewEpisodeRepository(config.GetSQLite())
-	episodeContentRepo := repository.NewEpisodeContentRepository()
+	episodeRepo := episodeRepository.NewEpisodeRepository(config.GetSQLite())
+	episodeContentRepo := epContentRepository.NewEpisodeContentRepository()
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		return err
@@ -46,7 +48,7 @@ func ProcessSingleSnatchedDownload(ep *model.Episode, qbittorrentService service
 			return err
 		}
 
-		showRepo := repository.NewShowRepository(config.GetSQLite())
+		showRepo := showRepository.NewShowRepository(config.GetSQLite())
 		show, err := showRepo.GetById(ep.ShowID)
 
 		tx, err := config.GetSQLite().Beginx()

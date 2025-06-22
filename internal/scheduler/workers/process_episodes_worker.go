@@ -4,7 +4,7 @@ import (
 	"github.com/jusoaresg/gorgon/config"
 	prowlarr "github.com/jusoaresg/gorgon/external/prowlarr/service"
 	qbittorrent "github.com/jusoaresg/gorgon/external/qbittorrent/service"
-	"github.com/jusoaresg/gorgon/internal/db/model"
+	"github.com/jusoaresg/gorgon/internal/episode/model"
 	"github.com/jusoaresg/gorgon/internal/scheduler/jobs"
 	"log/slog"
 )

@@ -2,8 +2,9 @@ package scheduler
 
 import (
 	"github.com/jusoaresg/gorgon/config"
-	"github.com/jusoaresg/gorgon/internal/db/model"
-	"github.com/jusoaresg/gorgon/internal/db/repository"
+	"github.com/jusoaresg/gorgon/internal/episode/model"
+	episodeRepositoy "github.com/jusoaresg/gorgon/internal/episode/repository"
+	epContentRepository "github.com/jusoaresg/gorgon/internal/episode_content/repository"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -18,13 +19,13 @@ func VerifyEpisodeWasDeleted() {
 		return
 	}
 
-	episodeRepo := repository.NewEpisodeRepository(config.GetSQLite())
+	episodeRepo := episodeRepositoy.NewEpisodeRepository(config.GetSQLite())
 	episodes, err := episodeRepo.ListByTracking(model.TrackingDownloaded)
 	if err != nil {
 		return
 	}
 
-	episodeContentRepo := repository.NewEpisodeContentRepository()
+	episodeContentRepo := epContentRepository.NewEpisodeContentRepository()
 
 	for _, episode := range episodes {
 		contents, err := episodeContentRepo.ListByEpisodeId(episode.ID)

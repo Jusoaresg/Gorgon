@@ -3,8 +3,8 @@ package scheduler
 import (
 	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/external/tvmaze/service"
-	"github.com/jusoaresg/gorgon/internal/db/repository"
-	showManager "github.com/jusoaresg/gorgon/internal/db/service"
+	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
+	showManager "github.com/jusoaresg/gorgon/internal/show/service"
 	"github.com/jusoaresg/gorgon/pkg/services"
 	"log/slog"
 	"strconv"
@@ -15,7 +15,7 @@ func UpdateAllShows() {
 	logger := config.GetLogger()
 	db := config.GetSQLite()
 
-	showRepo := repository.NewShowRepository(db)
+	showRepo := showRepository.NewShowRepository(db)
 	shows, err := showRepo.List()
 	if err != nil {
 		return

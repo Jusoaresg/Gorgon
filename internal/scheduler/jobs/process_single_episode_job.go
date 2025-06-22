@@ -6,9 +6,10 @@ import (
 	"github.com/jusoaresg/gorgon/external/prowlarr/schema"
 	prowlarr "github.com/jusoaresg/gorgon/external/prowlarr/service"
 	qbittorrent "github.com/jusoaresg/gorgon/external/qbittorrent/service"
-	"github.com/jusoaresg/gorgon/internal/db/events/episode"
-	"github.com/jusoaresg/gorgon/internal/db/model"
-	"github.com/jusoaresg/gorgon/internal/db/repository"
+	"github.com/jusoaresg/gorgon/internal/episode/events"
+	"github.com/jusoaresg/gorgon/internal/episode/model"
+	episodeRepository "github.com/jusoaresg/gorgon/internal/episode/repository"
+	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
 	"github.com/jusoaresg/gorgon/utils"
 	"log/slog"
 	"sort"
@@ -38,8 +39,8 @@ func init() {
 
 func ProcessSingleEpisode(ep *model.Episode, prowlarrService prowlarr.ProwlarrSearchService, qbittorrentService qbittorrent.QBittorrentService) error {
 	var logger = config.GetLogger()
-	episodeRepo := repository.NewEpisodeRepository(config.GetSQLite())
-	showRepo := repository.NewShowRepository(config.GetSQLite())
+	episodeRepo := episodeRepository.NewEpisodeRepository(config.GetSQLite())
+	showRepo := showRepository.NewShowRepository(config.GetSQLite())
 
 	show, err := showRepo.GetById(ep.ShowID)
 	if err != nil {

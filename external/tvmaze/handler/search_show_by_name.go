@@ -4,7 +4,7 @@ import (
 	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/external/tvmaze/schema"
 	"github.com/jusoaresg/gorgon/external/tvmaze/service"
-	"github.com/jusoaresg/gorgon/internal/db/repository"
+	"github.com/jusoaresg/gorgon/internal/show/repository"
 	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"log/slog"
 

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/external/qbittorrent/schema"
-	"github.com/jusoaresg/gorgon/internal/db/model"
+	"github.com/jusoaresg/gorgon/internal/episode_content/model"
 	"github.com/jusoaresg/gorgon/pkg/services"
 	"log/slog"
 	"mime/multipart"

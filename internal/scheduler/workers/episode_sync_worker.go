@@ -2,7 +2,7 @@ package workers
 
 import (
 	"github.com/jusoaresg/gorgon/config"
-	"github.com/jusoaresg/gorgon/internal/db/model"
+	"github.com/jusoaresg/gorgon/internal/episode/model"
 	"sync"
 	"time"
 

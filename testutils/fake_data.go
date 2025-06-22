@@ -2,15 +2,17 @@ package testutils
 
 import (
 	"fmt"
-	"github.com/jusoaresg/gorgon/internal/db/model"
+	episodeModel "github.com/jusoaresg/gorgon/internal/episode/model"
+	seasonModel "github.com/jusoaresg/gorgon/internal/season/model"
+	showModel "github.com/jusoaresg/gorgon/internal/show/model"
 	"math/rand"
 	"time"
 )
 
-func MakeFakeEpisode() model.Episode {
+func MakeFakeEpisode() episodeModel.Episode {
 	idSuffix := rand.Intn(10000)
 
-	return model.Episode{
+	return episodeModel.Episode{
 		ShowID:   rand.Int63n(1_000_000),
 		SeasonID: rand.Int63n(1_000_000),
 		Name:     fmt.Sprintf("Test Episode %d", idSuffix),
@@ -22,11 +24,11 @@ func MakeFakeEpisode() model.Episode {
 	}
 }
 
-func MakeFakeShow() model.Show {
+func MakeFakeShow() showModel.Show {
 	rating := rand.Float64()*10 + 0.1
 	idSuffix := rand.Intn(10000)
 
-	return model.Show{
+	return showModel.Show{
 		TvMazeID:      rand.Int63n(1_000_000),
 		Name:          fmt.Sprintf("Test Show %d", idSuffix),
 		Type:          "Series",
@@ -46,8 +48,8 @@ func MakeFakeShow() model.Show {
 	}
 }
 
-func MakeFakeSeason() model.Season {
-	return model.Season{
+func MakeFakeSeason() seasonModel.Season {
+	return seasonModel.Season{
 		Number: rand.Int(),
 	}
 }

@@ -2,10 +2,10 @@ package routes
 
 import (
 	"github.com/jusoaresg/gorgon/config"
-	"github.com/jusoaresg/gorgon/internal/db/handler/episode"
-	"github.com/jusoaresg/gorgon/internal/db/handler/indexer"
-	"github.com/jusoaresg/gorgon/internal/db/handler/season"
-	"github.com/jusoaresg/gorgon/internal/db/handler/show"
+	episodeHandler "github.com/jusoaresg/gorgon/internal/episode/handler"
+	indexerHandler "github.com/jusoaresg/gorgon/internal/indexer/handler"
+	seasonHandler "github.com/jusoaresg/gorgon/internal/season/handler"
+	showHandler "github.com/jusoaresg/gorgon/internal/show/handler"
 	"log/slog"
 
 	"github.com/labstack/echo/v4"
@@ -18,48 +18,48 @@ func SetupDatabaseRouter(v1 *echo.Group) {
 	{
 		showGroup := listGroup.Group("show")
 		{
-			showGroup.POST("", show.AddShowToList)
+			showGroup.POST("", showHandler.AddShowToList)
 			logger.Info("POST route added to /api/v1/database/show")
 
-			showGroup.GET("", show.ListShows)
+			showGroup.GET("", showHandler.ListShows)
 			logger.Info("GET route added to /api/v1/database/show")
 
-			showGroup.GET("/:id", show.GetShow)
+			showGroup.GET("/:id", showHandler.GetShow)
 			logger.Info("GET route added to /api/v1/database/show/:id")
 
-			showGroup.DELETE("", show.DeleteShow)
+			showGroup.DELETE("", showHandler.DeleteShow)
 			logger.Info("DELETE route added to /api/v1/database/show")
 
 			episodeGroup := showGroup.Group("/episode")
 			{
-				episodeGroup.POST("/status", episode.ChangeEpisodeStatus)
+				episodeGroup.POST("/status", episodeHandler.ChangeEpisodeStatus)
 				logger.Info("POST route added to /api/v1/database/show/episode/status")
 
-				episodeGroup.GET("/:id", episode.GetShowEpisodes)
+				episodeGroup.GET("/:id", episodeHandler.GetShowEpisodes)
 				logger.Info("GET route added to /api/v1/database/show/episode/:id")
 
-				episodeGroup.DELETE("/:id", episode.DeleteDownloadedEpisode)
+				episodeGroup.DELETE("/:id", episodeHandler.DeleteDownloadedEpisode)
 				logger.Info("DELETE route added to /api/v1/database/show/episode/:id")
 			}
 
 			seasonsGroup := showGroup.Group("/season")
 			{
-				seasonsGroup.GET("/:id", season.GetShowSeasons)
+				seasonsGroup.GET("/:id", seasonHandler.GetShowSeasons)
 				logger.Info("GET route added to /api/v1/database/show/season/:id")
 			}
 		}
 
 		indexerGroup := listGroup.Group("indexer")
 		{
-			indexerGroup.GET(":id", indexer.GetIndexer)
+			indexerGroup.GET(":id", indexerHandler.GetIndexer)
 			logger.Info("GET route added to /api/v1/database/indexer/:id")
-			indexerGroup.GET("", indexer.ListIndexers)
+			indexerGroup.GET("", indexerHandler.ListIndexers)
 			logger.Info("POST route added to /api/v1/database/indexer")
 
-			indexerGroup.POST("", indexer.AddIndexer)
+			indexerGroup.POST("", indexerHandler.AddIndexer)
 			logger.Info("POST route added to /api/v1/database/indexer")
 
-			indexerGroup.DELETE("", indexer.DeleteIndexer)
+			indexerGroup.DELETE("", indexerHandler.DeleteIndexer)
 			logger.Info("DELETE route added to /api/v1/database/indexer")
 		}
 	}

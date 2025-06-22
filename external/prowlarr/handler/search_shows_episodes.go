@@ -5,7 +5,8 @@ import (
 	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/external/prowlarr/schema"
 	"github.com/jusoaresg/gorgon/external/prowlarr/service"
-	"github.com/jusoaresg/gorgon/internal/db/repository"
+	episodeRepository "github.com/jusoaresg/gorgon/internal/episode/repository"
+	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
 	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"github.com/jusoaresg/gorgon/utils"
 	"log/slog"
@@ -33,8 +34,8 @@ func searchShowsEpisodesHandler(c echo.Context, db *sqlx.DB) error {
 	logger := config.GetLogger()
 	logger.Info("Received request to Search Shows Episodes", slog.String("endpoint", "/api/v1/prowlarr/search/episode"), slog.String("method", "POST"))
 
-	episodeRepo := repository.NewEpisodeRepository(db)
-	showRepo := repository.NewShowRepository(db)
+	episodeRepo := episodeRepository.NewEpisodeRepository(db)
+	showRepo := showRepository.NewShowRepository(db)
 
 	var request schemas.IdRequest
 	if err := c.Bind(&request); err != nil {

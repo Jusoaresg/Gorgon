@@ -2,12 +2,14 @@ package utils
 
 import (
 	"fmt"
-	"github.com/jusoaresg/gorgon/internal/db/model"
 	"os"
 	"path/filepath"
+
+	episodeModel "github.com/jusoaresg/gorgon/internal/episode/model"
+	epContentModel "github.com/jusoaresg/gorgon/internal/episode_content/model"
 )
 
-func SymlinkPathForEpisode(showsFolder, showName string, episode model.Episode, episodeContent model.EpisodeContent) (string, error) {
+func SymlinkPathForEpisode(showsFolder, showName string, episode episodeModel.Episode, episodeContent epContentModel.EpisodeContent) (string, error) {
 	seasonFolder := fmt.Sprintf("Season %d", episode.Season)
 	destFolder := filepath.Join(showsFolder, showName, seasonFolder)
 	if err := CheckCreateAllFolders(destFolder); err != nil {
@@ -23,7 +25,7 @@ func SymlinkPathForEpisode(showsFolder, showName string, episode model.Episode, 
 	return destPath, nil
 }
 
-func DeleteSymlink(showsFolder, showName string, episode model.Episode, episodeContent model.EpisodeContent) error {
+func DeleteSymlink(showsFolder, showName string, episode episodeModel.Episode, episodeContent epContentModel.EpisodeContent) error {
 	linkPath, err := SymlinkPathForEpisode(showsFolder, showName, episode, episodeContent)
 	if err != nil {
 		return err

@@ -6,9 +6,9 @@ import (
 	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/external/qbittorrent/schema"
 	"github.com/jusoaresg/gorgon/external/qbittorrent/service"
-	"github.com/jusoaresg/gorgon/internal/db/events/episode"
-	"github.com/jusoaresg/gorgon/internal/db/model"
-	"github.com/jusoaresg/gorgon/internal/db/repository"
+	"github.com/jusoaresg/gorgon/internal/episode/events"
+	"github.com/jusoaresg/gorgon/internal/episode/model"
+	"github.com/jusoaresg/gorgon/internal/episode/repository"
 	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"log/slog"
 

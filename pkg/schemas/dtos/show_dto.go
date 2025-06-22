@@ -1,7 +1,9 @@
 package dtos
 
 import (
-	"github.com/jusoaresg/gorgon/internal/db/model"
+	episodeModel "github.com/jusoaresg/gorgon/internal/episode/model"
+	seasonModel "github.com/jusoaresg/gorgon/internal/season/model"
+	showModel "github.com/jusoaresg/gorgon/internal/show/model"
 	"strconv"
 )
 
@@ -44,15 +46,15 @@ type SeasonDto struct {
 	EndDate      string `json:"endDate"`
 }
 
-func (s *SeasonDto) ToModel(showID int64) *model.Season {
-	return &model.Season{
+func (s *SeasonDto) ToModel(showID int64) *seasonModel.Season {
+	return &seasonModel.Season{
 		ShowID: showID,
 		Number: s.Number,
 	}
 }
 
-func SeasonDtoSliceToModel(seasonDto []SeasonDto, showID int64) []model.Season {
-	var seasons []model.Season
+func SeasonDtoSliceToModel(seasonDto []SeasonDto, showID int64) []seasonModel.Season {
+	var seasons []seasonModel.Season
 	for _, season := range seasonDto {
 		seasons = append(seasons, *season.ToModel(showID))
 	}
@@ -70,8 +72,8 @@ type EpisodeDto struct {
 	Tracking string
 }
 
-func (s *EpisodeDto) ToModel(showID int64, seasonID int64) *model.Episode {
-	return &model.Episode{
+func (s *EpisodeDto) ToModel(showID int64, seasonID int64) *episodeModel.Episode {
+	return &episodeModel.Episode{
 		ShowID:   showID,
 		Name:     s.Name,
 		SeasonID: seasonID,
@@ -83,8 +85,8 @@ func (s *EpisodeDto) ToModel(showID int64, seasonID int64) *model.Episode {
 	}
 }
 
-func EpisodesDtoSliceToModel(episodeDto []EpisodeDto, showID int64, seasonID int64) []model.Episode {
-	var episodes []model.Episode
+func EpisodesDtoSliceToModel(episodeDto []EpisodeDto, showID int64, seasonID int64) []episodeModel.Episode {
+	var episodes []episodeModel.Episode
 	for _, episode := range episodeDto {
 		episodes = append(episodes, *episode.ToModel(showID, seasonID))
 	}
@@ -129,10 +131,10 @@ func (d *ShowDto) CreateDto(
 	}
 }
 
-func (d *ShowDto) ToModel() model.Show {
+func (d *ShowDto) ToModel() showModel.Show {
 	imdb, _ := strconv.Atoi(d.Externals.Imdb)
 
-	show := model.Show{
+	show := showModel.Show{
 		TvMazeID:  d.TvMazeID,
 		Name:      d.Name,
 		Type:      d.Type,
