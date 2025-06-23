@@ -124,6 +124,12 @@ func ProcessSingleEpisode(ep *model.Episode, prowlarrService prowlarr.ProwlarrSe
 		scoreJ := score(response[j])
 		return scoreI > scoreJ
 	})
+
+	if len(response) <= 0 {
+		//TODO: Log message that was not found any available episode
+		return nil
+	}
+
 	url := response[0].Guid
 
 	logger.Debug("Response", slog.String("Show", show.Name), slog.String("Episode", ep.Name), slog.String("Response", url))

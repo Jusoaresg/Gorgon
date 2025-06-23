@@ -17,7 +17,7 @@ import (
 // @Description Change Episode Tracking Status
 // @Tags Database/Show/Episode
 // @Produce json
-// @Param request body episode.ChangeEpisodeTrackingRequest true "Request Body"
+// @Param request body schema.ChangeEpisodeTrackingRequest true "Request Body"
 // @Success 200 {object} schemas.DefaultResponse
 // @Failure 400 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse

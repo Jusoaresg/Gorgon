@@ -1,15 +1,15 @@
 basePath: /api/v1
 definitions:
-  episode.ChangeEpisodeTrackingRequest:
+  schema.AddNewTorrentRequest:
+    properties:
+      magneticUrl:
+        type: string
+    type: object
+  schema.ChangeEpisodeTrackingRequest:
     properties:
       episode_id:
         type: integer
       tracking:
-        type: string
-    type: object
-  schema.AddNewTorrentRequest:
-    properties:
-      magneticUrl:
         type: string
     type: object
   schema.CheckTorrentResponse:
@@ -413,7 +413,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/episode.ChangeEpisodeTrackingRequest'
+          $ref: '#/definitions/schema.ChangeEpisodeTrackingRequest'
       produces:
       - application/json
       responses:

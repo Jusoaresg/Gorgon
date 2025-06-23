@@ -314,7 +314,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/episode.ChangeEpisodeTrackingRequest"
+                            "$ref": "#/definitions/schema.ChangeEpisodeTrackingRequest"
                         }
                     }
                 ],
@@ -907,21 +907,21 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "episode.ChangeEpisodeTrackingRequest": {
+        "schema.AddNewTorrentRequest": {
+            "type": "object",
+            "properties": {
+                "magneticUrl": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.ChangeEpisodeTrackingRequest": {
             "type": "object",
             "properties": {
                 "episode_id": {
                     "type": "integer"
                 },
                 "tracking": {
-                    "type": "string"
-                }
-            }
-        },
-        "schema.AddNewTorrentRequest": {
-            "type": "object",
-            "properties": {
-                "magneticUrl": {
                     "type": "string"
                 }
             }
