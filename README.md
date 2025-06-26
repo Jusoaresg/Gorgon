@@ -1,35 +1,68 @@
 # Gorgon
 
-**Gorgon** is a self-hosted series management platform written in Go. It helps users search, organize, and automate series downloads using **Prowlarr**, **qBittorrent**, and **TVMaze**. It features a fast, responsive web UI built with **SvelteKit**, focusing on minimalism and performance.
+**Gorgon** is a self-hosted media automation tool for tracking and managing TV shows.
+
+Built in **Go** with a **SvelteKit** frontend, Gorgon allows users to automatically search, monitor, and organize episodes through a clean web interface. It integrates with torrent clients and indexers to automate the download and organization of content — similar to projects like Sonarr or Pymedusa.
 
 ---
 
-## ✨ Features
+## 🧠 Key Features
 
-- 🔍 Search for series using the [TVMaze API](https://www.tvmaze.com/api)
-- ⚙️ Manage indexers via [Prowlarr](https://github.com/Prowlarr/Prowlarr)
-- ⬇️ Add torrents directly to [qBittorrent](https://www.qbittorrent.org/)
-- 🗂️ Organize and browse your downloaded series
-- 🌐 Clean, server-side rendered interface built with [SvelteKit](https://kit.svelte.dev/)
-- ⏱️ Automated background tasks via cron
-
----
-
-## 🛠️ Tech Stack
-
-- [Go](https://golang.org/) — Backend
-- [SvelteKit](https://kit.svelte.dev/) — Frontend (SSR)
-- [SQLite](https://www.sqlite.org/index.html) — Embedded database
-- [TVMaze API](https://www.tvmaze.com/api) — Series metadata
-- [Prowlarr](https://github.com/Prowlarr/Prowlarr) — Torrent indexer management
-- [qBittorrent](https://www.qbittorrent.org/) — Torrent client
+- 📺 Track TV shows with metadata from TVMaze
+- 🔍 Search for episodes via Prowlarr indexers
+- 💾 Automate downloads with qBittorrent integration
+- 🧹 Organize downloads into structured folders with symlinks
+- 🧠 Background workers for syncing, cleanup, and update routines
+- 💻 Web UI built with SvelteKit for easy use and management
 
 ---
 
-## 🚀 Getting Started
+## 📦 Stack
 
-1. Clone the repository:
+- **Backend**: Go (REST API, modular architecture)
+- **Frontend**: SvelteKit (SPA)
+- **Database**: SQLite (lightweight and embedded)
+- **Torrent Client**: [qBittorrent](https://www.qbittorrent.org/)
+- **Indexer Integration**: [Prowlarr](https://github.com/Prowlarr/Prowlarr)
+- **Scheduler/Jobs**: Custom cron-based workers
 
-   ```bash
-   git clone https://github.com/Jusoaresg/Gorgon.git
-   cd Gorgon
+> ❗ Note: Gorgon does not provide or host any content. You must configure your own torrent client and indexer.
+
+---
+
+## ⚙️ Requirements
+
+- [qBittorrent](https://www.qbittorrent.org/) with Web UI enabled
+- [Prowlarr](https://github.com/Prowlarr/Prowlarr) for torrent indexers
+- Go 1.21+
+- Node.js 20+ (for the frontend)
+- SQLite (default DB)
+
+---
+
+## 🚧 Status
+
+**Currently under active development.**  
+Initial version will include basic automation for shows, manual/auto search, and download tracking.
+
+---
+
+## 📸 Screenshots
+
+Coming soon.
+
+---
+
+## 📜 Disclaimer
+
+> Gorgon is a personal open-source project for media organization and automation.  
+> It **does not host, provide, or encourage access to copyrighted content**.  
+> The user is solely responsible for how they configure and use the software.
+
+---
+
+## 🧑‍💻 Author
+
+**Juliano Soares San Gregorio**  
+[GitHub](https://github.com/jusoaresg) · [LinkedIn](https://linkedin.com/in/juliano-gregorio)
+
