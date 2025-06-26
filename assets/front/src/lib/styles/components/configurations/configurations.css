@@ -1,0 +1,535 @@
+:root {
+	--bg-color: #1a1a1a;
+	--card-bg: #2d2d2d;
+	--nav-bg: #333333;
+	--text-color: #ffffff;
+	--text-muted: #aaaaaa;
+	--border-color: #444444;
+	--input-bg: #333333;
+	--hover-bg: #404040;
+	--highlight: #7d00a3;
+	--button-bg: #00ff7f;
+	--button-hover: #00e070;
+}
+
+.config-page {
+	min-height: 100vh;
+	background-color: var(--bg-color);
+	color: var(--text-color);
+	padding: 2rem;
+}
+
+.config-container {
+	width: 100%;
+	max-width: 90%;
+	margin: 2rem auto;
+	display: flex;
+	flex-direction: column;
+}
+
+.config-header {
+	text-align: center;
+	margin-bottom: 2rem;
+}
+
+.config-header h1 {
+	margin-bottom: 0.5rem;
+	color: var(--text-color);
+	font-size: 2.5rem;
+	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+	position: relative;
+}
+
+.config-header h1::after {
+	content: '';
+	position: absolute;
+	bottom: -10px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 80px;
+	height: 3px;
+	background-color: var(--highlight);
+}
+
+.config-meta {
+	display: flex;
+	justify-content: center;
+	gap: 1.2rem;
+	margin-top: 1.5rem;
+	color: #BBB;
+	font-size: 0.95rem;
+}
+
+.config-status {
+	color: var(--button-bg);
+	font-weight: bold;
+}
+
+.config-actions {
+	display: flex;
+	gap: 1rem;
+	margin-top: 1.5rem;
+	justify-content: center;
+	flex-wrap: wrap;
+}
+
+.action-btn {
+	background-color: var(--card-bg);
+	color: var(--text-color);
+	border: none;
+	border-radius: 4px;
+	padding: 0.7rem 1.2rem;
+	font-size: 0.95rem;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+	background-color: var(--highlight);
+	color: white;
+}
+
+.action-btn i {
+	font-size: 1rem;
+}
+
+.save-btn:hover {
+	background-color: #2ecc71 !important;
+}
+
+.reset-btn:hover {
+	background-color: #e74c3c !important;
+}
+
+.test-btn:hover {
+	background-color: #3498db !important;
+}
+
+.action-btn:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+.sections-navigation {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.6rem;
+	justify-content: center;
+	margin: 1rem 0 2rem 0;
+}
+
+.section-pill {
+	background-color: var(--nav-bg);
+	padding: 0.6rem 1.2rem;
+	border-radius: 20px;
+	transition: all 0.2s ease;
+	font-weight: 500;
+	text-decoration: none;
+	color: var(--text-color);
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.section-pill:hover,
+.section-pill.active {
+	background-color: var(--highlight);
+	color: white;
+	transform: translateY(-2px);
+}
+
+.section-icon {
+	font-size: 1.1rem;
+}
+
+.config-content {
+	background-color: var(--nav-bg);
+	border-radius: 10px;
+	padding: 2rem;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.config-section {
+	scroll-margin-top: 2rem;
+}
+
+.section-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 2rem;
+}
+
+.section-header h2 {
+	margin: 0;
+	color: var(--text-color);
+	font-size: 1.5rem;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.section-header h2 i {
+	color: var(--highlight);
+}
+
+.section-actions {
+	display: flex;
+	gap: 0.5rem;
+}
+
+.settings-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 1.5rem;
+	align-items: start;
+}
+
+.setting-group {
+	display: flex;
+	flex-direction: column;
+}
+
+.setting-group.full-width {
+	grid-column: 1 / -1;
+}
+
+.setting-group label {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin-bottom: 0.5rem;
+	font-weight: 500;
+	color: var(--text-color);
+}
+
+.setting-group label i {
+	color: var(--highlight);
+	width: 16px;
+}
+
+.setting-group input {
+	padding: 0.75rem;
+	background-color: var(--input-bg);
+	border: 1px solid var(--border-color);
+	border-radius: 6px;
+	color: var(--text-color);
+	font-size: 0.95rem;
+	transition: border-color 0.2s ease;
+}
+
+.setting-group input:focus {
+	outline: none;
+	border-color: var(--highlight);
+}
+
+.setting-group small {
+	margin-top: 0.25rem;
+	color: var(--text-muted);
+	font-size: 0.8rem;
+}
+
+.about-content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+}
+
+.app-info {
+	max-width: 600px;
+}
+
+.app-logo {
+	font-size: 4rem;
+	color: var(--highlight);
+	margin-bottom: 1rem;
+}
+
+.app-info h3 {
+	color: var(--highlight);
+	margin: 0 0 0.5rem 0;
+	font-size: 2rem;
+}
+
+.app-info p {
+	margin: 0 0 0.5rem 0;
+	color: var(--text-muted);
+	line-height: 1.5;
+}
+
+.system-info {
+	margin-top: 2rem;
+	background-color: var(--card-bg);
+	padding: 1.5rem;
+	border-radius: 8px;
+	border: 1px solid var(--border-color);
+}
+
+.system-info h4 {
+	margin: 0 0 1rem 0;
+	color: var(--text-color);
+}
+
+.info-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 1rem;
+}
+
+/* Continuing from the CSS in the Svelte file */
+.info-item {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0.5rem 0;
+	border-bottom: 1px solid var(--border-color);
+}
+
+.info-item:last-child {
+	border-bottom: none;
+}
+
+.info-label {
+	color: var(--text-muted);
+	font-weight: 500;
+}
+
+.info-value {
+	color: var(--text-color);
+	font-weight: 600;
+}
+
+.links {
+	margin-top: 2rem;
+	display: flex;
+	gap: 1rem;
+	justify-content: center;
+	flex-wrap: wrap;
+}
+
+.link-btn {
+	background-color: var(--card-bg);
+	color: var(--text-color);
+	text-decoration: none;
+	padding: 0.75rem 1.5rem;
+	border-radius: 6px;
+	border: 1px solid var(--border-color);
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	transition: all 0.2s ease;
+	font-weight: 500;
+}
+
+.link-btn:hover {
+	background-color: var(--highlight);
+	border-color: var(--highlight);
+	color: white;
+	transform: translateY(-2px);
+}
+
+.link-btn i {
+	font-size: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+	.config-container {
+		max-width: 95%;
+	}
+
+	.settings-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.section-header {
+		flex-direction: column;
+		gap: 1rem;
+		align-items: stretch;
+	}
+
+	.section-actions {
+		justify-content: center;
+	}
+}
+
+@media (max-width: 768px) {
+	.config-page {
+		padding: 1rem;
+	}
+
+	.config-container {
+		margin: 1rem auto;
+	}
+
+	.config-header h1 {
+		font-size: 2rem;
+	}
+
+	.config-meta {
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.config-actions {
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.sections-navigation {
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.section-pill {
+		width: 100%;
+		max-width: 300px;
+		justify-content: center;
+	}
+
+	.config-content {
+		padding: 1.5rem;
+	}
+
+	.info-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.info-item {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.25rem;
+	}
+
+	.links {
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.link-btn {
+		width: 100%;
+		max-width: 250px;
+		justify-content: center;
+	}
+}
+
+@media (max-width: 480px) {
+	.config-header h1 {
+		font-size: 1.5rem;
+	}
+
+	.config-content {
+		padding: 1rem;
+	}
+
+	.section-header h2 {
+		font-size: 1.25rem;
+	}
+
+	.setting-group input {
+		font-size: 16px;
+		/* Prevents zoom on mobile */
+	}
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes spin {
+	0% {
+		transform: translate(-50%, -50%) rotate(0deg);
+	}
+
+	100% {
+		transform: translate(-50%, -50%) rotate(360deg);
+	}
+}
+
+/* Focus Visible for Accessibility */
+.action-btn:focus-visible,
+.section-pill:focus-visible,
+.setting-group input:focus-visible,
+.link-btn:focus-visible {
+	outline: 2px solid var(--highlight);
+	outline-offset: 2px;
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+	:root {
+		--bg-color: #000000;
+		--card-bg: #1a1a1a;
+		--nav-bg: #2d2d2d;
+		--text-color: #ffffff;
+		--text-muted: #cccccc;
+		--border-color: #666666;
+		--input-bg: #1a1a1a;
+		--hover-bg: #333333;
+	}
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+}
+
+/* Print Styles */
+@media print {
+	.config-page {
+		background: white;
+		color: black;
+	}
+
+	.config-actions,
+	.section-actions {
+		display: none;
+	}
+
+	.config-content {
+		box-shadow: none;
+		border: 1px solid #ccc;
+	}
+}
+
+/* Dark Mode Enhancements */
+.config-page {
+	scrollbar-width: thin;
+	scrollbar-color: var(--border-color) var(--bg-color);
+}
+
+.config-page::-webkit-scrollbar {
+	width: 8px;
+}
+
+.config-page::-webkit-scrollbar-track {
+	background: var(--bg-color);
+}
+
+.config-page::-webkit-scrollbar-thumb {
+	background: var(--border-color);
+	border-radius: 4px;
+}
+
+.config-page::-webkit-scrollbar-thumb:hover {
+	background: var(--highlight);
+}

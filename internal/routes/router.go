@@ -40,6 +40,9 @@ func InitializeRoutes(e *echo.Echo) {
 	SetupWebsocketRouter(v1)
 	logger.Debug("WebSocket route initialized successfully")
 
+	SetupAppConfigRouter(v1)
+	logger.Debug("App Config route initialized successfully")
+
 	logger.Info("Routes initialized", slog.String("basePath", basePath))
 
 	v1.GET("docs", func(c echo.Context) error {

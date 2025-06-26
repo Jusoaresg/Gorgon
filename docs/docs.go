@@ -22,6 +22,79 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/app/config": {
+            "get": {
+                "description": "Get Gorgon Application Config",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "App/Config"
+                ],
+                "summary": "Get App Config",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Update Gorgon Application Config",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "App/Config"
+                ],
+                "summary": "Update App Config",
+                "parameters": [
+                    {
+                        "description": "Request Body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ConfigFile"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/database/indexer": {
             "get": {
                 "description": "List all added indexers",
@@ -1059,6 +1132,41 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "schemas.ConfigFile": {
+            "type": "object",
+            "properties": {
+                "defaultShowInfoFolder": {
+                    "type": "string"
+                },
+                "prowlarrApiKey": {
+                    "type": "string"
+                },
+                "prowlarrHost": {
+                    "type": "string"
+                },
+                "prowlarrPort": {
+                    "type": "string"
+                },
+                "qBittorrentDownloadFolder": {
+                    "type": "string"
+                },
+                "qBittorrentHost": {
+                    "type": "string"
+                },
+                "qBittorrentPassword": {
+                    "type": "string"
+                },
+                "qBittorrentPort": {
+                    "type": "string"
+                },
+                "qBittorrentUsername": {
+                    "type": "string"
+                },
+                "showsFolder": {
                     "type": "string"
                 }
             }

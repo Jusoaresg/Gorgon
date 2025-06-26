@@ -102,6 +102,29 @@ definitions:
       title:
         type: string
     type: object
+  schemas.ConfigFile:
+    properties:
+      defaultShowInfoFolder:
+        type: string
+      prowlarrApiKey:
+        type: string
+      prowlarrHost:
+        type: string
+      prowlarrPort:
+        type: string
+      qBittorrentDownloadFolder:
+        type: string
+      qBittorrentHost:
+        type: string
+      qBittorrentPassword:
+        type: string
+      qBittorrentPort:
+        type: string
+      qBittorrentUsername:
+        type: string
+      showsFolder:
+        type: string
+    type: object
   schemas.DefaultResponse:
     properties:
       data: {}
@@ -143,6 +166,54 @@ info:
   title: Gongon
   version: "0.1"
 paths:
+  /app/config:
+    get:
+      description: Get Gorgon Application Config
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Get App Config
+      tags:
+      - App/Config
+    post:
+      description: Update Gorgon Application Config
+      parameters:
+      - description: Request Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.ConfigFile'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Update App Config
+      tags:
+      - App/Config
   /database/indexer:
     delete:
       description: Delete Indexer from db

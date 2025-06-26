@@ -81,3 +81,7 @@ func LoadConfig() (*schemas.ConfigFile, error) {
 
 	return &configFile, nil
 }
+
+func SaveConfig(config schemas.ConfigFile) error {
+	return saveConfig(config)
+}

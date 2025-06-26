@@ -8,7 +8,7 @@
   const navItems = [
     { href: '/', label: 'Shows', icon: '📺' },
     { href: '/add-show', label: 'Add Show', icon: '➕' },
-    { href: '/settings', label: 'Settings', icon: '⚙️' }
+    { href: '/configurations', label: 'Configurations', icon: '⚙️' }
   ];
   
   let mounted = false;
