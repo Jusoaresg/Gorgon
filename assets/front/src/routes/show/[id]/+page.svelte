@@ -6,6 +6,8 @@ import { page } from '$app/stores';
 import { goto } from '$app/navigation';
 import { tick } from 'svelte';
 import { toast } from 'svelte-sonner';
+import { fade, slide, fly, scale } from 'svelte/transition';
+import { quintOut } from 'svelte/easing';
 
 // Styles
 import '$lib/styles/pages/show.css';
@@ -28,6 +30,7 @@ import '$lib/styles/components/episode-card.css';
 let show = null;
 let seasons = [];
 let episodes = [];
+let isLoading = true;
 
 // Season fold/unfold state
 let collapsedSeasons = new Set();
@@ -62,9 +65,11 @@ onMount(async () => {
 		show = showJson.data;
 		seasons = seasonsJson.data;
 		episodes = episodesJson.data;
+		isLoading = false;
 	}
 	catch (error) {
 		console.error("Unexpected error during show loading", error)
+		isLoading = false;
 	}
 
 	socket = new WebSocket('ws://localhost:8080/api/v1/ws')
@@ -174,10 +179,15 @@ function bulkyEdit() {
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
 </svelte:head>
 
-{#if show}
-	<div class="show-page">
+{#if isLoading}
+	<div class="loading-container" in:fade={{ duration: 200 }}>
+		<div class="spinner"></div>
+		<p>Loading show...</p>
+	</div>
+{:else if show}
+	<div class="show-page" in:fade={{ duration: 250, delay: 50 }}>
 	<div class="show-container">
-		<div class="show-header">
+		<div class="show-header" in:fly={{ y: -30, duration: 300, delay: 100, easing: quintOut }}>
 			<h1>{show.Name}</h1>
 			<div class="show-meta">
 				<span class="show-status">{show.Status}</span>
@@ -204,12 +214,12 @@ function bulkyEdit() {
 			</div>
 		</div>
 
-		<div class="show-overview">
+		<div class="show-overview" in:fly={{ y: 30, duration: 300, delay: 150, easing: quintOut }}>
 			<div class="show-poster">
 				{#if show.ImageMedium}
-					<img src={show.ImageMedium} alt={`${show.Name} Poster`} />
+					<img src={show.ImageMedium} alt={`${show.Name} Poster`} in:scale={{ duration: 250, delay: 200 }} />
 				{:else}
-					<div class="placeholder-poster">
+					<div class="placeholder-poster" in:scale={{ duration: 250, delay: 200 }}>
 						<span>{show.Name.charAt(0)}</span>
 					</div>
 				{/if}
@@ -219,17 +229,19 @@ function bulkyEdit() {
 			</div>
 		</div>
 
-		<div class="seasons-navigation">
-			{#each seasons as season}
-				<a href={"#season-" + season.Number} class="season-pill">
+		<div class="seasons-navigation" in:fly={{ x: -30, duration: 250, delay: 250 }}>
+			{#each seasons as season, i}
+				<a href={"#season-" + season.Number} class="season-pill"
+				   in:scale={{ duration: 200, delay: 300 + i * 30 }}>
 					Season {season.Number}
 				</a>
 			{/each}
 		</div>
 
 		<!-- Temporadas em ordem decrescente -->
-		{#each [...seasons].reverse() as season}
-			<div id={"season-" + season.Number} class="season-block">
+		{#each [...seasons].reverse() as season, i}
+			<div id={"season-" + season.Number} class="season-block" 
+			     in:fly={{ y: 20, duration: 250, delay: 350 + i * 60, easing: quintOut }}>
 				<div class="season-header">
 					<h2>
 						<button class="season-toggle-btn" on:click={() => toggleSeason(season.Number)}>
@@ -245,10 +257,14 @@ function bulkyEdit() {
 				</div>
 
 				{#if !collapsedSeasons.has(season.Number)}
-					<div class="episodes-container">
-						{#each [...episodes.filter(e => e.Season === season.Number)].reverse() as episode}
-							<EpisodeCard {episode} seasonNumber={season.Number} on:deleteEpisode={deleteEpisode} />
-									<!-- on:statusChange={changeTrackingStatus} /> -->
+					<div class="episodes-container" 
+					     transition:slide={{ duration: 200, easing: quintOut }}>
+						{#each [...episodes.filter(e => e.Season === season.Number)].reverse() as episode, j}
+							<div in:fly={{ x: -20, duration: 200, delay: j * 30 }}
+							     out:fly={{ x: 20, duration: 150 }}>
+								<EpisodeCard {episode} seasonNumber={season.Number} on:deleteEpisode={deleteEpisode} />
+								<!-- on:statusChange={changeTrackingStatus} /> -->
+							</div>
 						{/each}
 					</div>
 				{/if}
@@ -257,3 +273,28 @@ function bulkyEdit() {
 	</div>
 </div>
 {/if}
+
+<style>
+.loading-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	height: 50vh;
+	gap: 1rem;
+}
+
+.spinner {
+	width: 40px;
+	height: 40px;
+	border: 4px solid #f3f3f3;
+	border-top: 4px solid #3498db;
+	border-radius: 50%;
+	animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+}
+</style>
