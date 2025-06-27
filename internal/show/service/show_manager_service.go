@@ -2,14 +2,16 @@ package service
 
 import (
 	"fmt"
+	"log/slog"
+
 	"github.com/jusoaresg/gorgon/external/tvmaze/service"
+	"github.com/jusoaresg/gorgon/internal/episode/model"
 	episodeModel "github.com/jusoaresg/gorgon/internal/episode/model"
 	episodeRepository "github.com/jusoaresg/gorgon/internal/episode/repository"
 	seasonModel "github.com/jusoaresg/gorgon/internal/season/model"
 	seasonRepository "github.com/jusoaresg/gorgon/internal/season/repository"
 	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
 	"github.com/jusoaresg/gorgon/pkg/schemas/dtos"
-	"log/slog"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -103,9 +105,15 @@ func (sm *ShowManagerService) UpdateShowWithRelations(showDTO dtos.ShowDto, seas
 				ShowID: showModel.ID,
 				Number: season.Number,
 			}
-			if _, err := sm.SeasonRepo.CreateTx(tx, newSeason); err != nil {
+			createdSeasonID, err := sm.SeasonRepo.CreateTx(tx, newSeason)
+			if err != nil {
 				//TODO: Error message
 				return err
+			}
+			seasonMap[season.Number] = &seasonModel.Season{
+				ID:     createdSeasonID,
+				ShowID: showModel.ID,
+				Number: season.Number,
 			}
 		}
 	}
@@ -130,14 +138,22 @@ func (sm *ShowManagerService) UpdateShowWithRelations(showDTO dtos.ShowDto, seas
 				return err
 			}
 		} else {
+			season := seasonMap[episode.Season]
+			if season == nil {
+				sm.logger.Error("Missing season for episode", slog.Int("season_number", episode.Season))
+				return fmt.Errorf("season %d not found when creating episode", episode.Season)
+			}
+
 			newEpisode := episodeModel.Episode{
 				ShowID:   showModel.ID,
+				SeasonID: season.ID,
 				Name:     episode.Name,
 				Summary:  episode.Summary,
 				Type:     episode.Type,
 				Number:   episode.Number,
 				Season:   episode.Season,
 				AirStamp: episode.AirStamp,
+				Tracking: model.TrackingWanted,
 			}
 
 			_, err := sm.EpisodeRepo.CreateTx(tx, newEpisode)
