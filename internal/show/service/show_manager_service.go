@@ -15,25 +15,36 @@ import (
 )
 
 type ShowManagerService struct {
-	EpisodeRepo episodeRepository.EpisodeRepository
-	SeasonRepo  seasonRepository.SeasonRepository
-	ShowRepo    showRepository.ShowRepository
-	tvMaze      *service.TvMazeSearchService
-	DB          *sqlx.DB
-	logger      *slog.Logger
+	ShowAggregator ShowAggregatorService
+	ShowRepo       showRepository.ShowRepositoryInterface
+	SeasonRepo     seasonRepository.SeasonRepositoryInterface
+	EpisodeRepo    episodeRepository.EpisodeRepositoryInterface
+	tvMaze         *service.TvMazeSearchService
+	DB             *sqlx.DB
+	logger         *slog.Logger
 }
 
 func NewShowManagerService(logger *slog.Logger, db *sqlx.DB) *ShowManagerService {
+	showRepo := showRepository.NewShowRepository(db)
+	seasonRepo := seasonRepository.NewSeasonRepository(db)
+	episodeRepo := episodeRepository.NewEpisodeRepository(db)
+
 	return &ShowManagerService{
-		EpisodeRepo: *episodeRepository.NewEpisodeRepository(db),
-		SeasonRepo:  *seasonRepository.NewSeasonRepository(db),
-		ShowRepo:    *showRepository.NewShowRepository(db),
+		ShowAggregator: *NewShowAggregatorService(
+			showRepo,
+			episodeRepo,
+			seasonRepo,
+		),
+		ShowRepo:    showRepo,
+		SeasonRepo:  seasonRepo,
+		EpisodeRepo: episodeRepo,
 		tvMaze:      service.NewTvMazeSearchService(logger),
 		logger:      logger,
 		DB:          db,
 	}
 }
 
+// TODO: Move this two Get to another file
 func (sm *ShowManagerService) GetEpisodes(tvMazeId int64) (*[]dtos.EpisodeDto, error) {
 	episodesDto, err := sm.tvMaze.SearchEpisodes(tvMazeId)
 	if err != nil {
@@ -51,28 +62,19 @@ func (sm *ShowManagerService) GetSeasons(tvMazeId int64) (*[]dtos.SeasonDto, err
 	return seasonsDto, nil
 }
 
-// NOTE: Everything here will need a refactor furthermore, there're lot of problems
-// This functon call the database a lot of times
+// NOTE: Everything here will need a refactor later, there're lot of problems
 // Probably will be problems with the seasons updating.
 func (sm *ShowManagerService) UpdateShowWithRelations(showDTO dtos.ShowDto, seasonsDTO []dtos.SeasonDto, episodes []dtos.EpisodeDto) error {
-	showModel, err := sm.ShowRepo.GetByTvMazeID(showDTO.TvMazeID)
-	if err != nil {
-		//TODO: Log message
-		return err
-	}
 
-	seasonsModel, err := sm.SeasonRepo.ListByShowId(showModel.ID)
+	aggregatedShow, err := sm.ShowAggregator.GetShowWithRelations(showDTO.TvMazeID)
 	if err != nil {
-		//TODO: Better Log message
 		sm.logger.Error("Error while getting seasons from db to update seasson", slog.String("error", err.Error()))
 		return err
 	}
 
-	episodesModel, err := sm.EpisodeRepo.ListByShowID(showModel.ID)
-	if err != nil {
-		//TODO: Log message
-		return err
-	}
+	showModel := aggregatedShow.Show
+	episodesModel := aggregatedShow.Episodes
+	seasonsModel := aggregatedShow.Seasons
 
 	tx, err := sm.DB.Beginx()
 	if err != nil {
@@ -90,7 +92,7 @@ func (sm *ShowManagerService) UpdateShowWithRelations(showDTO dtos.ShowDto, seas
 		seasonMap[e.Number] = e
 	}
 
-	for _, season := range seasonsModel {
+	for _, season := range seasonsDTO {
 
 		if existing, ok := seasonMap[season.Number]; ok {
 			sm.logger.Info("Updating season", slog.Int64("ShowID", showModel.ID), slog.Int("SeasonNumber", season.Number))
@@ -115,14 +117,18 @@ func (sm *ShowManagerService) UpdateShowWithRelations(showDTO dtos.ShowDto, seas
 		episodeMap[key] = e
 	}
 
-	for _, episode := range episodesModel {
+	for _, episode := range episodes {
 		key := fmt.Sprintf("%d:%d", episode.Season, episode.Number)
 		if existing, ok := episodeMap[key]; ok {
-			sm.logger.Info("Updating episode", slog.Int64("show_id", episode.ShowID), slog.Int("season", episode.Season), slog.String("episode_name", episode.Name))
+			sm.logger.Info("Updating episode", slog.Int64("show_id", showModel.ID), slog.Int("season", episode.Season), slog.String("episode_name", episode.Name))
 			existing.Name = episode.Name
 			existing.Summary = episode.Summary
 			existing.Type = episode.Type
 			existing.AirStamp = episode.AirStamp
+
+			if err := sm.EpisodeRepo.UpdateTx(tx, *existing); err != nil {
+				return err
+			}
 		} else {
 			newEpisode := episodeModel.Episode{
 				ShowID:   showModel.ID,

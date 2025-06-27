@@ -67,6 +67,7 @@ type EpisodeDto struct {
 	Name     string `json:"name"`
 	Season   int    `json:"season"`
 	Number   int    `json:"number"`
+	Type     string `json:"type"`
 	AirStamp string `json:"airStamp"`
 	Summary  string `json:"summary"`
 	Tracking string
@@ -79,6 +80,7 @@ func (s *EpisodeDto) ToModel(showID int64, seasonID int64) *episodeModel.Episode
 		SeasonID: seasonID,
 		Season:   s.Season,
 		Number:   s.Number,
+		Type:     s.Type,
 		AirStamp: s.AirStamp,
 		Summary:  s.Summary,
 		Tracking: s.Tracking,
