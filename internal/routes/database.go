@@ -30,6 +30,9 @@ func SetupDatabaseRouter(v1 *echo.Group) {
 			showGroup.DELETE("", showHandler.DeleteShow)
 			logger.Info("DELETE route added to /api/v1/database/show")
 
+			showGroup.POST("/update-info", showHandler.UpdateShowInfo)
+			logger.Info("POST route added to /api/v1/database/show/update-info")
+
 			episodeGroup := showGroup.Group("/episode")
 			{
 				episodeGroup.POST("/status", episodeHandler.ChangeEpisodeStatus)

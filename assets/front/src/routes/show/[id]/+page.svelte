@@ -137,28 +137,27 @@ async function deleteEpisode(event) {
 	}
 }
 
-// async function changeTrackingStatus(event) {
-// 	const { id, newStatus } = event.detail
-//
-// 	try {
-// 		const res = await fetch(`${PUBLIC_API_BASE_URL}/database/show/episode/status`, {
-// 			method: 'POST',
-// 			headers: {
-// 				"Content-Type": "application/json"
-// 			},
-// 			body: JSON.stringify({ episode_id: id, tracking: newStatus })
-// 		});
-//
-// 		if(!res.ok) {
-// 			console.error("Failed to update episode status", res.status)
-// 		}
-//
-// 		const data = await res.json()
-// 		console.log("New Episode status", data)
-// 	} catch(error) {
-// 		console.error("Error trying to change episode status", error)
-// 	}
-// }
+async function updateShowInfo() {
+	try {
+		console.log(show)
+		const res = await fetch(`${PUBLIC_API_BASE_URL}/database/show/update-info`, {
+			method: 'POST',
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ id: show.ID })
+		});
+		if(!res.ok) {
+			console.error("Failed to update show info")
+			return
+		}
+		toast.success("Show info updated")
+		await tick()
+	} catch(error) {
+		toast.error("Failed to update show info")
+		console.error("Error trying to update show info")
+	}
+}
 
 function toggleSeason(seasonNumber) {
 	if (collapsedSeasons.has(seasonNumber)) {
@@ -199,7 +198,7 @@ function bulkyEdit() {
 				{/if}
 			</div>
 			<div class="show-actions">
-				<button class="action-btn refresh-btn">
+				<button on:click={updateShowInfo} class="action-btn refresh-btn">
 					<i class="fas fa-sync-alt"></i> Refresh Show Info
 				</button>
 				<button class="action-btn search-all-btn">

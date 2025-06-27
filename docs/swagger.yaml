@@ -530,6 +530,34 @@ paths:
       summary: List Show Seasons
       tags:
       - Database/Seasons
+  /database/show/update-info:
+    post:
+      description: Updates the Show info from TvMze
+      parameters:
+      - description: Request Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.IdRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Update Show Info
+      tags:
+      - Database/Show
   /prowlarr/indexer:
     get:
       consumes:
