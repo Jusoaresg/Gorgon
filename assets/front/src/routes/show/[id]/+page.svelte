@@ -150,8 +150,7 @@ async function updateShowInfo() {
 			console.error("Failed to update show info")
 			return
 		}
-		toast.success("Show info updated")
-		await tick()
+		window.location.reload();
 	} catch(error) {
 		toast.error("Failed to update show info")
 		console.error("Error trying to update show info")
