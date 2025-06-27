@@ -359,17 +359,6 @@ function getFilteredSuggestions(type) {
 
 <style>
 :root {
-	--bg-color: #1a1a1a;
-	--card-bg: #2d2d2d;
-	--nav-bg: #333333;
-	--text-color: #ffffff;
-	--text-muted: #aaaaaa;
-	--border-color: #444444;
-	--input-bg: #333333;
-	--hover-bg: #404040;
-	--highlight: #7d00a3;
-	--button-bg: #00ff7f;
-	--button-hover: #00e070;
 	--preferred-color: #00ff7f;
 	--required-color: #7d00a3;
 	--blacklisted-color: #ff6b6b;

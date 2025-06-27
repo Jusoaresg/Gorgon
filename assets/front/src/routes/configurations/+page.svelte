@@ -9,7 +9,6 @@ import { fade, fly } from 'svelte/transition';
 import { toast } from 'svelte-sonner';
 
 import '$lib/styles/components/configurations/configurations.css';
-import Layout from '../+layout.svelte';
 
 // Configuration state with empty initial values
 let config = {
@@ -184,7 +183,7 @@ onMount(async () => {
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
 </svelte:head>
 
-<div class="config-page">
+<div class="config-page" in:fade={{ duration: 250, delay: 50 }}>
 	<div class="config-container">
 		<!-- Header -->
 		<div class="config-header">
