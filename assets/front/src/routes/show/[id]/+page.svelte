@@ -139,7 +139,6 @@ async function deleteEpisode(event) {
 
 async function updateShowInfo() {
 	try {
-		console.log(show)
 		const res = await fetch(`${PUBLIC_API_BASE_URL}/database/show/update-info`, {
 			method: 'POST',
 			headers: {

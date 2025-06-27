@@ -49,7 +49,6 @@ onMount(async () => {
 		const json = await res.json();
 		allShows = json.data || [];
 		shows = json.data || [];
-		console.log(shows)
 	} catch (error) {
 		console.error('Erro ao carregar shows:', error);
 		allShows = [];
