@@ -1,37 +1,57 @@
 <script>
-  import Nav from './Nav.svelte';
-  import { onMount } from 'svelte';
-  import { Toaster } from 'svelte-sonner';
-  // Styles
-  import '$lib/styles/style.css';
+import Nav from './Nav.svelte';
+import { onMount, tick } from 'svelte';
+import { Toaster } from 'svelte-sonner';
+import '$lib/styles/style.css';
 
-  let showScrollButton = false;
-  let mainContent;
+let showScrollButton = false;
+let mainContent;
 
-  onMount(() => {
-    const handleScroll = () => {
-      if (mainContent) {
-        showScrollButton = mainContent.scrollTop > 300;
-      }
-    };
+onMount(async () => {
+  // Restore the scroll Y saved on sessionStorage
+  const scrollY = sessionStorage.getItem('scrollY');
+  if (scrollY && mainContent) {
+    await tick();
+    setTimeout(() => {
+      mainContent.scrollTop = parseInt(scrollY);
+      sessionStorage.removeItem('scrollY');
+    }, 50); // wait 50ms to change the scroll
+  }
 
+  const handleScroll = () => {
     if (mainContent) {
-      mainContent.addEventListener('scroll', handleScroll);
-      
-      return () => {
-        mainContent.removeEventListener('scroll', handleScroll);
-      };
-    }
-  });
-
-  const scrollToTop = () => {
-    if (mainContent) {
-      mainContent.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
+      showScrollButton = mainContent.scrollTop > 300;
     }
   };
+
+  if (mainContent) {
+    mainContent.addEventListener('scroll', handleScroll);
+  }
+
+  const saveScroll = () => {
+    if (mainContent) {
+      sessionStorage.setItem('scrollY', mainContent.scrollTop.toString());
+    }
+  };
+
+  window.addEventListener('beforeunload', saveScroll);
+
+  return () => {
+    if (mainContent) {
+      mainContent.removeEventListener('scroll', handleScroll);
+    }
+    window.removeEventListener('beforeunload', saveScroll);
+  };
+});
+
+const scrollToTop = () => {
+  if (mainContent) {
+    mainContent.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }
+};
 </script>
 
 <div class="app-container">
@@ -45,8 +65,7 @@
       closeButton
       expand
     />
-    
-    <!-- Scroll to top button -->
+
     <button 
       class="scroll-to-top" 
       class:visible={showScrollButton}
@@ -61,58 +80,58 @@
 </div>
 
 <style>
-  .app-container {
-    display: flex;
-    height: 100vh;
-  }
-  
-  .main-content {
-    flex: 1;
-    overflow-y: auto;
-    position: relative;
-  }
-  
-  .scroll-to-top {
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    width: 3rem;
-    height: 3rem;
-    background: var(--highlight);
-    color: white;
-    border: 1px solid var(--border-color);
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(10px);
-    z-index: 1000;
-  }
-  
-  .scroll-to-top:hover {
-    background: var(--button-bg);
-    border-color: var(--button-bg);
-    color: var(--bg-color);
-    transform: translateY(-2px) scale(1.05);
-  }
-  
-  .scroll-to-top.visible {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-  }
-  
-  .scroll-to-top:active {
-    transform: translateY(0) scale(0.95);
-  }
-  
-  .scroll-to-top:focus {
-    outline: 2px solid var(--highlight);
-    outline-offset: 2px;
-  }
+.app-container {
+  display: flex;
+  height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+}
+
+.scroll-to-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 3rem;
+  height: 3rem;
+  background: var(--highlight);
+  color: white;
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  z-index: 1000;
+}
+
+.scroll-to-top:hover {
+  background: var(--button-bg);
+  border-color: var(--button-bg);
+  color: var(--bg-color);
+  transform: translateY(-2px) scale(1.05);
+}
+
+.scroll-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.scroll-to-top:active {
+  transform: translateY(0) scale(0.95);
+}
+
+.scroll-to-top:focus {
+  outline: 2px solid var(--highlight);
+  outline-offset: 2px;
+}
 </style>
