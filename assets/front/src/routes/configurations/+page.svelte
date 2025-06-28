@@ -180,7 +180,6 @@ onMount(async () => {
 
 <svelte:head>
 	<title>Configuration - My Shows</title>
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
 </svelte:head>
 
 <div class="config-page" in:fade={{ duration: 250, delay: 50 }}>

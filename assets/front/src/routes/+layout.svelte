@@ -54,6 +54,10 @@ const scrollToTop = () => {
 };
 </script>
 
+<svelte:head>
+  	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+</svelte:head>
+
 <div class="app-container">
   <Nav />
   <main class="main-content" bind:this={mainContent}>
@@ -72,9 +76,7 @@ const scrollToTop = () => {
       on:click={scrollToTop}
       aria-label="Scroll to top"
     >
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M18 15l-6-6-6 6"/>
-      </svg>
+      <i class="fas fa-chevron-up" style="font-size: 20px"></i>
     </button>
   </main>
 </div>

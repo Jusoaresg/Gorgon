@@ -216,10 +216,6 @@ function getFilteredSuggestions(type) {
 }
 </script>
 
-<svelte:head>
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
-</svelte:head>
-
 <div class="keywords-manager" in:fade={{ duration: 200 }}>
 	<div class="section-header">
 		<h2>
