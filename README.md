@@ -19,7 +19,7 @@ Built in **Go** with a **SvelteKit** frontend, Gorgon allows users to automatica
 
 ## 📸 Screenshots
 
-Coming soon.
+![Shows Page](https://i.imgur.com/UOTfCeb.png)
 
 ---
 
