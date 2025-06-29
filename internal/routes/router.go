@@ -12,10 +12,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func InitializeRoutes(e *echo.Echo) {
-	logger := config.GetLogger()
+const basePath = "/api/v1/"
 
-	basePath := "/api/v1/"
+func InitializeRoutes(e *echo.Echo) {
+	logger := config.GetLogger().WithGroup("routes").With("name", "initializeRoutes")
 
 	handler.InitHandler()
 
