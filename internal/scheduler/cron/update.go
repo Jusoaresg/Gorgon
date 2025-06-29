@@ -6,7 +6,7 @@ import (
 )
 
 func StartDailyUpdate(callback func()) {
-	logger := config.GetLogger()
+	logger := config.GetLogger().WithGroup("scheduler").With("name", "StartDailyUpdate")
 	go func() {
 		for {
 			logger.Info("Starting to updating shows")
