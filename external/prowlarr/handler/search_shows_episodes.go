@@ -62,7 +62,11 @@ func searchShowsEpisodesHandler(c echo.Context, db *sqlx.DB) error {
 		Type:  "tvsearch",
 	}
 
-	searchService := service.NewProwlarrSearchService(logger)
+	searchService, err := service.NewProwlarrSearchService(logger)
+	if err != nil {
+		logger.Error("Error to initialize prowlarr service", slog.String("Error", err.Error()))
+		return err
+	}
 
 	var response []schema.SearchResponse
 	if err := searchService.SearchByType(&searchKey, &response); err != nil {
