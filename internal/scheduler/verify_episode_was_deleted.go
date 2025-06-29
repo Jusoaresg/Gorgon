@@ -11,7 +11,7 @@ import (
 )
 
 func VerifyEpisodeWasDeleted() {
-	logger := config.GetLogger()
+	logger := config.GetLogger().WithGroup("scheduler").With("name", "VerifyEpisodeWasDeleted")
 	db := config.GetSQLite()
 
 	configFile, err := config.LoadConfig()
@@ -38,7 +38,6 @@ func VerifyEpisodeWasDeleted() {
 			continue
 		}
 
-		logger.Debug("Downloaded episode found", slog.Int("Episode Number", episode.Number), slog.String("Episode Name", episode.Name))
 		for _, episode_content := range contents {
 
 			fileFolder := filepath.Join("assets", configFile.QBittorrentDownloadFolder, episode_content.Name)
@@ -55,7 +54,12 @@ func VerifyEpisodeWasDeleted() {
 
 				episodeContentRepo.DeleteById(episode_content.ID)
 
-				logger.Info("Episode file not found, setting tracking to skipped", slog.Int("Episode Number", episode.Number), slog.String("Episode Name", episode.Name))
+				logger.Info(
+					"Episode file not found, setting tracking to skipped",
+					slog.Int64("showID", episode.ShowID),
+					slog.Int("episodeNumber", episode.Number),
+					slog.String("episodeName", episode.Name),
+				)
 			}
 		}
 	}
