@@ -6,7 +6,7 @@ import (
 )
 
 func StartVerifyEpisodeWasDeleted(callback func()) {
-	logger := config.GetLogger()
+	logger := config.GetLogger().WithGroup("cron").With("name", "StartVerifyEpisodeWasDeleted")
 	go func() {
 		for {
 			logger.Info("Starting to verifying if any episode has been deleted")
