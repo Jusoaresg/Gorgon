@@ -28,16 +28,18 @@ func NewProwlarrSearchService(logger *slog.Logger) (*ProwlarrSearchService, erro
 	}, nil
 }
 
+func (p *ProwlarrSearchService) Name() string {
+	return "ProwlarrSearch"
+}
+
 func (p *ProwlarrSearchService) CheckConnection() error {
 	var resp struct {
 		Status string `json:"status"`
 	}
 	err := p.APIService.Get("/ping", &resp)
 	if err != nil {
-		p.Logger.Error("Failed to connect to Prowlarr", slog.String("error", err.Error()))
 		return err
 	}
-	p.Logger.Debug("Prowlarr connection OK", slog.String("version", resp.Status))
 	return nil
 }
 
