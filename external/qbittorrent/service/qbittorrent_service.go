@@ -43,6 +43,10 @@ func NewQBittorrentService(logger *slog.Logger) (*QBittorrentService, error) {
 	}, nil
 }
 
+func (q *QBittorrentService) Name() string {
+	return "qBittorrent"
+}
+
 func (q *QBittorrentService) Login(request *schema.QBittorrentLoginRequest) error {
 	form := url.Values{}
 	form.Add("username", request.Username)
@@ -78,6 +82,13 @@ func (q *QBittorrentService) SidVerification() error {
 			return fmt.Errorf("error while logging on qbittorrent: %w", err)
 		}
 
+	}
+	return nil
+}
+
+func (q *QBittorrentService) CheckConnection() error {
+	if err := q.SidVerification(); err != nil {
+		return err
 	}
 	return nil
 }
@@ -128,7 +139,7 @@ func (q *QBittorrentService) CheckTorrents(filter string, response *[]schema.Che
 	}
 
 	url := fmt.Sprintf("/api/v2/torrents/info?filter=%s", filter)
-	//TODO: Logger message with url and maybe the headers
+	q.Logger.Debug("Calling QBittorrent API", slog.String("url", url), slog.String("filter", filter))
 
 	if err := q.APIService.GetWithHeaders(url, &response, headers); err != nil {
 		return fmt.Errorf("error while get torrent info: %w", err)
