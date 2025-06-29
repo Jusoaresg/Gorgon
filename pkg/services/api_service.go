@@ -23,7 +23,7 @@ func NewAPIService(url string, logger *slog.Logger) (a *APIService) {
 		Client: &http.Client{
 			Timeout: 10 * time.Second,
 		},
-		Logger: logger,
+		Logger: logger.WithGroup("apiService"),
 	}
 }
 
@@ -64,7 +64,7 @@ func (a *APIService) Get(endpoint string, response any) error {
 		return fmt.Errorf("Error while decoding response body: %w", err)
 	}
 
-	a.Logger.Info("GET request successful",
+	a.Logger.Debug("GET request successful",
 		slog.String("url", url),
 		slog.Int("status", resp.StatusCode),
 	)
