@@ -33,7 +33,11 @@ func SearchShows(c echo.Context) error {
 		return err
 	}
 
-	searchService := service.NewProwlarrSearchService(logger)
+	searchService, err := service.NewProwlarrSearchService(logger)
+	if err != nil {
+		logger.Error("Error to initialize prowlarr service", slog.String("Error", err.Error()))
+		return err
+	}
 
 	var response []schema.SearchResponse
 	if err := searchService.Search(&request, &response); err != nil {
