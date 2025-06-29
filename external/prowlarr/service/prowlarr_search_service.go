@@ -15,17 +15,30 @@ type ProwlarrSearchService struct {
 	Logger     *slog.Logger
 }
 
-func NewProwlarrSearchService(logger *slog.Logger) *ProwlarrSearchService {
+func NewProwlarrSearchService(logger *slog.Logger) (*ProwlarrSearchService, error) {
 	configFile, err := config.LoadConfig()
 	if err != nil {
-		panic("Error while creting Prowlarr Query Service")
+		return nil, err
 	}
 
 	return &ProwlarrSearchService{
 		ApiKey:     configFile.ProwlarrApiKey,
 		Logger:     logger,
 		APIService: *services.NewAPIService("http://127.0.0.1:9696", logger),
+	}, nil
+}
+
+func (p *ProwlarrSearchService) CheckConnection() error {
+	var resp struct {
+		Status string `json:"status"`
 	}
+	err := p.APIService.Get("/ping", &resp)
+	if err != nil {
+		p.Logger.Error("Failed to connect to Prowlarr", slog.String("error", err.Error()))
+		return err
+	}
+	p.Logger.Debug("Prowlarr connection OK", slog.String("version", resp.Status))
+	return nil
 }
 
 func (p *ProwlarrSearchService) Search(request *schema.SearchRequest, model *[]schema.SearchResponse) error {
