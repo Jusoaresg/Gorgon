@@ -38,7 +38,7 @@ func init() {
 }
 
 func ProcessSingleEpisode(ep *model.Episode, prowlarrService prowlarr.ProwlarrSearchService, qbittorrentService qbittorrent.QBittorrentService) error {
-	var logger = config.GetLogger()
+	logger := config.GetLogger().WithGroup("jobs").With("name", "ProcessSingleEpisode")
 	episodeRepo := episodeRepository.NewEpisodeRepository(config.GetSQLite())
 	showRepo := showRepository.NewShowRepository(config.GetSQLite())
 
@@ -56,12 +56,7 @@ func ProcessSingleEpisode(ep *model.Episode, prowlarrService prowlarr.ProwlarrSe
 		return nil
 	}
 
-	logger.Debug("Episode status",
-		slog.String("Show", show.Name),
-		slog.String("Episode", ep.Name),
-		slog.String("Tracking", string(ep.Tracking)),
-	)
-	logger.Info("Searching if episode is avaible", slog.String("Show", show.Name), slog.Int("Episode", ep.Number))
+	logger.Info("Searching if episode is avaible", slog.String("showName", show.Name), slog.Int64("showID", show.ID), slog.Int("episode", ep.Number), slog.String("episodeName", ep.Name), slog.String("tracking", string(ep.Tracking)))
 
 	//TODO: Include titleAlias inside the db
 	titleAlias := []string{
