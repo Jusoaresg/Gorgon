@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs: 
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+
+      - name: Install front-end Deps
+        run: npm ci
+        working-directory: assets/front
+
+      - name: Install Go deps
+        run: go mod download
+
+      - name: Install swag (docs)
+        run: go install github.com/swaggo/swag/cmd/swag@latest
+
+      - name: Check ( tests + lint )
+        run: make check
+
+      - name: Build for local validation
+        run: make build
+
+      - name: Cross build for releases 
+        run: make cross-build

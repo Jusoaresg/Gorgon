@@ -11,8 +11,7 @@ run-with-docs: docs
 	go run main.go
 
 build-front:
-	cd assets/front/build && npm run build 
-
+	cd assets/front && npm run build 
 
 build: docs build-front
 	mkdir -p ./tmp
@@ -35,4 +34,4 @@ lint:
 clean:
 	rm -rf ./tmp
 
-check: test lint
+check: build-front test lint
