@@ -2,16 +2,18 @@ package config
 
 import (
 	"log/slog"
+	"path/filepath"
 
 	"github.com/jmoiron/sqlx"
 )
 
 var (
-	ConfigPath  string = "assets/config.json"
-	Port        string = "8080"
-	baseApiPath string
-	db          *sqlx.DB
-	logger      *slog.Logger
+	ConfigFolder string = filepath.Join("assets", "config")
+	LogsPath     string = filepath.Join("assets", "config", "logs")
+	Port         string = "8080"
+	baseApiPath  string
+	db           *sqlx.DB
+	logger       *slog.Logger
 )
 
 func Init() error {

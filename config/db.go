@@ -1,9 +1,10 @@
 package config
 
 import (
-	"fmt"
-	"github.com/jusoaresg/gorgon/migrations"
 	"os"
+	"path/filepath"
+
+	"github.com/jusoaresg/gorgon/migrations"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
@@ -12,12 +13,11 @@ import (
 
 func InitializeDb() (*sqlx.DB, error) {
 
-	dbFolder := "assets"
-	dbPath := fmt.Sprintf("%s/%s", dbFolder, "gorgon.db")
+	dbPath := filepath.Join(ConfigFolder, "gorgon.db")
 
-	_, err := os.Stat(dbFolder)
+	_, err := os.Stat(dbPath)
 	if os.IsNotExist(err) {
-		err := os.Mkdir(dbFolder, 0700)
+		err := os.Mkdir(ConfigFolder, 0700)
 		if err != nil {
 			return nil, err
 		}

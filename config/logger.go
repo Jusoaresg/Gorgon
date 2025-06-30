@@ -11,14 +11,14 @@ import (
 )
 
 func NewLogger() *slog.Logger {
-	err := os.MkdirAll("assets/logs", os.ModePerm)
+	err := os.MkdirAll(LogsPath, os.ModePerm)
 	if err != nil {
 		log.Fatalf("Failed to create log directory: %v", err)
 	}
 
 	today := time.Now().Format("2006-01-02")
 	filename := fmt.Sprintf("gorgon-%s.log", today)
-	path := filepath.Join("assets", "logs", filename)
+	path := filepath.Join(LogsPath, filename)
 
 	logFile, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0660)
 	if err != nil {

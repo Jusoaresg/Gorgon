@@ -3,10 +3,14 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"os"
+	"path/filepath"
 	"reflect"
+
+	"github.com/jusoaresg/gorgon/pkg/schemas"
 )
+
+var configPath = filepath.Join(ConfigFolder, "config.json")
 
 func InitializeOrUpdateConfigFile() error {
 	var updated bool
@@ -18,12 +22,12 @@ func InitializeOrUpdateConfigFile() error {
 		QBittorrentPort:           "",
 		QBittorrentUsername:       "",
 		QBittorrentPassword:       "",
-		QBittorrentDownloadFolder: "assets/downloads",
+		QBittorrentDownloadFolder: "",
 		DefaultShowInfoFolder:     "assets/shows",
-		ShowsFolder:               "/home/juliano/Videos/shows",
+		ShowsFolder:               "/home/user/Videos/shows",
 	}
 
-	if _, err := os.Stat(ConfigPath); os.IsNotExist(err) {
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		fmt.Println("Creating new config file...")
 		return saveConfig(config)
 	}
@@ -54,7 +58,7 @@ func InitializeOrUpdateConfigFile() error {
 }
 
 func saveConfig(config schemas.ConfigFile) error {
-	file, err := os.Create(ConfigPath)
+	file, err := os.Create(configPath)
 	if err != nil {
 		return err
 	}
@@ -66,7 +70,7 @@ func saveConfig(config schemas.ConfigFile) error {
 }
 
 func LoadConfig() (*schemas.ConfigFile, error) {
-	file, err := os.Open(ConfigPath)
+	file, err := os.Open(configPath)
 	if err != nil {
 		return nil, err
 	}

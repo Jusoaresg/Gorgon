@@ -1,5 +1,4 @@
-assets/logs
-assets/config.json
+assets/config
 assets/last_update.txt
 assets/downloads
 tmp/*
