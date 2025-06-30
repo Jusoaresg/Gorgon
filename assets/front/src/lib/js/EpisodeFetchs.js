@@ -1,6 +1,6 @@
 export async function changeTrackingStatus(episodeID, newStatus) {
   try {
-    const res = await fetch("api/v1/database/show/episode/status", {
+    const res = await fetch("/api/v1/database/show/episode/status", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
