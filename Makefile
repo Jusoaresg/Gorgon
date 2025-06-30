@@ -1,7 +1,8 @@
 .PHONY: default docs run-with-docs build
 
-default: 
-	cd assets/front/build && npm run build 
+SKIP_BUILD_FRONT ?= false
+
+default: build-front
 	$(MAKE) run-with-docs
 
 docs:
@@ -11,7 +12,11 @@ run-with-docs: docs
 	go run main.go
 
 build-front:
-	cd assets/front && npm run build 
+	@if [ "$(SKIP_BUILD_FRONT)" = "true" ]; then \
+		echo "Skipping front-end build..."; \
+	else \
+		cd assets/front && npm run build; \
+	fi
 
 build: docs build-front
 	mkdir -p ./tmp
