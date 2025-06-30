@@ -4,7 +4,6 @@
 
 <script>
     import { goto } from "$app/navigation";
-    import { PUBLIC_API_BASE_URL } from "$env/static/public";
     import { error } from "@sveltejs/kit";
     import { onMount } from "svelte";
     import { fade, slide, fly, scale, blur } from "svelte/transition";
@@ -39,7 +38,7 @@
 	    loading = true;
 
 	    try {
-		    const res = await fetch(`${PUBLIC_API_BASE_URL}/database/show`, {
+		    const res = await fetch("/api/v1/database/show", {
 			    method: 'POST',
 			    headers: {
 				    "Content-Type": "application/json"

@@ -1,7 +1,6 @@
 <script>
 	import Modal from "$lib/components/Modal.svelte";
 	import { createEventDispatcher } from "svelte";
-	import { PUBLIC_API_BASE_URL } from '$env/static/public';
 	import { json } from "@sveltejs/kit";
 	import { toast } from "svelte-sonner";
 	
@@ -16,7 +15,7 @@
 	const startSearch = async () => {
 		isSearching = true
 		try {
-		const res = await fetch(`${PUBLIC_API_BASE_URL}/prowlarr/search/episode`, {
+		const res = await fetch("/api/v1/prowlarr/search/episode", {
 			method: 'POST',
 			headers: {
 				"Content-Type": "application/json"
@@ -41,7 +40,7 @@
 	
 	const downloadRelease = async (release) => {
 		try {
-		const res = await fetch(`${PUBLIC_API_BASE_URL}/qbittorrent/add/episode`, {
+		const res = await fetch("/api/v1/qbittorrent/add/episode", {
 			method: 'POST',
 			headers: {
 				"Content-Type": "application/json"

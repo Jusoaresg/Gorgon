@@ -1,6 +1,5 @@
 <script>
 import { goto } from '$app/navigation';
-import { PUBLIC_API_BASE_URL } from '$env/static/public';
 import SearchForm from '$lib/components/SearchForm.svelte';
 import { fade, fly, scale, blur } from 'svelte/transition';
 import { flip } from 'svelte/animate';
@@ -29,7 +28,7 @@ async function fetchShows(search) {
 	isLoading = true;
 
 	try {
-		const resp = await fetch(`${PUBLIC_API_BASE_URL}/tvmaze/search/name`, {
+		const resp = await fetch("/api/v1/tvmaze/search/name", {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',

@@ -1,6 +1,5 @@
 <script>
 import EpisodeCard from '$lib/components/EpisodeCard.svelte'
-import { PUBLIC_API_BASE_URL } from '$env/static/public';
 import { onMount } from 'svelte';
 import { page } from '$app/stores';
 import { goto } from '$app/navigation';
@@ -98,7 +97,7 @@ function deleteShow() {
 			label: 'Delete',
 			onClick: () => {
 
-	fetch(`${PUBLIC_API_BASE_URL}/database/show`, {
+	fetch("/api/v1/database/show", {
 		method: "DELETE",
 		headers: {
 			"Content-Type": "application/json"
@@ -122,7 +121,7 @@ async function deleteEpisode(event) {
 	const episodeID = event.detail.id
 
 	try {
-		const res = await fetch(`${PUBLIC_API_BASE_URL}/database/show/episode/${episodeID}`, {
+		const res = await fetch("/api/v1/database/show/episode/${episodeID}", {
 			method: 'DELETE',
 			headers: {
 				"Content-Type": "application/json",
@@ -139,7 +138,7 @@ async function deleteEpisode(event) {
 
 async function updateShowInfo() {
 	try {
-		const res = await fetch(`${PUBLIC_API_BASE_URL}/database/show/update-info`, {
+		const res = await fetch("/api/v1/database/show/update-info", {
 			method: 'POST',
 			headers: {
 				"Content-Type": "application/json",
