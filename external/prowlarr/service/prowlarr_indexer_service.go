@@ -20,10 +20,12 @@ func NewProwlarrIndexerService(logger *slog.Logger) *ProwlarrIndexerService {
 		panic("Error while creting Prowlarr Indexer Service")
 	}
 
+	prowlarrHost := configFile.ProwlarrHost
+	prowlarrPort := configFile.ProwlarrPort
 	return &ProwlarrIndexerService{
 		ApiKey:     configFile.ProwlarrApiKey,
 		Logger:     logger,
-		APIService: *services.NewAPIService("http://127.0.0.1:9696", logger),
+		APIService: *services.NewAPIService(fmt.Sprintf("%s:%s", prowlarrHost, prowlarrPort), logger),
 	}
 }
 

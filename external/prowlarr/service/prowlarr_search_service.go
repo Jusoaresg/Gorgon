@@ -21,10 +21,12 @@ func NewProwlarrSearchService(logger *slog.Logger) (*ProwlarrSearchService, erro
 		return nil, err
 	}
 
+	prowlarrHost := configFile.ProwlarrHost
+	prowlarrPort := configFile.ProwlarrPort
 	return &ProwlarrSearchService{
 		ApiKey:     configFile.ProwlarrApiKey,
 		Logger:     logger,
-		APIService: *services.NewAPIService("http://127.0.0.1:9696", logger),
+		APIService: *services.NewAPIService(fmt.Sprintf("%s:%s", prowlarrHost, prowlarrPort), logger),
 	}, nil
 }
 
