@@ -23,10 +23,12 @@ var clients = make(map[*websocket.Conn]bool)
 var mutex = &sync.Mutex{}
 
 func WebSocketHandler(c echo.Context) error {
+	logger := config.GetLogger().WithGroup("websocket").With("name", "WebSocketHandler")
 	conn, err := upgrader.Upgrade(c.Response().Writer, c.Request(), nil)
 	if err != nil {
 		//TODO: Logger message
-		slog.Error("WebSocket upgrade failed", slog.String("error", err.Error()))
+		logger.Error("WebSocket upgrade failed", slog.String("error", err.Error()))
+		return err
 	}
 
 	mutex.Lock()
@@ -50,7 +52,7 @@ func WebSocketHandler(c echo.Context) error {
 }
 
 func SendWebSocketMessage(message any) {
-	logger := config.GetLogger()
+	logger := config.GetLogger().WithGroup("websocket").With("name", "SendWebSocketMessage")
 	mutex.Lock()
 	defer mutex.Unlock()
 
