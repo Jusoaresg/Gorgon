@@ -42,6 +42,7 @@ func ChangeEpisodeStatus(c echo.Context) error {
 		return err
 	}
 
+	ep.TorrentHash = ""
 	ep.Tracking = request.Tracking
 
 	if err := episodeRepository.Update(ep); err != nil {
