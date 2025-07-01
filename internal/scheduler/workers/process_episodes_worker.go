@@ -45,6 +45,11 @@ func processEpisodesWorker(episodesChan <-chan model.Episode) {
 
 	episodeLogger := logger.WithGroup("episode")
 	for episode := range episodesChan {
+		episodeLogger.Info("Start processing episode",
+			slog.Int("episodeID", int(episode.ID)),
+			slog.Int64("showID", episode.ShowID),
+			slog.String("episodeName", episode.Name),
+		)
 		err := jobs.ProcessSingleEpisode(&episode, prowlarrService, qbittorrentService)
 		if err != nil {
 			episodeLogger.Error(
@@ -53,6 +58,12 @@ func processEpisodesWorker(episodesChan <-chan model.Episode) {
 				slog.Int64("showID", episode.ShowID),
 				slog.String("episodeName", episode.Name),
 				slog.String("error", err.Error()))
+		} else {
+			episodeLogger.Info("Finished processing episode",
+				slog.Int("episodeID", int(episode.ID)),
+				slog.Int64("showID", episode.ShowID),
+				slog.String("episodeName", episode.Name),
+			)
 		}
 	}
 }
