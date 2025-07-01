@@ -10,12 +10,12 @@ import (
 	"github.com/jusoaresg/gorgon/pkg/schemas"
 )
 
-var configPath = filepath.Join(ConfigFolder, "config.json")
+var configPath string
 
 func InitializeOrUpdateConfigFile() error {
-	var updated bool
+	configPath = filepath.Join(ConfigFolder, "config.json")
 
-	inDocker := os.Getenv("IN_DOCKER") == "true"
+	var updated bool
 
 	config := schemas.ConfigFile{
 		ProwlarrApiKey:            "",
@@ -30,7 +30,7 @@ func InitializeOrUpdateConfigFile() error {
 		ShowsFolder:               "/home/user/Videos/shows",
 	}
 
-	if inDocker {
+	if InDocker {
 		config.QBittorrentDownloadFolder = "/downloads"
 		config.ShowsFolder = "/shows"
 		config.DefaultShowInfoFolder = "/app/assets/shows"
