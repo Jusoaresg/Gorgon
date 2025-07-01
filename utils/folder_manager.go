@@ -16,7 +16,12 @@ func CheckCreateAllFolders(path string) error {
 	_, err := os.Stat(path)
 
 	if os.IsNotExist(err) {
-		err = os.MkdirAll(path, 0700)
+		err = os.MkdirAll(path, 0755)
+		if err != nil {
+			return err
+		}
+
+		err = os.Chmod(path, 0755)
 		if err != nil {
 			return err
 		}
