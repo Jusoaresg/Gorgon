@@ -12,7 +12,7 @@ var (
 	InDocker            = false
 	ConfigFolder string = "./configs"
 
-	LogsPath    string
+	LogsPath    string = filepath.Join(ConfigFolder, "logs")
 	Port        string = "8080"
 	baseApiPath string
 	db          *sqlx.DB
