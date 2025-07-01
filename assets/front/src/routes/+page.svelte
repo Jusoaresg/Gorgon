@@ -2,7 +2,7 @@
 import { goto } from '$app/navigation';
 import { onMount } from 'svelte';
 import { fade, fly, scale, slide } from 'svelte/transition';
-import { quintOut } from 'svelte/easing';
+import { quintOut, quintIn } from 'svelte/easing';
 
 // Styles
 import '$lib/styles/shows.css';
@@ -145,7 +145,7 @@ onMount(async () => {
 										aria-hidden=true
 										on:click={() => navigateToShow(show.ID)}
 										in:fly={{ y: 30, duration: 250, delay: i * 20, easing: quintOut }}
-										out:scale={{ duration: 150 }}
+										out:fly={{ x: -200, duration: 250, easing: quintIn }}
 									>
 										<div class="show-poster">
 											{#if show.ImageOriginal}
