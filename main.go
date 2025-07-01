@@ -29,7 +29,9 @@ var embeddedStaticFiles embed.FS
 // @license.name  Apache 2.0
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 func main() {
-	config.Init()
+	if err := config.Init(); err != nil {
+		panic(fmt.Errorf("failed to initialize config: %w", err))
+	}
 
 	e := echo.New()
 
