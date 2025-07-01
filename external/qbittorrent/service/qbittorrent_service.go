@@ -107,7 +107,6 @@ func (q *QBittorrentService) AddTorrent(url string) error {
 	writer := multipart.NewWriter(&requestBody)
 
 	writer.WriteField("urls", url)
-	writer.WriteField("savepath", q.DownloadFolder)
 	writer.WriteField("category", "gorgon")
 	writer.WriteField("skip_checking", "false")
 	writer.WriteField("root_folder", "false")

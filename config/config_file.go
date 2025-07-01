@@ -14,6 +14,9 @@ var configPath = filepath.Join(ConfigFolder, "config.json")
 
 func InitializeOrUpdateConfigFile() error {
 	var updated bool
+
+	inDocker := os.Getenv("IN_DOCKER") == "true"
+
 	config := schemas.ConfigFile{
 		ProwlarrApiKey:            "",
 		ProwlarrHost:              "",
@@ -22,9 +25,22 @@ func InitializeOrUpdateConfigFile() error {
 		QBittorrentPort:           "",
 		QBittorrentUsername:       "",
 		QBittorrentPassword:       "",
-		QBittorrentDownloadFolder: "",
-		DefaultShowInfoFolder:     "assets/shows",
+		QBittorrentDownloadFolder: "downloads",
+		DefaultShowInfoFolder:     "shows",
 		ShowsFolder:               "/home/user/Videos/shows",
+	}
+
+	if inDocker {
+		config.QBittorrentDownloadFolder = "/downloads"
+		config.ShowsFolder = "/shows"
+		config.DefaultShowInfoFolder = "/app/assets/shows"
+
+		config.ProwlarrHost = "http://gorgon-prowlarr"
+		config.ProwlarrPort = "9696"
+
+		config.QBittorrentHost = "http://gorgon-qbittorrent"
+		config.QBittorrentPort = "9191"
+		config.QBittorrentUsername = "admin"
 	}
 
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {

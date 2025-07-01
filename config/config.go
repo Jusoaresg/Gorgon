@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	ConfigFolder string = filepath.Join("assets", "config")
-	LogsPath     string = filepath.Join("assets", "config", "logs")
+	ConfigFolder string = "./configs"
+	LogsPath     string = filepath.Join(ConfigFolder, "logs")
 	Port         string = "8080"
 	baseApiPath  string
 	db           *sqlx.DB

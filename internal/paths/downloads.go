@@ -11,7 +11,7 @@ func GetTorrentDownloadFolder() (string, error) {
 		return "", err
 	}
 
-	return filepath.Join("assets", cfg.QBittorrentDownloadFolder), nil
+	return filepath.Join(cfg.QBittorrentDownloadFolder), nil
 }
 
 func GetEpisodeDownloadFile(episodeFileName string) (string, error) {

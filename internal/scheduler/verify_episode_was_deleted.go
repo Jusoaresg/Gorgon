@@ -40,7 +40,7 @@ func VerifyEpisodeWasDeleted() {
 
 		for _, episode_content := range contents {
 
-			fileFolder := filepath.Join("assets", configFile.QBittorrentDownloadFolder, episode_content.Name)
+			fileFolder := filepath.Join(configFile.QBittorrentDownloadFolder, episode_content.Name)
 			filePath, _ := filepath.Abs(fileFolder)
 
 			_, err := os.Stat(filePath)

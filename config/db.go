@@ -17,7 +17,7 @@ func InitializeDb() (*sqlx.DB, error) {
 
 	_, err := os.Stat(dbPath)
 	if os.IsNotExist(err) {
-		err := os.Mkdir(ConfigFolder, 0700)
+		err := os.MkdirAll(ConfigFolder, 0700)
 		if err != nil {
 			return nil, err
 		}

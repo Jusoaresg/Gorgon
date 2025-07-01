@@ -1,6 +1,7 @@
-assets/config
 assets/last_update.txt
-assets/downloads
+configs
+downloads
+shows
 tmp/*
 *.log
 *.db

@@ -53,7 +53,12 @@ func CreateSymlink(downloadPath, destPath string) error {
 		}
 	}
 
-	return os.Symlink(downloadPath, destPath)
+	relativePath, err := filepath.Rel(filepath.Dir(destPath), downloadPath)
+	if err != nil {
+		return err
+	}
+
+	return os.Symlink(relativePath, destPath)
 }
 
 func IsSymlinkBroken(path string) (bool, error) {
