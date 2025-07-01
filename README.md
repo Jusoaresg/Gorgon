@@ -168,9 +168,9 @@ Here are the next steps planned for Gorgon, focusing on expanding features, impr
 - **Testing:**
   - [ ] Increase unit test coverage across the backend.
 - **Deployment:**
-  - [ ] Create a `Dockerfile` for the Gorgon application.
+  - [X] Create a `Dockerfile` for the Gorgon application.
   - [x] Set up a `docker-compose.yml` file for a complete, one-command deployment with Prowlarr and a torrent client.
-  - [ ] Implement a CI/CD pipeline for automated testing and builds.
+  - [X] Implement a CI pipeline for automated testing and builds.
 
 ## 📜 Disclaimer
 
