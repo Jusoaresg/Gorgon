@@ -21,7 +21,7 @@ type EpisodeUpdatedWebsocketSchema struct {
 	Tracking  string `json:"tracking"`
 }
 
-func ProcessSingleSnatchedDownload(ep *model.Episode, qbittorrentService service.QBittorrentService) error {
+func ProcessSingleSnatchedDownload(ep *model.Episode, qbittorrentService *service.QBittorrentService) error {
 	logger := config.GetLogger()
 	db := config.GetSQLite()
 	episodeRepo := episodeRepository.NewEpisodeRepository(db)

@@ -37,7 +37,7 @@ func init() {
 	}()
 }
 
-func ProcessSingleEpisode(ep *model.Episode, prowlarrService prowlarr.ProwlarrSearchService, qbittorrentService qbittorrent.QBittorrentService) error {
+func ProcessSingleEpisode(ep *model.Episode, prowlarrService *prowlarr.ProwlarrSearchService, qbittorrentService *qbittorrent.QBittorrentService) error {
 	logger := config.GetLogger().WithGroup("jobs").With("name", "ProcessSingleEpisode")
 	episodeRepo := episodeRepository.NewEpisodeRepository(config.GetSQLite())
 	showRepo := showRepository.NewShowRepository(config.GetSQLite())
