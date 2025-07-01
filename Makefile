@@ -38,5 +38,7 @@ lint:
 
 clean:
 	rm -rf ./tmp
+	rm -rf ./configs
+	rm -rf ./downloads
 
 check: build-front test lint
