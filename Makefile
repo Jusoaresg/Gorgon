@@ -21,14 +21,14 @@ build-front:
 
 build: docs build-front
 	mkdir -p ./tmp
-	go build -o ./tmp/main .
+	CGO_ENABLED=0 go build -o ./tmp/main .
 
 cross-build: docs build-front
 	set -e; \
 	mkdir -p ./tmp; \
-	GOOS=linux GOARCH=amd64 go build -o ./tmp/main_linux_amd64 .; \
-	GOOS=windows GOARCH=amd64 go build -o ./tmp/main_windows_amd64.exe .; \
-	GOOS=darwin GOARCH=arm64 go build -o ./tmp/main_darwin_arm64 .
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./tmp/main_linux_amd64 .; \
+	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o ./tmp/main_windows_amd64.exe .; \
+	CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o ./tmp/main_darwin_arm64 .
 
 
 test: 

@@ -4,12 +4,12 @@ import (
 	"github.com/jusoaresg/gorgon/migrations"
 
 	"github.com/jmoiron/sqlx"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/pressly/goose/v3"
+	_ "modernc.org/sqlite"
 )
 
 func GetTestDB() *sqlx.DB {
-	db, err := sqlx.Connect("sqlite3", ":memory:"+"?_foreign_keys=on")
+	db, err := sqlx.Connect("sqlite", "file::memory:?_pragma=foreign_keys=ON")
 	if err != nil {
 		panic(err)
 	}

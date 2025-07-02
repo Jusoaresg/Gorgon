@@ -7,8 +7,8 @@ import (
 	"github.com/jusoaresg/gorgon/migrations"
 
 	"github.com/jmoiron/sqlx"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/pressly/goose/v3"
+	_ "modernc.org/sqlite"
 )
 
 func InitializeDb() (*sqlx.DB, error) {
@@ -32,7 +32,7 @@ func InitializeDb() (*sqlx.DB, error) {
 		file.Close()
 	}
 
-	db, err := sqlx.Open("sqlite3", dbPath+"?_foreign_keys=on")
+	db, err := sqlx.Open("sqlite", "file:"+dbPath+"?_pragma=foreign_keys=ON")
 	if err != nil {
 		return nil, err
 	}
