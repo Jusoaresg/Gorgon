@@ -44,25 +44,36 @@
 
 .shows-page .view-controls {
 	display: flex;
-	gap: 8px;
+	gap: 4px;
+	background-color: var(--input-bg);
+	padding: 4px;
+	border-radius: 8px;
+	border: 1px solid var(--border-color);
 }
 
 .shows-page .view-btn {
-	padding: 6px 10px;
-	background-color: var(--input-bg);
-	border: 1px solid var(--border-color);
-	border-radius: 4px;
-	color: var(--text-color);
+	padding: 8px 16px;
+	background-color: transparent;
+	border: none;
+	border-radius: 6px;
+	color: var(--text-muted);
 	cursor: pointer;
-	font-size: 12px;
-	transition: all 0.2s;
+	font-size: 13px;
+	font-weight: 500;
+	transition: all 0.2s ease;
+	white-space: nowrap;
 }
 
-.shows-page .view-btn:hover,
+.shows-page .view-btn:hover {
+	color: var(--text-color);
+	background-color: rgba(255, 255, 255, 0.05);
+}
+
+
 .shows-page .view-btn.active {
 	background-color: var(--highlight);
-	border-color: var(--highlight);
 	color: white;
+	box-shadow: 0 2px 8px rgba(125, 0, 163, 0.3);
 }
 
 /* Grid compacto */

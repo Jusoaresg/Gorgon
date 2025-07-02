@@ -1,4 +1,5 @@
 <script>
+import ShowCard from '$lib/components/ShowCard.svelte';
 import { goto } from '$app/navigation';
 import { onMount } from 'svelte';
 import { fade, fly, scale, slide } from 'svelte/transition';
@@ -9,44 +10,173 @@ import '$lib/styles/shows.css';
 
 let allShows = [];
 let shows = [];
-let currentView = 'grid';
+let showFilter = 'all';
 let searchQuery = '';
 let isLoading = true;
 
-// Stats calculadas
+// Stats calculation
 $: totalShows = shows.length;
 $: continuingShows = shows.filter(show => show.Status === 'Running').length;
 $: endedShows = shows.filter(show => show.Status === 'Ended').length;
 $: missingShows = shows.filter(show => !show.Status || show.Status === 'Missing').length;
 
-function navigateToShow(showId) {
-	goto(`/show/${showId}`);
+let upcomingEpisodes = [];
+
+$: if (!isLoading && allShows.length > 0) {
+	const now = new Date();
+
+	upcomingEpisodes = allShows
+		.map(showAgg => {
+			const { Show, Episodes } = showAgg;
+
+			// Get episodes from today onwards, including already aired today
+			const relevantEps = Episodes
+			.filter(ep => {
+				const airDate = new Date(ep.AirStamp);
+				const today = new Date();
+				today.setHours(0, 0, 0, 0); // Start of today
+				return airDate >= today; // Include episodes from today onwards
+			})
+			.sort((a, b) => new Date(a.AirStamp) - new Date(b.AirStamp));
+
+			if (relevantEps.length === 0) return null;
+
+			const nextEpisode = relevantEps[0];
+			const airDate = new Date(nextEpisode.AirStamp);
+
+			// Calculate days difference and check if already aired
+			const diffTime = airDate - now;
+			const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+			const hasAlreadyAired = airDate < now; // Episode time has passed
+			const isToday = diffDays === 0 || hasAlreadyAired && diffDays <= 0;
+
+			// Determine priority for sorting
+			let priority = 999;
+			if (isToday && hasAlreadyAired) {
+				priority = 0; // Already aired today - show first with different styling
+			} else if (diffDays === 0) {
+				priority = 1; // Airing today - show second
+			} else if (diffDays === 1) {
+				priority = 2; // Tomorrow
+			} else if (diffDays > 1 && diffDays <= 7) {
+				priority = 3; // This week
+			} else if (diffDays <= 30) {
+				priority = 4; // This month
+			}
+
+			return {
+				show: Show,
+				nextEpisode: nextEpisode,
+				priority: priority,
+				daysUntil: diffDays,
+				hasAlreadyAired: hasAlreadyAired,
+				isToday: isToday
+			};
+		})
+		.filter(Boolean)
+		// Sort by priority first, then by air date
+		.sort((a, b) => {
+			if (a.priority !== b.priority) {
+				return a.priority - b.priority;
+			}
+			return new Date(a.nextEpisode.AirStamp) - new Date(b.nextEpisode.AirStamp);
+		});
 }
+
+$: todayEpisodes = upcomingEpisodes.filter(item => item.category === 'today');
+$: tomorrowEpisodes = upcomingEpisodes.filter(item => item.category === 'tomorrow');
+$: thisWeekEpisodes = upcomingEpisodes.filter(item => item.category === 'this-week');
+$: thisMonthEpisodes = upcomingEpisodes.filter(item => item.category === 'this-month');
 
 function handleSearch() {
 	const query = searchQuery.toLowerCase();
-	shows = allShows.filter(show => 
-		show.Name.toLowerCase().includes(query)
-	);
-}
 
-function switchView(view) {
-	currentView = view;
-}
+	if (showFilter === 'upcoming') {
+		const now = new Date();
 
-function getStatusColor(status) {
-	switch(status) {
-		case 'Running': return '#00FF7F';
-		case 'Ended': return '#FF6B6B';
-		case 'Missing': return '#FFD93D';
-		default: return '#999';
+		upcomingEpisodes = allShows
+			.map(showAgg => {
+				const { Show, Episodes } = showAgg;
+
+				// Filter by search query first
+				if (query && !Show.Name.toLowerCase().includes(query)) {
+					return null;
+				}
+
+				// Get episodes from today onwards, including already aired today
+				const relevantEps = Episodes
+				.filter(ep => {
+					const airDate = new Date(ep.AirStamp);
+					const today = new Date();
+					today.setHours(0, 0, 0, 0); // Start of today
+					return airDate >= today; // Include episodes from today onwards
+				})
+				.sort((a, b) => new Date(a.AirStamp) - new Date(b.AirStamp));
+
+				if (relevantEps.length === 0) return null;
+
+				const nextEpisode = relevantEps[0];
+				const airDate = new Date(nextEpisode.AirStamp);
+
+				// Calculate days difference and check if already aired
+				const diffTime = airDate - now;
+				const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+				const hasAlreadyAired = airDate < now; // Episode time has passed
+				const isToday = diffDays === 0 || hasAlreadyAired && diffDays <= 0;
+
+				// Determine priority for sorting
+				let priority = 999;
+				if (isToday && hasAlreadyAired) {
+					priority = 0; // Already aired today - show first with different styling
+				} else if (diffDays === 0) {
+					priority = 1; // Airing today - show second
+				} else if (diffDays === 1) {
+					priority = 2; // Tomorrow
+				} else if (diffDays > 1 && diffDays <= 7) {
+					priority = 3; // This week
+				} else if (diffDays <= 30) {
+					priority = 4; // This month
+				}
+
+				return {
+					show: Show,
+					nextEpisode: nextEpisode,
+					priority: priority,
+					daysUntil: diffDays,
+					hasAlreadyAired: hasAlreadyAired,
+					isToday: isToday
+				};
+			})
+			.filter(Boolean)
+			.sort((a, b) => {
+				if (a.priority !== b.priority) {
+					return a.priority - b.priority;
+				}
+				return new Date(a.nextEpisode.AirStamp) - new Date(b.nextEpisode.AirStamp);
+			});
 	}
 }
 
+function navigateToShow(event) {
+	const showID = event.detail
+	goto(`/show/${showID}`);
+}
+
+function switchFilter(filter) {
+	showFilter = filter;
+	localStorage.setItem('sortMode', showFilter)
+}
+
 onMount(async () => {
+	const sortMode = localStorage.getItem('sortMode');
+	if (sortMode) {
+		showFilter = sortMode;
+	}
+
 	try {
-		const res = await fetch("/api/v1/database/show");
+		const res = await fetch("/api/v1/database/show/full");
 		const json = await res.json();
+		console.log(json.data)
 		allShows = json.data || [];
 		shows = json.data || [];
 	} catch (error) {
@@ -86,17 +216,17 @@ onMount(async () => {
 					<div class="view-controls" in:fly={{ x: 20, duration: 250, delay: 200 }}>
 						<button 
 							class="view-btn" 
-							class:active={currentView === 'grid'}
-							on:click={() => switchView('grid')}
+							class:active={showFilter === 'all'}
+							on:click={() => switchFilter('all')}
 						>
-							Grid
+							All Shows
 						</button>
 						<button 
 							class="view-btn" 
-							class:active={currentView === 'list'}
-							on:click={() => switchView('list')}
+							class:active={showFilter === 'upcoming'}
+							on:click={() => switchFilter('upcoming')}
 						>
-							List
+							Next Episodes
 						</button>
 					</div>
 				</div>
@@ -135,88 +265,36 @@ onMount(async () => {
 						<p>Try adjusting your search or add some shows to your collection.</p>
 					</div>
 				{:else}
-					<!-- Grid View -->
-					{#if currentView === 'grid'}
+					<!-- All Shows -->
+					{#if showFilter === 'all'}
 						<div class="grid-view active" in:fade={{ duration: 200 }}>
 							<div class="shows-grid">
-								{#each shows as show, i (show.ID)}
-									<div
-										class="show-card"
-										aria-hidden=true
-										on:click={() => navigateToShow(show.ID)}
-										in:fly={{ y: 30, duration: 250, delay: i * 20, easing: quintOut }}
-										out:fly={{ x: -200, duration: 250, easing: quintIn }}
-									>
-										<div class="show-poster">
-											{#if show.ImageOriginal}
-												<img src={show.ImageMedium} alt={show.Name} loading="lazy"
-													 in:scale={{ duration: 200, delay: 100 }}>
-											{:else}
-												<div class="no-image" in:fade={{ duration: 200 }}>
-													<span>No Image</span>
-												</div>
-											{/if}
-											<div 
-												class="show-status" 
-												style="background-color: {getStatusColor(show.Status)}"
-												in:scale={{ duration: 150, delay: 200 }}
-											></div>
-										</div>
-										<div class="show-info" in:fly={{ y: 10, duration: 200, delay: 150 }}>
-											<div class="show-title">{show.Name}</div>
-											<div class="show-meta">
-												<span>{show.Premiered ? show.Premiered : 'N/A'}</span>
-												<span>{show.Rating || 'N/A'}</span>
-											</div>
-										</div>
-									</div>
+								{#each shows as showAggregated, i (showAggregated.Show.ID)}
+									<ShowCard
+										show={showAggregated.Show}
+										showUpcoming={false}
+										{i}
+										on:select={navigateToShow}
+									/>
 								{/each}
 							</div>
 						</div>
 					{/if}
 
-					<!-- List View -->
-					{#if currentView === 'list'}
-						<div class="list-view active" in:fade={{ duration: 200 }}>
-							<div class="shows-list">
-								<div class="list-header" in:fly={{ y: -10, duration: 200, delay: 50 }}>
-									<div></div>
-									<div>Title</div>
-									<div>Year</div>
-									<div>Status</div>
-									<div>Rating</div>
-									<div></div>
-								</div>
-								<div class="shows-list-content">
-									{#each shows as show, i (show.ID)}
-										<div
-											class="show-row"
-											aria-hidden=true
-											on:click={() => navigateToShow(show.ID)}
-											in:fly={{ x: -20, duration: 200, delay: i * 15, easing: quintOut }}
-											out:fly={{ x: 20, duration: 150 }}
-										>
-											<div class="row-poster">
-												{#if show.ImageMedium}
-													<img src={show.ImageMedium} alt={show.Name} loading="lazy"
-														 in:scale={{ duration: 150, delay: 50 }}>
-												{:else}
-													<div class="no-image-small" in:fade={{ duration: 150 }}></div>
-												{/if}
-											</div>
-											<div class="row-title">{show.Name}</div>
-											<div class="row-year">{show.FirstAired ? new Date(show.FirstAired).getFullYear() : 'N/A'}</div>
-											<div class="row-status" 
-												 style="background-color: {getStatusColor(show.Status)}"
-												 in:scale={{ duration: 150, delay: 100 }}>{show.Status || 'Unknown'}</div>
-											<div class="row-rating">{show.Rating || 'N/A'}</div>
-											<div class="row-actions" in:fade={{ duration: 150, delay: 150 }}>
-												<div class="action-icon" title="Edit">✎</div>
-												<div class="action-icon" title="Delete">×</div>
-											</div>
-										</div>
-									{/each}
-								</div>
+
+					<!-- Next Episode -->
+					{#if showFilter === 'upcoming'}
+						<div class="grid-view active" in:fade={{ duration: 200 }}>
+							<div class="shows-grid">
+								{#each upcomingEpisodes as { show, nextEpisode, category, daysUtil }, i (show.ID)}
+									<ShowCard
+										show={show}
+										showUpcoming={true}
+										nextEpisode={nextEpisode}
+										{i}
+										on:select={navigateToShow}
+									/>
+								{/each}
 							</div>
 						</div>
 					{/if}
@@ -246,7 +324,7 @@ onMount(async () => {
 }
 
 @keyframes spin {
-	0% { transform: rotate(0deg); }
-	100% { transform: rotate(360deg); }
+0% { transform: rotate(0deg); }
+100% { transform: rotate(360deg); }
 }
 </style>
