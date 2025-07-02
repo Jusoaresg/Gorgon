@@ -1,6 +1,7 @@
 <script>
 import { goto } from '$app/navigation';
 import SearchForm from '$lib/components/SearchForm.svelte';
+import Loading from '$lib/components/Loading.svelte';
 import { fade, fly, scale, blur } from 'svelte/transition';
 import { flip } from 'svelte/animate';
 import { quintOut, elasticOut } from 'svelte/easing';
@@ -106,14 +107,7 @@ function handleKeydown(event) {
 
 		<main class="results-section" in:fly={{ y: 40, duration: 600, delay: 500 }}>
 			{#if isLoading}
-				<div class="loading-state" in:fade={{ duration: 300 }}>
-					<div class="loading-spinner">
-						<div class="spinner-ring"></div>
-						<div class="spinner-ring"></div>
-						<div class="spinner-ring"></div>
-					</div>
-					<p class="loading-text">Searching for "{searchQuery}"...</p>
-				</div>
+				<Loading text="Searching for {searchQuery}..."/>
 			{:else if shows.length > 0}
 				<div class="results-header" in:fade={{ duration: 400 }}>
 					<h2>Found {shows.length} show{shows.length !== 1 ? 's' : ''}</h2>

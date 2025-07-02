@@ -1,5 +1,6 @@
 <script>
 import EpisodeCard from '$lib/components/EpisodeCard.svelte'
+import Loading from '$lib/components/Loading.svelte';
 import { onMount } from 'svelte';
 import { page } from '$app/stores';
 import { goto } from '$app/navigation';
@@ -178,10 +179,7 @@ function bulkyEdit() {
 </svelte:head>
 
 {#if isLoading}
-	<div class="loading-container" in:fade={{ duration: 200 }}>
-		<div class="spinner"></div>
-		<p>Loading show...</p>
-	</div>
+	<Loading text="Loading show..."/>
 {:else if show}
 	<div class="show-page" in:fade={{ duration: 250, delay: 50 }}>
 	<div class="show-container">

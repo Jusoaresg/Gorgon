@@ -7,6 +7,7 @@ import { quintOut, quintIn } from 'svelte/easing';
 
 // Styles
 import '$lib/styles/shows.css';
+    import Loading from '$lib/components/Loading.svelte';
 
 let allShows = [];
 let shows = [];
@@ -199,10 +200,7 @@ onMount(async () => {
 </svelte:head>
 
 {#if isLoading}
-	<div class="loading-container" in:fade={{ duration: 200 }}>
-		<div class="spinner"></div>
-		<p>Loading shows...</p>
-	</div>
+	<Loading text="Loading shows..."/>
 {:else}
 	<div class="shows-page" in:fade={{ duration: 250 }}>
 		<div class="shows-page container">
@@ -308,28 +306,3 @@ onMount(async () => {
 		</div>
 	</div>
 {/if}
-
-<style>
-.loading-container {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	height: 50vh;
-	gap: 1rem;
-}
-
-.spinner {
-	width: 40px;
-	height: 40px;
-	border: 4px solid #f3f3f3;
-	border-top: 4px solid #3498db;
-	border-radius: 50%;
-	animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-0% { transform: rotate(0deg); }
-100% { transform: rotate(360deg); }
-}
-</style>
