@@ -1,6 +1,7 @@
 .PHONY: default docs run-with-docs build
 
 SKIP_BUILD_FRONT ?= false
+TAG ?= latest
 
 default: build-front
 	$(MAKE) run-with-docs
@@ -42,3 +43,6 @@ clean:
 	rm -rf ./downloads
 
 check: build-front test lint
+
+docker-build:
+	docker build -t jusoares/gorgon:$(TAG) .
