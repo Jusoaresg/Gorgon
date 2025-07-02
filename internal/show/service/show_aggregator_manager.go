@@ -57,3 +57,32 @@ func (s *ShowAggregatorService) GetShowWithRelations(tvMazeID int64) (Aggregated
 		Episodes: episode,
 	}, nil
 }
+
+func (s *ShowAggregatorService) ListFullShows() ([]AggregatedShow, error) {
+	shows, err := s.ShowRepo.List()
+	if err != nil {
+		return nil, err
+	}
+
+	var aggregated []AggregatedShow
+
+	for _, show := range shows {
+		seasons, err := s.SeasonRepo.ListByShowId(show.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		episodes, err := s.EpisodeRepo.ListByShowID(show.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		aggregated = append(aggregated, AggregatedShow{
+			Show:     show,
+			Seasons:  seasons,
+			Episodes: episodes,
+		})
+	}
+
+	return aggregated, nil
+}

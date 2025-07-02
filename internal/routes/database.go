@@ -24,6 +24,9 @@ func SetupDatabaseRouter(v1 *echo.Group) {
 			showGroup.GET("", showHandler.ListShows)
 			logger.Info("GET route added to /api/v1/database/show")
 
+			showGroup.GET("/full", showHandler.ListFullShows)
+			logger.Info("GET route added to /api/v1/database/show/full")
+
 			showGroup.GET("/:id", showHandler.GetShow)
 			logger.Info("GET route added to /api/v1/database/show/:id")
 

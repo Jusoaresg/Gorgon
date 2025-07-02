@@ -493,6 +493,38 @@ const docTemplate = `{
                 }
             }
         },
+        "/database/show/full": {
+            "get": {
+                "description": "List all shows",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Database/Show"
+                ],
+                "summary": "List Full Shows",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/database/show/seasons/{id}": {
             "get": {
                 "description": "List Show Seasons",
