@@ -154,7 +154,12 @@ function handleSearch() {
 				}
 				return new Date(a.nextEpisode.AirStamp) - new Date(b.nextEpisode.AirStamp);
 			});
-	}
+	} else if (showFilter === 'all') {
+		shows = allShows.filter(showAgg => {
+			const showName = showAgg.Show.Name.toLowerCase();
+			return showName.includes(query);
+		});
+	};
 }
 
 function navigateToShow(event) {
