@@ -71,7 +71,9 @@ onMount(async () => {
 		isLoading = false;
 	}
 
-	socket = new WebSocket('ws://localhost:8080/api/v1/ws')
+	const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+	const wsUrl = `${protocol}//${window.location.host}/api/v1/ws`;
+	socket = new WebSocket(wsUrl)
 
 	socket.onopen = () => {
 		console.log("WebSocket connected")
