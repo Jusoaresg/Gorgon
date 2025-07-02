@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -10,6 +11,7 @@ import (
 
 var (
 	InDocker            = false
+	BaseDir             = "."
 	ConfigFolder string = "./configs"
 
 	LogsPath    string = filepath.Join(ConfigFolder, "logs")
@@ -17,17 +19,26 @@ var (
 	baseApiPath string
 	db          *sqlx.DB
 	logger      *slog.Logger
+	err         error
 )
 
 func Init() error {
-	var err error
 	InDocker = os.Getenv("IN_DOCKER") == "true"
+
+	if baseDirEnv := os.Getenv("GORGON_BASE_DIR"); baseDirEnv != "" {
+		BaseDir = baseDirEnv
+	}
 
 	if InDocker {
 		ConfigFolder = "/configs"
+		LogsPath = filepath.Join(ConfigFolder, "logs")
+		BaseDir = "/"
 	}
 
-	LogsPath = filepath.Join(ConfigFolder, "logs")
+	if err := ReloadFolders(); err != nil {
+		return err
+	}
+
 	logger = NewLogger()
 
 	dbInstance, err := InitializeDb()
@@ -38,7 +49,26 @@ func Init() error {
 
 	InitializeOrUpdateConfigFile()
 
-	InitializeDownloadFolders()
+	return nil
+}
+
+func ReloadFolders() error {
+	ConfigFolder = filepath.Join(BaseDir, "configs")
+	LogsPath = filepath.Join(ConfigFolder, "logs")
+
+	dirs := []string{
+		ConfigFolder,
+		LogsPath,
+		filepath.Join(BaseDir, "downloads"),
+	}
+
+	for _, dir := range dirs {
+		//TODO: Logging creating necessary directories
+		err := os.MkdirAll(dir, 0755)
+		if err != nil {
+			return fmt.Errorf("failed to create directory %s: %w", dir, err)
+		}
+	}
 
 	return nil
 }
