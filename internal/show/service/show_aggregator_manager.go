@@ -1,6 +1,8 @@
 package service
 
 import (
+	"fmt"
+
 	episodeModel "github.com/jusoaresg/gorgon/internal/episode/model"
 	seasonModel "github.com/jusoaresg/gorgon/internal/season/model"
 	showModel "github.com/jusoaresg/gorgon/internal/show/model"
@@ -38,17 +40,17 @@ func (s *ShowAggregatorService) GetShowWithRelations(tvMazeID int64) (Aggregated
 
 	show, err := s.ShowRepo.GetByTvMazeID(tvMazeID)
 	if err != nil {
-		return AggregatedShow{}, err
+		return AggregatedShow{}, fmt.Errorf("Failed to get show by tvmazeID: %w", err)
 	}
 
 	season, err := s.SeasonRepo.ListByShowId(show.ID)
 	if err != nil {
-		return AggregatedShow{}, err
+		return AggregatedShow{}, fmt.Errorf("Failed to get season by showID: %w", err)
 	}
 
 	episode, err := s.EpisodeRepo.ListByShowID(show.ID)
 	if err != nil {
-		return AggregatedShow{}, err
+		return AggregatedShow{}, fmt.Errorf("Failed to get episode by showID: %w", err)
 	}
 
 	return AggregatedShow{
