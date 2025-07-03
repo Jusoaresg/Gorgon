@@ -130,12 +130,16 @@ func ProcessSingleEpisode(ep *model.Episode, prowlarrService *prowlarr.ProwlarrS
 	logger.Debug("Response", slog.String("Show", show.Name), slog.String("Episode", ep.Name), slog.String("Response", url))
 	logger.Debug("Final chosen torrent", slog.String("Filename", response[0].Filename))
 
-	qbittorrentService.AddTorrent(url)
+	if err := qbittorrentService.AddTorrent(url); err != nil {
+		logger.Error("failed to add torrent", slog.String("error", err.Error()))
+		return err
+	}
 
 	ep.Tracking = model.TrackingSnatched
 	ep.TorrentHash = response[0].InfoHash
 
 	if err := episodeRepo.Update(*ep); err != nil {
+		logger.Error("failed to update episode", slog.String("error", err.Error()))
 		return err
 	}
 
