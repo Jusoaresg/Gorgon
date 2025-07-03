@@ -1,22 +1,16 @@
 package main
 
 import (
-	"embed"
 	"fmt"
 	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/internal/routes"
 	"github.com/jusoaresg/gorgon/internal/scheduler"
 	"github.com/jusoaresg/gorgon/internal/scheduler/cron"
 	"github.com/jusoaresg/gorgon/internal/scheduler/workers"
-	"io/fs"
-	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
-
-//go:embed all:assets/front/build
-var embeddedStaticFiles embed.FS
 
 // @title           Gongon
 // @version         0.1
@@ -45,22 +39,7 @@ func main() {
 	e.Use(middleware.CORSWithConfig(cors))
 	e.Use(middleware.Logger())
 
-	buildFS, err := fs.Sub(embeddedStaticFiles, "assets/front/build")
-	if err != nil {
-		panic(fmt.Errorf("erro ao acessar build embedado: %w", err))
-	}
-
-	e.GET("/favicon.png", echo.WrapHandler(http.FileServer(http.FS(buildFS))))
-	e.GET("/_app/*", echo.WrapHandler(http.FileServer(http.FS(buildFS))))
-	e.GET("/css/*", echo.WrapHandler(http.FileServer(http.FS(buildFS))))
-
-	e.GET("/*", func(c echo.Context) error {
-		index, err := fs.ReadFile(buildFS, "index.html")
-		if err != nil {
-			panic(err)
-		}
-		return c.Blob(http.StatusOK, echo.MIMETextHTML, index)
-	})
+	routes.SetupFrontRouter(e)
 
 	routes.InitializeRoutes(e)
 	cron.StartDailyUpdate(scheduler.UpdateAllShows)
