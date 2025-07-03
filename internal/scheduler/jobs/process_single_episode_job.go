@@ -49,7 +49,7 @@ func ProcessSingleEpisode(ep *model.Episode, prowlarrService *prowlarr.ProwlarrS
 
 	aired, err := ep.HasAired()
 	if err != nil {
-		logger.Warn("Failed to parse AirStamp", slog.String("AirStamp", ep.AirStamp), slog.String("Episode", ep.Name))
+		logger.Warn("Failed to parse AirStamp", slog.Int64("AirStamp", ep.AirStamp), slog.String("Episode", ep.Name))
 	}
 
 	if aired == false {

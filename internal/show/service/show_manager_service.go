@@ -12,6 +12,7 @@ import (
 	seasonRepository "github.com/jusoaresg/gorgon/internal/season/repository"
 	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
 	"github.com/jusoaresg/gorgon/pkg/schemas/dtos"
+	"github.com/jusoaresg/gorgon/utils"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -136,7 +137,13 @@ func (sm *ShowManagerService) UpdateShowWithRelations(showDTO dtos.ShowDto, seas
 			existing.Name = episode.Name
 			existing.Summary = episode.Summary
 			existing.Type = episode.Type
-			existing.AirStamp = episode.AirStamp
+
+			// Converting string time to int64(unix)
+			dtoTime, err := utils.TimeStringToInt64(episode.AirStamp)
+			if err != nil {
+				return err
+			}
+			existing.AirStamp = dtoTime
 
 			if err := sm.EpisodeRepo.UpdateTx(tx, *existing); err != nil {
 				return err
@@ -148,6 +155,11 @@ func (sm *ShowManagerService) UpdateShowWithRelations(showDTO dtos.ShowDto, seas
 				return fmt.Errorf("season %d not found when creating episode", episode.Season)
 			}
 
+			dtoTime, err := utils.TimeStringToInt64(episode.AirStamp)
+			if err != nil {
+				return err
+			}
+
 			newEpisode := episodeModel.Episode{
 				ShowID:   showModel.ID,
 				SeasonID: season.ID,
@@ -156,11 +168,11 @@ func (sm *ShowManagerService) UpdateShowWithRelations(showDTO dtos.ShowDto, seas
 				Type:     episode.Type,
 				Number:   episode.Number,
 				Season:   episode.Season,
-				AirStamp: episode.AirStamp,
+				AirStamp: dtoTime,
 				Tracking: model.TrackingWanted,
 			}
 
-			_, err := sm.EpisodeRepo.CreateTx(tx, newEpisode)
+			_, err = sm.EpisodeRepo.CreateTx(tx, newEpisode)
 			if err != nil {
 				//TODO: Error message
 				return err

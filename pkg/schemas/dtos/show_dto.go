@@ -1,10 +1,13 @@
 package dtos
 
 import (
+	"log"
+	"strconv"
+	"time"
+
 	episodeModel "github.com/jusoaresg/gorgon/internal/episode/model"
 	seasonModel "github.com/jusoaresg/gorgon/internal/season/model"
 	showModel "github.com/jusoaresg/gorgon/internal/show/model"
-	"strconv"
 )
 
 type ShowDto struct {
@@ -74,6 +77,16 @@ type EpisodeDto struct {
 }
 
 func (s *EpisodeDto) ToModel(showID int64, seasonID int64) *episodeModel.Episode {
+	var airstampUnix int64
+	if s.AirStamp != "" {
+		t, err := time.Parse(time.RFC3339, s.AirStamp)
+		if err != nil {
+			log.Printf("failed to parse airstamp: %v", err)
+		} else {
+			airstampUnix = t.Unix()
+		}
+	}
+
 	return &episodeModel.Episode{
 		ShowID:   showID,
 		Name:     s.Name,
@@ -81,7 +94,7 @@ func (s *EpisodeDto) ToModel(showID int64, seasonID int64) *episodeModel.Episode
 		Season:   s.Season,
 		Number:   s.Number,
 		Type:     s.Type,
-		AirStamp: s.AirStamp,
+		AirStamp: airstampUnix,
 		Summary:  s.Summary,
 		Tracking: s.Tracking,
 	}

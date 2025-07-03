@@ -61,7 +61,7 @@ func fetchWantedEpisodes() []model.Episode {
 			AND airstamp <= ? 
 		LIMIT 20`,
 		[]string{"wanted", "missing"},
-		time.Now().UTC(),
+		time.Now().UTC().Unix(),
 	)
 	if err != nil {
 		logger.Error("Failed to build SQL query with sqlx.In", slog.String("error", err.Error()))

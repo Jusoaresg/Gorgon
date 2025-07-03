@@ -81,7 +81,7 @@
 	const formatAge = (publishDate) => {
 		if (!publishDate) return "Unknown";
 		const now = new Date();
-		const releaseDate = new Date(publishDate);
+		const releaseDate = new Date(publishDate * 1000);
 		const diffTime = Math.abs(now - releaseDate);
 		const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 		

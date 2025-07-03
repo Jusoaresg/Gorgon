@@ -33,17 +33,17 @@ $: if (!isLoading && allShows.length > 0) {
 			// Get episodes from today onwards, including already aired today
 			const relevantEps = Episodes
 			.filter(ep => {
-				const airDate = new Date(ep.AirStamp);
+				const airDate = new Date(ep.AirStamp * 1000);
 				const today = new Date();
 				today.setHours(0, 0, 0, 0); // Start of today
 				return airDate >= today; // Include episodes from today onwards
 			})
-			.sort((a, b) => new Date(a.AirStamp) - new Date(b.AirStamp));
+			.sort((a, b) => new Date(a.AirStamp * 1000) - new Date(b.AirStamp * 1000));
 
 			if (relevantEps.length === 0) return null;
 
 			const nextEpisode = relevantEps[0];
-			const airDate = new Date(nextEpisode.AirStamp);
+			const airDate = new Date(nextEpisode.AirStamp * 1000);
 
 			// Calculate days difference and check if already aired
 			const diffTime = airDate - now;
@@ -80,7 +80,7 @@ $: if (!isLoading && allShows.length > 0) {
 			if (a.priority !== b.priority) {
 				return a.priority - b.priority;
 			}
-			return new Date(a.nextEpisode.AirStamp) - new Date(b.nextEpisode.AirStamp);
+			return new Date(a.nextEpisode.AirStamp * 1000) - new Date(b.nextEpisode.AirStamp * 1000);
 		});
 }
 
@@ -107,17 +107,17 @@ function handleSearch() {
 				// Get episodes from today onwards, including already aired today
 				const relevantEps = Episodes
 				.filter(ep => {
-					const airDate = new Date(ep.AirStamp);
+					const airDate = new Date(ep.AirStamp * 1000);
 					const today = new Date();
 					today.setHours(0, 0, 0, 0); // Start of today
 					return airDate >= today; // Include episodes from today onwards
 				})
-				.sort((a, b) => new Date(a.AirStamp) - new Date(b.AirStamp));
+				.sort((a, b) => new Date(a.AirStamp * 1000) - new Date(b.AirStamp * 1000));
 
 				if (relevantEps.length === 0) return null;
 
 				const nextEpisode = relevantEps[0];
-				const airDate = new Date(nextEpisode.AirStamp);
+				const airDate = new Date(nextEpisode.AirStamp * 1000);
 
 				// Calculate days difference and check if already aired
 				const diffTime = airDate - now;
@@ -153,7 +153,7 @@ function handleSearch() {
 				if (a.priority !== b.priority) {
 					return a.priority - b.priority;
 				}
-				return new Date(a.nextEpisode.AirStamp) - new Date(b.nextEpisode.AirStamp);
+				return new Date(a.nextEpisode.AirStamp * 1000) - new Date(b.nextEpisode.AirStamp * 1000);
 			});
 	} else if (showFilter === 'all') {
 		shows = allShows.filter(showAgg => {

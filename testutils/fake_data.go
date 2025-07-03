@@ -21,7 +21,7 @@ func MakeFakeEpisode() episodeModel.Episode {
 		Type:     "Episode Type",
 		Number:   rand.Int(),
 		Season:   rand.Int(),
-		AirStamp: time.Now().GoString(),
+		AirStamp: time.Now().Unix(),
 	}
 }
 

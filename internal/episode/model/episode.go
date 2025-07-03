@@ -22,7 +22,7 @@ type Episode struct {
 	Type     string `db:"type"`
 	Number   int    `db:"number"`
 	Season   int    `db:"season"`
-	AirStamp string `db:"airstamp"`
+	AirStamp int64  `db:"airstamp"`
 
 	Tracking    string `db:"tracking"`
 	TorrentHash string `db:"torrent_hash"`
@@ -35,7 +35,7 @@ func (e *Episode) Create(
 	Type string,
 	Number int,
 	Season int,
-	AirStamp string,
+	AirStamp int64,
 ) *Episode {
 	return &Episode{
 		ShowID:   ShowID,
@@ -49,23 +49,23 @@ func (e *Episode) Create(
 }
 
 func (e *Episode) AirDate() string {
-	t, _ := time.Parse(time.RFC3339, e.AirStamp)
+	t := time.Unix(e.AirStamp, 0).UTC()
 	return t.Format("2006-01-02")
 }
 
 func (e *Episode) AirTime() string {
-	t, _ := time.Parse(time.RFC3339, e.AirStamp)
+	t := time.Unix(e.AirStamp, 0).UTC()
 	return t.Format("15:04")
 }
 
 func (e *Episode) HasAired() (bool, error) {
-	airTime, err := time.Parse(time.RFC3339, e.AirStamp)
-	if err != nil {
-		return false, err
+	if e.AirStamp == 0 {
+		return false, nil
 	}
+	airTime := time.Unix(e.AirStamp, 0).UTC()
 
 	// If the airTime is before or equal the time now, then it has been aired
-	return !airTime.After(time.Now()), nil
+	return !airTime.After(time.Now().UTC()), nil
 }
 
 func (e *Episode) SetNotInstalled() {

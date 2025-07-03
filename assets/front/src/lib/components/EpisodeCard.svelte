@@ -55,7 +55,7 @@ function getStatusIcon(status) {
 
 function formatDate(dateStr) {
 	if (!dateStr) return '';
-	const date = new Date(dateStr);
+	const date = new Date(dateStr * 1000);
 	return date.toLocaleDateString('pt-BR', {
 		year: 'numeric',
 		month: 'long',

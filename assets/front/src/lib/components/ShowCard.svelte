@@ -22,7 +22,7 @@ function getStatusColor(status) {
 function formatNextEpisode(episode) {
 	if (!episode) return null;
 	
-	const airDate = new Date(episode.AirStamp);
+	const airDate = new Date(episode.AirStamp * 1000);
 	const now = new Date();
 	const diffTime = airDate - now;
 	const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
