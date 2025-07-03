@@ -9,10 +9,10 @@ func StartDailyUpdate(callback func()) {
 	logger := config.GetLogger().WithGroup("scheduler").With("name", "StartDailyUpdate")
 	go func() {
 		for {
-			logger.Info("Starting to updating shows")
+			logger.Info("starting to updating shows")
 			callback()
-			logger.Info("Shows update completed")
-			time.Sleep(1 * time.Hour)
+			logger.Info("shows update completed")
+			time.Sleep(24 * time.Hour)
 		}
 	}()
 }
