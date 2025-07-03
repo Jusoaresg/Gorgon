@@ -41,7 +41,7 @@ func NewShowManagerService(logger *slog.Logger, db *sqlx.DB) *ShowManagerService
 		SeasonRepo:  seasonRepo,
 		EpisodeRepo: episodeRepo,
 		tvMaze:      service.NewTvMazeSearchService(logger),
-		logger:      logger,
+		logger:      logger.WithGroup("showManager"),
 		DB:          db,
 	}
 }
@@ -67,10 +67,14 @@ func (sm *ShowManagerService) GetSeasons(tvMazeId int64) (*[]dtos.SeasonDto, err
 // NOTE: Everything here will need a refactor later, there're lot of problems
 // Probably will be problems with the seasons updating.
 func (sm *ShowManagerService) UpdateShowWithRelations(showDTO dtos.ShowDto, seasonsDTO []dtos.SeasonDto, episodes []dtos.EpisodeDto) error {
-
 	aggregatedShow, err := sm.ShowAggregator.GetShowWithRelations(showDTO.TvMazeID)
 	if err != nil {
-		sm.logger.Error("Error while getting seasons from db to update seasson", slog.String("error", err.Error()))
+		sm.logger.Error(
+			"error while getting aggregated show from db to update show",
+			slog.Int64("tv_maze_id", showDTO.TvMazeID),
+			slog.String("show_name", showDTO.Name),
+			slog.String("error", err.Error()),
+		)
 		return err
 	}
 
@@ -97,7 +101,7 @@ func (sm *ShowManagerService) UpdateShowWithRelations(showDTO dtos.ShowDto, seas
 	for _, season := range seasonsDTO {
 
 		if existing, ok := seasonMap[season.Number]; ok {
-			sm.logger.Info("Updating season", slog.Int64("ShowID", showModel.ID), slog.Int("SeasonNumber", season.Number))
+			sm.logger.Info("updating season", slog.Int64("show_id", showModel.ID), slog.Int("season_number", season.Number))
 
 			existing.Number = season.Number
 		} else {
@@ -128,7 +132,7 @@ func (sm *ShowManagerService) UpdateShowWithRelations(showDTO dtos.ShowDto, seas
 	for _, episode := range episodes {
 		key := fmt.Sprintf("%d:%d", episode.Season, episode.Number)
 		if existing, ok := episodeMap[key]; ok {
-			sm.logger.Info("Updating episode", slog.Int64("show_id", showModel.ID), slog.Int("season", episode.Season), slog.String("episode_name", episode.Name))
+			sm.logger.Info("updating episode", slog.Int64("show_id", showModel.ID), slog.Int("season", episode.Season), slog.String("episode_name", episode.Name))
 			existing.Name = episode.Name
 			existing.Summary = episode.Summary
 			existing.Type = episode.Type
@@ -140,7 +144,7 @@ func (sm *ShowManagerService) UpdateShowWithRelations(showDTO dtos.ShowDto, seas
 		} else {
 			season := seasonMap[episode.Season]
 			if season == nil {
-				sm.logger.Error("Missing season for episode", slog.Int("season_number", episode.Season))
+				sm.logger.Error("missing season for episode", slog.Int("season_number", episode.Season))
 				return fmt.Errorf("season %d not found when creating episode", episode.Season)
 			}
 
