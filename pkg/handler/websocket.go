@@ -27,7 +27,7 @@ func WebSocketHandler(c echo.Context) error {
 	conn, err := upgrader.Upgrade(c.Response().Writer, c.Request(), nil)
 	if err != nil {
 		//TODO: Logger message
-		logger.Error("WebSocket upgrade failed", slog.String("error", err.Error()))
+		logger.Error("webSocket upgrade failed", slog.String("error", err.Error()))
 		return err
 	}
 
@@ -58,7 +58,7 @@ func SendWebSocketMessage(message any) {
 
 	for client := range clients {
 		if err := client.WriteJSON(message); err != nil {
-			logger.Error("Error while sending websocket message", slog.Any("Message", message), slog.Any("Client", client))
+			logger.Error("error while sending websocket message", slog.Any("Message", message), slog.Any("Client", client))
 			client.Close()
 			delete(clients, client)
 		}
