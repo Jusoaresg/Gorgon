@@ -6,33 +6,39 @@ import (
 	episodeModel "github.com/jusoaresg/gorgon/internal/episode/model"
 	seasonModel "github.com/jusoaresg/gorgon/internal/season/model"
 	showModel "github.com/jusoaresg/gorgon/internal/show/model"
+	showAliasModel "github.com/jusoaresg/gorgon/internal/show_aliases/model"
 
 	episodeRepository "github.com/jusoaresg/gorgon/internal/episode/repository"
 	seasonRepository "github.com/jusoaresg/gorgon/internal/season/repository"
 	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
+	showAliasRepository "github.com/jusoaresg/gorgon/internal/show_aliases/repository"
 )
 
 type ShowAggregatorService struct {
-	ShowRepo    showRepository.ShowRepositoryInterface
-	EpisodeRepo episodeRepository.EpisodeRepositoryInterface
-	SeasonRepo  seasonRepository.SeasonRepositoryInterface
+	ShowRepo        showRepository.ShowRepositoryInterface
+	ShowAliasesRepo showAliasRepository.ShowAliasesRepositoryInterface
+	EpisodeRepo     episodeRepository.EpisodeRepositoryInterface
+	SeasonRepo      seasonRepository.SeasonRepositoryInterface
 }
 
 type AggregatedShow struct {
-	Show     showModel.Show
-	Seasons  []seasonModel.Season
-	Episodes []episodeModel.Episode
+	Show        showModel.Show
+	ShowAliases []showAliasModel.ShowAlias
+	Seasons     []seasonModel.Season
+	Episodes    []episodeModel.Episode
 }
 
 func NewShowAggregatorService(
 	showRepo showRepository.ShowRepositoryInterface,
+	showAliasRepo showAliasRepository.ShowAliasesRepositoryInterface,
 	episodeRepo episodeRepository.EpisodeRepositoryInterface,
 	seasonRepo seasonRepository.SeasonRepositoryInterface,
 ) *ShowAggregatorService {
 	return &ShowAggregatorService{
-		ShowRepo:    showRepo,
-		EpisodeRepo: episodeRepo,
-		SeasonRepo:  seasonRepo,
+		ShowRepo:        showRepo,
+		ShowAliasesRepo: showAliasRepo,
+		EpisodeRepo:     episodeRepo,
+		SeasonRepo:      seasonRepo,
 	}
 }
 
@@ -40,7 +46,12 @@ func (s *ShowAggregatorService) GetShowWithRelations(tvMazeID int64) (Aggregated
 
 	show, err := s.ShowRepo.GetByTvMazeID(tvMazeID)
 	if err != nil {
-		return AggregatedShow{}, fmt.Errorf("Failed to get show by tvmazeID: %w", err)
+		return AggregatedShow{}, fmt.Errorf("failed to get show by tvmazeID: %w", err)
+	}
+
+	showAliases, err := s.ShowAliasesRepo.ListByShowID(show.ID)
+	if err != nil {
+		return AggregatedShow{}, fmt.Errorf("failed to get show aliases: %w", err)
 	}
 
 	season, err := s.SeasonRepo.ListByShowId(show.ID)
@@ -54,9 +65,10 @@ func (s *ShowAggregatorService) GetShowWithRelations(tvMazeID int64) (Aggregated
 	}
 
 	return AggregatedShow{
-		Show:     show,
-		Seasons:  season,
-		Episodes: episode,
+		Show:        show,
+		ShowAliases: showAliases,
+		Seasons:     season,
+		Episodes:    episode,
 	}, nil
 }
 
@@ -69,6 +81,11 @@ func (s *ShowAggregatorService) ListFullShows() ([]AggregatedShow, error) {
 	var aggregated []AggregatedShow
 
 	for _, show := range shows {
+		aliases, err := s.ShowAliasesRepo.ListByShowID(show.ID)
+		if err != nil {
+			return nil, err
+		}
+
 		seasons, err := s.SeasonRepo.ListByShowId(show.ID)
 		if err != nil {
 			return nil, err
@@ -80,9 +97,10 @@ func (s *ShowAggregatorService) ListFullShows() ([]AggregatedShow, error) {
 		}
 
 		aggregated = append(aggregated, AggregatedShow{
-			Show:     show,
-			Seasons:  seasons,
-			Episodes: episodes,
+			Show:        show,
+			ShowAliases: aliases,
+			Seasons:     seasons,
+			Episodes:    episodes,
 		})
 	}
 

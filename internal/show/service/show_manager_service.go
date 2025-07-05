@@ -11,6 +11,8 @@ import (
 	seasonModel "github.com/jusoaresg/gorgon/internal/season/model"
 	seasonRepository "github.com/jusoaresg/gorgon/internal/season/repository"
 	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
+	showAliasModel "github.com/jusoaresg/gorgon/internal/show_aliases/model"
+	showAliasRepository "github.com/jusoaresg/gorgon/internal/show_aliases/repository"
 	"github.com/jusoaresg/gorgon/pkg/schemas/dtos"
 	"github.com/jusoaresg/gorgon/utils"
 
@@ -20,6 +22,7 @@ import (
 type ShowManagerService struct {
 	ShowAggregator ShowAggregatorService
 	ShowRepo       showRepository.ShowRepositoryInterface
+	ShowAliasRepo  showAliasRepository.ShowAliasesRepositoryInterface
 	SeasonRepo     seasonRepository.SeasonRepositoryInterface
 	EpisodeRepo    episodeRepository.EpisodeRepositoryInterface
 	tvMaze         *service.TvMazeSearchService
@@ -29,21 +32,24 @@ type ShowManagerService struct {
 
 func NewShowManagerService(logger *slog.Logger, db *sqlx.DB) *ShowManagerService {
 	showRepo := showRepository.NewShowRepository(db)
+	showAliasRepo := showAliasRepository.NewShowAliasesRepository(db)
 	seasonRepo := seasonRepository.NewSeasonRepository(db)
 	episodeRepo := episodeRepository.NewEpisodeRepository(db)
 
 	return &ShowManagerService{
 		ShowAggregator: *NewShowAggregatorService(
 			showRepo,
+			&showAliasRepo,
 			episodeRepo,
 			seasonRepo,
 		),
-		ShowRepo:    showRepo,
-		SeasonRepo:  seasonRepo,
-		EpisodeRepo: episodeRepo,
-		tvMaze:      service.NewTvMazeSearchService(logger),
-		logger:      logger.WithGroup("showManager"),
-		DB:          db,
+		ShowRepo:      showRepo,
+		ShowAliasRepo: &showAliasRepo,
+		SeasonRepo:    seasonRepo,
+		EpisodeRepo:   episodeRepo,
+		tvMaze:        service.NewTvMazeSearchService(logger),
+		logger:        logger.WithGroup("showManager"),
+		DB:            db,
 	}
 }
 
@@ -80,6 +86,7 @@ func (sm *ShowManagerService) UpdateShowWithRelations(showDTO dtos.ShowDto, seas
 	}
 
 	showModel := aggregatedShow.Show
+	showAliasesModel := aggregatedShow.ShowAliases
 	episodesModel := aggregatedShow.Episodes
 	seasonsModel := aggregatedShow.Seasons
 
@@ -88,9 +95,50 @@ func (sm *ShowManagerService) UpdateShowWithRelations(showDTO dtos.ShowDto, seas
 		return err
 	}
 
+	//TODO: Function inside show model to update
+	showModel.Name = showDTO.Name
+	showModel.Type = showDTO.Type
+	showModel.Language = showDTO.Language
+	showModel.Status = showDTO.Status
+	showModel.Premiered = showDTO.Premiered
+	showModel.Ended = showDTO.Ended
+	showModel.Rating = showDTO.Rating.Average
+	showModel.Ended = showDTO.Ended
+	showModel.Summary = showDTO.Summary
+
 	if err := sm.ShowRepo.UpdateTxByTvMazeID(tx, showModel); err != nil {
 		tx.Rollback()
 		return err
+	}
+
+	aliasesMap := make(map[string]*showAliasModel.ShowAlias)
+	for i := range showAliasesModel {
+		a := &showAliasesModel[i]
+		aliasesMap[a.Alias] = a
+	}
+
+	showAliasDto := showDTO.ToAliasModel()
+	for _, alias := range showAliasDto {
+		if existing, ok := aliasesMap[alias.Alias]; ok {
+			sm.logger.Info("updating show alias", slog.String("alias", alias.Alias), slog.String("country", alias.Country))
+			existing.Alias = alias.Alias
+			existing.Country = alias.Country
+		} else {
+			newAlias := showAliasModel.ShowAlias{
+				ShowID:  showModel.ID,
+				Alias:   alias.Alias,
+				Country: alias.Country,
+				Source:  "tvmaze",
+			}
+			_, err := sm.ShowAliasRepo.CreateTx(tx, newAlias)
+			if err != nil {
+				sm.logger.Error("failed to create show alias", slog.String("error", err.Error()), slog.String("alias", newAlias.Alias), slog.String(
+					"country",
+					newAlias.Country,
+				))
+				return err
+			}
+		}
 	}
 
 	seasonMap := make(map[int]*seasonModel.Season)

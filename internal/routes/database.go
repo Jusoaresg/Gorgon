@@ -6,6 +6,7 @@ import (
 	indexerHandler "github.com/jusoaresg/gorgon/internal/indexer/handler"
 	seasonHandler "github.com/jusoaresg/gorgon/internal/season/handler"
 	showHandler "github.com/jusoaresg/gorgon/internal/show/handler"
+	showAliasesHandler "github.com/jusoaresg/gorgon/internal/show_aliases/handler"
 	"log/slog"
 
 	"github.com/labstack/echo/v4"
@@ -46,6 +47,11 @@ func SetupDatabaseRouter(v1 *echo.Group) {
 
 				episodeGroup.DELETE("/:id", episodeHandler.DeleteDownloadedEpisode)
 				logger.Info("DELETE route added to /api/v1/database/show/episode/:id")
+			}
+
+			aliasGroup := showGroup.Group("/aliases")
+			{
+				aliasGroup.GET("/:id", showAliasesHandler.GetShowEpisodes)
 			}
 
 			seasonsGroup := showGroup.Group("/season")

@@ -7,6 +7,7 @@ import (
 	"github.com/jusoaresg/gorgon/external/prowlarr/service"
 	episodeRepository "github.com/jusoaresg/gorgon/internal/episode/repository"
 	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
+	showAliasRepository "github.com/jusoaresg/gorgon/internal/show_aliases/repository"
 	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"github.com/jusoaresg/gorgon/utils"
 	"log/slog"
@@ -36,6 +37,7 @@ func searchShowsEpisodesHandler(c echo.Context, db *sqlx.DB) error {
 
 	episodeRepo := episodeRepository.NewEpisodeRepository(db)
 	showRepo := showRepository.NewShowRepository(db)
+	showAliasRepository := showAliasRepository.NewShowAliasesRepository(db)
 
 	var request schemas.IdRequest
 	if err := c.Bind(&request); err != nil {
@@ -54,25 +56,47 @@ func searchShowsEpisodesHandler(c echo.Context, db *sqlx.DB) error {
 		return err
 	}
 
-	title := utils.NormalizeTitle(show.Name)
-	query := fmt.Sprintf("%s {Season:%d}{Episode:%d}", title, episode.Season, episode.Number)
-
-	searchKey := schema.SearchByTypeRequest{
-		Query: query,
-		Type:  "tvsearch",
+	aliases, err := showAliasRepository.ListByShowID(show.ID)
+	if err != nil {
+		logger.Error("error fetching show aliases from database", slog.String("error", err.Error()))
+		schemas.SendError(c, 500, "error fetching show aliases from database")
+		return err
+	}
+	titles := []string{
+		utils.NormalizeTitle(show.Name),
+	}
+	for _, alias := range aliases {
+		titles = append(titles, alias.Alias)
 	}
 
 	searchService, err := service.NewProwlarrSearchService(logger)
 	if err != nil {
-		logger.Error("Error to initialize prowlarr service", slog.String("Error", err.Error()))
+		logger.Error("error to initialize prowlarr service", slog.String("Error", err.Error()))
 		return err
 	}
 
 	var response []schema.SearchResponse
-	if err := searchService.SearchByType(&searchKey, &response); err != nil {
-		logger.Error("Error while search show episodes from prowlarr", slog.String("error", err.Error()))
-		schemas.SendError(c, 500, fmt.Sprintf("Error while searching show episodes prowlarr: %s", err.Error()))
-		return err
+	for _, title := range titles {
+		query := fmt.Sprintf("%s {Season:%d}{Episode:%d}", title, episode.Season, episode.Number)
+		searchKey := schema.SearchByTypeRequest{
+			Query: query,
+			Type:  "tvsearch",
+		}
+
+		var resp []schema.SearchResponse
+		if err := searchService.SearchByType(&searchKey, &resp); err != nil {
+			logger.Error(
+				"error while search show episodes from prowlarr",
+				slog.String("error", err.Error()),
+				slog.Int64("show_id", show.ID),
+				slog.String("show_alias", title),
+				slog.Int64("episode_id", episode.ID),
+				slog.String("episode_name", episode.Name),
+			)
+			schemas.SendError(c, 500, fmt.Sprintf("Error while searching show episodes prowlarr: %s", err.Error()))
+			return err
+		}
+		response = append(response, resp...)
 	}
 
 	logger.Info("Search Shows Episodes request successfully")

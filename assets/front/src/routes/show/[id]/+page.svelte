@@ -1,13 +1,19 @@
-<script>
+<script lang='ts'>
 import EpisodeCard from '$lib/components/EpisodeCard.svelte'
 import Loading from '$lib/components/Loading.svelte';
 import { onMount } from 'svelte';
 import { page } from '$app/stores';
 import { goto } from '$app/navigation';
-import { tick } from 'svelte';
 import { toast } from 'svelte-sonner';
 import { fade, slide, fly, scale } from 'svelte/transition';
 import { quintOut } from 'svelte/easing';
+
+type AggregatedShow = {
+	Show: any,
+	ShowAliases: any,
+	Seasons: any,
+	Episodes: any
+}
 
 // Styles
 import '$lib/styles/pages/show.css';
@@ -28,41 +34,47 @@ import '$lib/styles/components/episode-card.css';
 	}
 
 let show = null;
+let aliases = [];
 let seasons = [];
 let episodes = [];
+let showAliases= false;
 let isLoading = true;
 
 // Season fold/unfold state
 let collapsedSeasons = new Set();
 
-let socket;
+let socket: WebSocket;
 
 onMount(async () => {
 	const showId = $page.params.id;
 
 	try {
-		const [showRes, seasonsRes, episodesRes] = await Promise.all([
+		const [showRes, aliasesRes, seasonsRes, episodesRes] = await Promise.all([
 			fetch(`/api/v1/database/show/${showId}`),
+			fetch(`/api/v1/database/show/aliases/${showId}`),
 			fetch(`/api/v1/database/show/season/${showId}`),
 			fetch(`/api/v1/database/show/episode/${showId}`)
 		])
 
-		if (!showRes.ok || !seasonsRes.ok || !episodesRes.ok) {
+		if (!showRes.ok || !aliasesRes.ok || !seasonsRes.ok || !episodesRes.ok) {
 			console.error("One or more requests failed", {
 				show: showRes.status,
+				aliases: aliasesRes.status,
 				seasons: seasonsRes.status,
 				episodes: episodesRes.status
 			});
 			return;
 		}
 
-		const [showJson, seasonsJson, episodesJson] = await Promise.all([
+		const [showJson, aliasesJson, seasonsJson, episodesJson] = await Promise.all([
 			showRes.json(),
+			aliasesRes.json(),
 			seasonsRes.json(),
 			episodesRes.json(),
 		])
 
 		show = showJson.data;
+		aliases = aliasesJson.data;
 		seasons = seasonsJson.data;
 		episodes = episodesJson.data;
 		isLoading = false;
@@ -124,7 +136,7 @@ async function deleteEpisode(event) {
 	const episodeID = event.detail.id
 
 	try {
-		const res = await fetch("/api/v1/database/show/episode/${episodeID}", {
+		const res = await fetch(`/api/v1/database/show/episode/${episodeID}`, {
 			method: 'DELETE',
 			headers: {
 				"Content-Type": "application/json",
@@ -222,6 +234,28 @@ function bulkyEdit() {
 			</div>
 			<div class="show-summary">
 				{@html show.Summary}
+					{#if aliases && aliases.length > 0}
+						<div class="aliases-section">
+							<strong>Also known as:</strong>
+							<div class="aliases-container">
+								{#each aliases.slice(0, 3) as alias}
+									<span class="alias-tag">{alias.Alias}</span>
+								{/each}
+								{#if aliases.length > 3}
+									<button class="more-aliases-btn" on:click={() => showAliases = !showAliases}>
+										{showAliases ? 'Show less' : `+${aliases.length - 3} more`}
+									</button>
+									{#if showAliases}
+										<div class="extra-aliases" transition:slide={{ duration: 200 }}>
+											{#each aliases.slice(3) as alias}
+												<span class="alias-tag">{alias.Alias}</span>
+											{/each}
+										</div>
+									{/if}
+								{/if}
+							</div>
+						</div>
+					{/if}
 			</div>
 		</div>
 

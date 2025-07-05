@@ -8,6 +8,7 @@ import (
 	episodeModel "github.com/jusoaresg/gorgon/internal/episode/model"
 	seasonModel "github.com/jusoaresg/gorgon/internal/season/model"
 	showModel "github.com/jusoaresg/gorgon/internal/show/model"
+	showAliasModel "github.com/jusoaresg/gorgon/internal/show_aliases/model"
 )
 
 type ShowDto struct {
@@ -37,7 +38,19 @@ type ShowDto struct {
 		Medium   string `json:"medium"`
 		Original string `json:"original"`
 	} `json:"image"`
-	Genres []string `json:"genres"`
+	Genres   []string `json:"genres"`
+	Embedded Embedded `json:"_embedded"`
+}
+
+type Embedded struct {
+	Akas []Akas `json:"akas"`
+}
+
+type Akas struct {
+	Country struct {
+		Code string `json:"code"`
+	} `json:"country"`
+	Name string `json:"name"`
 }
 
 // Always use as slice
@@ -169,4 +182,18 @@ func (d *ShowDto) ToModel() showModel.Show {
 		ImageMedium:   d.Image.Medium,
 	}
 	return show
+}
+
+func (d *ShowDto) ToAliasModel() []showAliasModel.ShowAlias {
+	akas := d.Embedded.Akas
+
+	var aliases []showAliasModel.ShowAlias
+	for _, aka := range akas {
+		alias := showAliasModel.ShowAlias{
+			Alias:   aka.Name,
+			Country: aka.Country.Code,
+		}
+		aliases = append(aliases, alias)
+	}
+	return aliases
 }

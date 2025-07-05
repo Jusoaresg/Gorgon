@@ -6,6 +6,7 @@ import (
 	seasonRepo "github.com/jusoaresg/gorgon/internal/season/repository"
 	showRepo "github.com/jusoaresg/gorgon/internal/show/repository"
 	"github.com/jusoaresg/gorgon/internal/show/service"
+	showAliasRepo "github.com/jusoaresg/gorgon/internal/show_aliases/repository"
 	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"log/slog"
 
@@ -25,14 +26,16 @@ import (
 func ListFullShows(c echo.Context) error {
 	logger := config.GetLogger()
 	logger.Info("Received request to List Full Shows", slog.String("endpoint", "/database/show/full"), slog.String("method", "get"))
+	db := config.GetSQLite()
 
-	showRepo := showRepo.NewShowRepository(config.GetSQLite())
-	episodeRepo := episodeRepo.NewEpisodeRepository(config.GetSQLite())
-	seasonRepo := seasonRepo.NewSeasonRepository(config.GetSQLite())
+	showRepo := showRepo.NewShowRepository(db)
+	showAliasRepo := showAliasRepo.NewShowAliasesRepository(db)
+	episodeRepo := episodeRepo.NewEpisodeRepository(db)
+	seasonRepo := seasonRepo.NewSeasonRepository(db)
 
-	aggregatorSercice := service.NewShowAggregatorService(showRepo, episodeRepo, seasonRepo)
+	aggregatorService := service.NewShowAggregatorService(showRepo, &showAliasRepo, episodeRepo, seasonRepo)
 
-	shows, err := aggregatorSercice.ListFullShows()
+	shows, err := aggregatorService.ListFullShows()
 	if err != nil {
 		logger.Error("Error while fetching shows from database", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, "Error while fetching shows")

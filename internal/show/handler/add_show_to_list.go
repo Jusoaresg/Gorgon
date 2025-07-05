@@ -9,6 +9,7 @@ import (
 	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
 	"github.com/jusoaresg/gorgon/internal/show/schema"
 	showManager "github.com/jusoaresg/gorgon/internal/show/service"
+	showAliasRepository "github.com/jusoaresg/gorgon/internal/show_aliases/repository"
 	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"github.com/jusoaresg/gorgon/pkg/schemas/dtos"
 	"github.com/jusoaresg/gorgon/pkg/services"
@@ -102,6 +103,24 @@ func addShowToListHandler(c echo.Context, db *sqlx.DB) error {
 		schemas.SendError(c, 500, "Failed to add show to database")
 		return err
 	}
+
+	aliasRepo := showAliasRepository.NewShowAliasesRepository(db)
+	aliases := showDto.ToAliasModel()
+	for _, alias := range aliases {
+		alias.ShowID = showID
+		alias.Source = "tvmaze"
+		_, err := aliasRepo.CreateTx(tx, alias)
+		if err != nil {
+			logger.Error(
+				"failed to create show alias",
+				slog.String("error", err.Error()),
+				slog.String("alias", alias.Alias),
+				slog.String("country", alias.Country),
+			)
+			continue
+		}
+	}
+
 	seasons := dtos.SeasonDtoSliceToModel(*seasonsDto, showID)
 	var episodes []episodeModel.Episode
 

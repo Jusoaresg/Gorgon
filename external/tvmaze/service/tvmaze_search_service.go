@@ -35,7 +35,7 @@ func (t *TvMazeSearchService) SearchByName(name string) (*[]schema.TvMazeRespons
 
 func (t *TvMazeSearchService) SearchByTvMazeId(tvMazeID int64) (*dtos.ShowDto, error) {
 	var model dtos.ShowDto
-	if err := t.APIService.Get(fmt.Sprintf("/shows/%d", tvMazeID), &model); err != nil {
+	if err := t.APIService.Get(fmt.Sprintf("/shows/%d?embed=akas", tvMazeID), &model); err != nil {
 		return nil, err
 	}
 	return &model, nil

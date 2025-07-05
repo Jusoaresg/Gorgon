@@ -370,6 +370,47 @@ const docTemplate = `{
                 }
             }
         },
+        "/database/show/aliases/{id}": {
+            "get": {
+                "description": "List Show Aliases",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Database/Aliases"
+                ],
+                "summary": "List Show Aliases",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Show ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/database/show/episode/status": {
             "post": {
                 "description": "Change Episode Tracking Status",
