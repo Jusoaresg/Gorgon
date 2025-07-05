@@ -1,6 +1,6 @@
 <script>
-import { createEventDispatcher, onMount, tick } from 'svelte';
-import { slide, fade, fly, scale } from 'svelte/transition';
+import { createEventDispatcher, tick } from 'svelte';
+import { fade } from 'svelte/transition';
 import EpisodeChangeTrackingModal from '$lib/components/EpisodeChangeTrackingModal.svelte';
 import EpisodeDeleteModal from '$lib/components/EpisodeDeleteModal.svelte';
 import EpisodeManualSearchModal from '$lib/components/EpisodeManualSearchModal.svelte';
@@ -9,24 +9,22 @@ import EpisodeManualSearchModal from '$lib/components/EpisodeManualSearchModal.s
 import '$lib/styles/components/episode-card.css';
 
 export let episode;
-export let seasonNumber;
 
 const dispatch = createEventDispatcher();
 
 let episodeModal = false;
 let showSummary = false;
-let showDeleteConfirm = false; // New state for delete confirmation
+let showDeleteConfirm = false;
 let episodeManualSearch = false;
 
 $: status = episode.Tracking;
-
-const statusOptions = ['wanted', 'skipped'];
+$: isUpcoming = episode.AirStamp && (episode.AirStamp * 1000) > Date.now();
 
 function toggleSummary() {
 	showSummary = !showSummary;
 }
 
-async function deleteEpisode(event) {
+async function deleteEpisode() {
 	dispatch('deleteEpisode', { id: episode.ID });
 	showDeleteConfirm = false;
 }
@@ -62,14 +60,31 @@ function formatDate(dateStr) {
 		day: 'numeric'
 	});
 }
+
+function formatDateRelative(dateStr) {
+	if (!dateStr) return '';
+	const date = new Date(dateStr * 1000);
+	const now = new Date();
+	const diffTime = date - now;
+	const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+	
+	if (diffDays === 0) return 'Today';
+	if (diffDays === 1) return 'Tomorrow';
+	if (diffDays === -1) return 'Yesterday';
+	if (diffDays > 0) return `In ${diffDays} days`;
+	if (diffDays < 0) return `${Math.abs(diffDays)} days ago`;
+	
+	return '';
+}
+
+function getDownloadPath(episode) {
+	return episode.DownloadPath || episode.FilePath || '';
+}
 </script>
 
 <div class="episode-card" data-episode-id={episode.ID} data-status={status}>
 	<div class={"episode-number " + getStatusClass(status)}>
 		<span>{episode.Number}</span>
-		<div class="absolute-number">
-			{(seasonNumber - 1) * 10 + episode.Number}
-		</div>
 	</div>
 	<div class="episode-content">
 		<div class="episode-header">
@@ -82,7 +97,6 @@ function formatDate(dateStr) {
 				{/if}
 			</h3>
 			<div class="episode-actions">
-
 				<!-- Delete button - only show for downloaded episodes -->
 				{#if status.toLowerCase() === 'downloaded'}
 					<button 
@@ -135,15 +149,32 @@ function formatDate(dateStr) {
 		</div>
 		<div class="episode-info">
 			{#if episode.AirStamp}
-				<div class="episode-date mt-1">
+				<div class="episode-date">
 					<span class="air-date">
 						<i class="fas fa-calendar-alt"></i>
 						{formatDate(episode.AirStamp)}
+						{#if formatDateRelative(episode.AirStamp)}
+							<span class="relative-date">({formatDateRelative(episode.AirStamp)})</span>
+						{/if}
+						{#if isUpcoming}
+							<span class="upcoming-badge">Upcoming</span>
+						{/if}
 					</span>
 				</div>
 			{/if}
+			
+			{#if status.toLowerCase() === 'downloaded' && getDownloadPath(episode)}
+				<div class="download-location">
+					<i class="fas fa-folder"></i>
+					<span class="download-path" title={getDownloadPath(episode)}>
+						{getDownloadPath(episode)}
+					</span>
+				</div>
+			{/if}
+			
 			{#if episode.Summary && showSummary}
-				<div class="episode-summary mt-2" transition:fade={{duration: 200}}>
+				<hr class="summary-divider" />
+				<div class="episode-summary" transition:fade={{duration: 200}}>
 					{@html episode.Summary}
 				</div>
 			{/if}
@@ -169,136 +200,3 @@ function formatDate(dateStr) {
 	episode={episode}
 	on:close={() => { episodeModal = false }}
 />
-
-<style>
-.episode-title:hover {
-	color: var(--highlight);
-}
-
-.delete-btn {
-	background-color: rgba(231, 76, 60, 0.2);
-	color: #e74c3c;
-}
-
-.delete-btn:hover {
-	background-color: rgba(231, 76, 60, 0.3);
-	color: #fff;
-}
-
-.modal-overlay {
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background-color: rgba(0, 0, 0, 0.7);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	z-index: 10000;
-}
-
-.delete-modal {
-	background-color: var(--card-bg);
-	border-radius: 12px;
-	border: 2px solid rgba(255, 255, 255, 0.1);
-	box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-	max-width: 400px;
-	width: 90%;
-	max-height: 90vh;
-	overflow: hidden;
-}
-
-.modal-header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	padding: 1.5rem;
-	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.modal-close {
-	background: none;
-	border: none;
-	color: var(--text-color);
-	font-size: 1.25rem;
-	cursor: pointer;
-	padding: 0.25rem;
-	border-radius: 4px;
-	transition: background-color 0.2s ease;
-}
-
-.modal-close:hover {
-	background-color: rgba(255, 255, 255, 0.1);
-}
-
-.modal-body {
-	padding: 1.5rem;
-}
-
-.episode-info-text {
-	background-color: rgba(255, 255, 255, 0.05);
-	padding: 0.75rem;
-	border-radius: 6px;
-	border-left: 3px solid var(--highlight);
-}
-
-.warning-text {
-	color: #e74c3c;
-	font-weight: 500;
-	margin-bottom: 0 !important;
-}
-
-.modal-actions {
-	display: flex;
-	gap: 0.75rem;
-	padding: 1.5rem;
-	border-top: 1px solid rgba(255, 255, 255, 0.1);
-	justify-content: flex-end;
-}
-
-.btn {
-	padding: 0.75rem 1.5rem;
-	border: none;
-	border-radius: 6px;
-	cursor: pointer;
-	font-size: 0.9rem;
-	font-weight: 500;
-	transition: all 0.2s ease;
-	min-width: 80px;
-}
-
-.btn-secondary {
-	background-color: rgba(255, 255, 255, 0.1);
-	color: var(--text-color);
-}
-
-.btn-secondary:hover {
-	background-color: rgba(255, 255, 255, 0.2);
-}
-
-.btn-danger {
-	background-color: #e74c3c;
-	color: white;
-}
-
-.btn-danger:hover {
-	background-color: #c0392b;
-	transform: translateY(-1px);
-}
-
-@media (max-width: 768px) {
-	.delete-modal {
-		margin: 1rem;
-		width: calc(100% - 2rem);
-	}
-	
-	.modal-actions {
-		flex-direction: column-reverse;
-	}
-	
-	.btn {
-		width: 100%;
-	}
-}
-</style>
