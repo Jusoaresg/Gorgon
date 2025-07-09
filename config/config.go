@@ -5,9 +5,15 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/jmoiron/sqlx"
 )
+
+type SafeDB struct {
+	Db    *sqlx.DB
+	Write *sync.Mutex
+}
 
 var (
 	InDocker            = false
@@ -17,7 +23,7 @@ var (
 	LogsPath    string = filepath.Join(ConfigFolder, "logs")
 	Port        string = "8080"
 	baseApiPath string
-	db          *sqlx.DB
+	safeDB      SafeDB
 	logger      *slog.Logger
 	err         error
 )
@@ -45,7 +51,10 @@ func Init() error {
 	if err != nil {
 		return err
 	}
-	db = dbInstance
+	safeDB = SafeDB{
+		Db:    dbInstance,
+		Write: &sync.Mutex{},
+	}
 
 	InitializeOrUpdateConfigFile()
 
@@ -81,8 +90,15 @@ func GetLogger() *slog.Logger {
 }
 
 func GetSQLite() *sqlx.DB {
-	if db == nil {
+	if safeDB.Db == nil {
 		panic("database is not initialized")
 	}
-	return db
+	return safeDB.Db
+}
+
+func GetSafeDB() *SafeDB {
+	if safeDB.Db == nil {
+		panic("database is not initialized")
+	}
+	return &safeDB
 }
