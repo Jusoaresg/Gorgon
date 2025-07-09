@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"sync"
 	"time"
+	_ "time/tzdata"
 )
 
 type DailyLogWriter struct {
