@@ -3,13 +3,14 @@ package service
 import (
 	"bytes"
 	"fmt"
+	"log/slog"
+	"mime/multipart"
+	"net/url"
+
 	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/external/qbittorrent/schema"
 	"github.com/jusoaresg/gorgon/internal/episode_content/model"
 	"github.com/jusoaresg/gorgon/pkg/services"
-	"log/slog"
-	"mime/multipart"
-	"net/url"
 )
 
 type QBittorrentService struct {
@@ -120,6 +121,24 @@ func (q *QBittorrentService) AddTorrent(url string) error {
 
 	_, err := q.APIService.Post("/api/v2/torrents/add", requestBody.Bytes(), nil, headers)
 	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (q *QBittorrentService) DeleteTorrent(hash string, deleteFile bool) error {
+	if err := q.SidVerification(); err != nil {
+		return err
+	}
+
+	headers := map[string]string{
+		"Cookie": fmt.Sprintf("SID=%s", q.sid),
+	}
+
+	url := fmt.Sprintf("/api/v2/torrents/delete?hashes=%s&deleteFiles=%t", hash, deleteFile)
+	var response any
+	if err := q.APIService.GetWithHeaders(url, response, headers); err != nil {
 		return err
 	}
 
