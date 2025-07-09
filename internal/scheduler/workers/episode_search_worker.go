@@ -11,39 +11,40 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func StartEpisodeSyncWorker(workerCount int) {
+func StartEpisodeSearchWorker(workerCount int) {
 	logger := config.GetLogger().WithGroup("worker").With("name", "episodeSync")
 	episodeChan := make(chan model.Episode, 50)
 	var wg sync.WaitGroup
 
-	logger.Info("Starting episode sync workers", slog.Int("count", workerCount))
+	logger.Info("starting episode sync workers", slog.Int("count", workerCount))
 
-	for i := 0; i < workerCount; i++ {
+	for i := range workerCount {
+		workerID := i
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			logger.Info("Worker started")
+			logger.Info("worker started", slog.Int("worker_id", workerID))
 			processEpisodesWorker(episodeChan)
 		}()
 	}
 
-	ticker := time.NewTicker(time.Second * 30)
+	ticker := time.NewTicker(time.Minute * 5)
 	defer ticker.Stop()
 
 	for {
 		<-ticker.C
-		logger.Info("Checking for wanted episodes")
+		logger.Info("checking for wanted episodes")
 
-		episodes := fetchWantedEpisodes()
+		episodes := fetchEpisodeSearchWantedEpisodes()
 		if len(episodes) == 0 {
-			logger.Info("No episodes found with status 'wanted' or 'missing'")
+			logger.Info("no episodes found with status 'wanted' or 'missing'")
 			continue
 		}
 
 		for _, ep := range episodes {
-			logger.Info("Queuing episode for processing",
-				slog.Int("episodeID", int(ep.ID)),
-				slog.Int64("showID", ep.ShowID),
+			logger.Info("queuing episode for processing",
+				slog.Int("episode_id", int(ep.ID)),
+				slog.Int64("show_id", ep.ShowID),
 				slog.String("name", ep.Name),
 			)
 			episodeChan <- ep
@@ -51,7 +52,7 @@ func StartEpisodeSyncWorker(workerCount int) {
 	}
 }
 
-func fetchWantedEpisodes() []model.Episode {
+func fetchEpisodeSearchWantedEpisodes() []model.Episode {
 	logger := config.GetLogger().WithGroup("worker").With("name", "episodeSync")
 	var episodes []model.Episode
 	db := config.GetSQLite()
@@ -64,14 +65,14 @@ func fetchWantedEpisodes() []model.Episode {
 		time.Now().UTC().Unix(),
 	)
 	if err != nil {
-		logger.Error("Failed to build SQL query with sqlx.In", slog.String("error", err.Error()))
+		logger.Error("failed to build SQL query with sqlx.In", slog.String("error", err.Error()))
 		return nil
 	}
 	query = db.Rebind(query)
 
 	err = db.Select(&episodes, query, args...)
 	if err != nil {
-		logger.Error("Failed to execute SELECT query", slog.String("error", err.Error()))
+		logger.Error("failed to execute SELECT query", slog.String("error", err.Error()))
 		return nil
 	}
 

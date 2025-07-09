@@ -2,21 +2,18 @@ package jobs
 
 import (
 	"fmt"
+	"log/slog"
+	"sync"
+	"time"
+
 	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/external/prowlarr/schema"
 	prowlarr "github.com/jusoaresg/gorgon/external/prowlarr/service"
 	qbittorrent "github.com/jusoaresg/gorgon/external/qbittorrent/service"
-	"github.com/jusoaresg/gorgon/internal/episode/events"
 	"github.com/jusoaresg/gorgon/internal/episode/model"
-	episodeRepository "github.com/jusoaresg/gorgon/internal/episode/repository"
+	EpisodeService "github.com/jusoaresg/gorgon/internal/episode/service"
 	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
-	showAliasRepository "github.com/jusoaresg/gorgon/internal/show_aliases/repository"
-	"github.com/jusoaresg/gorgon/utils"
-	"log/slog"
-	"sort"
-	"strings"
-	"sync"
-	"time"
+	showService "github.com/jusoaresg/gorgon/internal/show/service"
 )
 
 var cooldownCache sync.Map
@@ -38,45 +35,40 @@ func init() {
 	}()
 }
 
-func ProcessSingleEpisode(ep *model.Episode, prowlarrService *prowlarr.ProwlarrSearchService, qbittorrentService *qbittorrent.QBittorrentService) error {
+func ProcessBackfillSingleEpisode(ep *model.Episode, prowlarrService *prowlarr.ProwlarrSearchService, qbittorrentService *qbittorrent.QBittorrentService) error {
 	logger := config.GetLogger().WithGroup("jobs").With("name", "ProcessSingleEpisode")
 	db := config.GetSQLite()
 
-	episodeRepo := episodeRepository.NewEpisodeRepository(db)
 	showRepo := showRepository.NewShowRepository(db)
-	showAliasRepo := showAliasRepository.NewShowAliasesRepository(db)
 
 	show, err := showRepo.GetById(ep.ShowID)
 	if err != nil {
 		return err
 	}
 
-	aired, err := ep.HasAired()
-	if err != nil {
-		logger.Warn("failed to parse airstamp", slog.Int64("airstamp", ep.AirStamp), slog.String("episode", ep.Name))
-	}
-
-	if aired == false {
+	if aired := ep.HasAired(); !aired {
+		logger.Warn(
+			"episode has not aired yet",
+			slog.Int64("episode_id", ep.ID),
+			slog.Int64("show_id", ep.ShowID),
+		)
 		return nil
 	}
-
 	logger.Info("searching if episode is avaible", slog.String("show_name", show.Name), slog.Int64("show_id", show.ID), slog.Int("episode", ep.Number), slog.String("episode_name", ep.Name), slog.String("tracking", string(ep.Tracking)))
 
-	aliases, err := showAliasRepo.ListByShowID(show.ID)
-	titleAlias := []string{
-		utils.NormalizeTitle(show.Name),
-	}
-	for _, alias := range aliases {
-		if alias.Alias == show.Name {
-			continue
-		}
-		titleAlias = append(titleAlias, utils.NormalizeTitle(alias.Alias))
+	titleAlias, err := showService.GetNormalizedTitleAlias(show)
+	if err != nil {
+		logger.Error(
+			"failed to get normalized title alias",
+			slog.Int64("episode_id", ep.ID),
+			slog.Int64("show_id", ep.ShowID),
+		)
+		return err
 	}
 
 	var mu sync.Mutex
 	var wg sync.WaitGroup
 	var response []schema.SearchResponse
-
 	for _, title := range titleAlias {
 		termKey := fmt.Sprintf("%s S%02dE%02d", title, ep.Season, ep.Number)
 
@@ -96,12 +88,8 @@ func ProcessSingleEpisode(ep *model.Episode, prowlarrService *prowlarr.ProwlarrS
 		wg.Add(1)
 		go func(t, key string) {
 			defer wg.Done()
-			request := schema.SearchRequest{
-				Query: key,
-			}
-			var tmpResponse []schema.SearchResponse
-			if err := prowlarrService.Search(&request, &tmpResponse); err != nil {
-				logger.Error("error while searching for episodes on prowlarr service", slog.Int("episode", ep.Number), slog.String("show", show.Name))
+			tmpResponse, err := EpisodeService.SearchEpisode(key)
+			if err != nil {
 				return
 			}
 			mu.Lock()
@@ -118,99 +106,27 @@ func ProcessSingleEpisode(ep *model.Episode, prowlarrService *prowlarr.ProwlarrS
 		return nil
 	}
 
-	response = requiredWords(response)
-
-	if len(response) == 0 {
+	response = EpisodeService.FilterRequiredWords(response)
+	if len(response) <= 0 {
 		logger.Info("no avaible episode found", slog.String("show", show.Name), slog.Int("episode", ep.Number))
 	}
 
-	sort.Slice(response, func(i, j int) bool {
-		scoreI := score(response[i])
-		scoreJ := score(response[j])
-		return scoreI > scoreJ
-	})
-
+	response = EpisodeService.FilterByEpisodeScore(response)
 	if len(response) <= 0 {
-		//TODO: Log message that was not found any available episode
+		logger.Info(
+			"no available episodes found after filtering by episode score",
+			slog.Int64("episode_id", ep.ID),
+			slog.Int64("show_id", ep.ShowID),
+		)
 		return nil
 	}
 
-	url := response[0].Guid
-
-	logger.Debug("response", slog.String("show", show.Name), slog.String("episode", ep.Name), slog.String("response", url))
 	logger.Debug("final chosen torrent", slog.String("filename", response[0].Filename))
-
-	if err := qbittorrentService.AddTorrent(url); err != nil {
-		logger.Error("failed to add torrent", slog.String("error", err.Error()))
-		return err
-	}
-
-	ep.Tracking = model.TrackingSnatched
-	ep.TorrentHash = response[0].InfoHash
-
-	if err := episodeRepo.Update(*ep); err != nil {
-		logger.Error("failed to update episode", slog.String("error", err.Error()))
+	if err := EpisodeService.DownloadEpisode(*ep, response[0]); err != nil {
 		return err
 	}
 
 	logger.Info("added torrent to qbittorrent", slog.String("show", show.Name), slog.Int("episode", ep.Number))
 
-	episode.EmitEpisodeTrackingUpdatedEvent(ep.ID, model.TrackingSnatched)
-
 	return nil
-}
-
-func score(t schema.SearchResponse) int {
-	//TODO: Better detection for the filesize
-	return (t.Seeders - t.Leechers) + preferredWords(t) + getQuality(t) //- int(t.Size)
-}
-
-func getQuality(t schema.SearchResponse) int {
-	possibleQuality := make(map[string]int)
-	possibleQuality["2560"] = 9
-	possibleQuality["1080"] = 10
-	possibleQuality["720"] = 8
-	possibleQuality["480"] = 1
-
-	for key, quality := range possibleQuality {
-		if strings.Contains(t.Filename, key) {
-			return quality
-		}
-	}
-	return 0
-}
-
-func preferredWords(t schema.SearchResponse) int {
-	preferredWord := make(map[string]int)
-	preferredWord["multisubs"] = 50
-
-	for word, score := range preferredWord {
-		if strings.Contains(strings.ToLower(t.Filename), word) {
-			return score
-		}
-	}
-	return 0
-}
-
-func requiredWords(t []schema.SearchResponse) []schema.SearchResponse {
-	logger := config.GetLogger()
-
-	var requiredWords []string
-	requiredWords = append(requiredWords, "multisubs")
-	requiredWords = append(requiredWords, "multisub")
-	requiredWords = append(requiredWords, "multi-sub")
-	requiredWords = append(requiredWords, "multi sub")
-
-	var newSchema []schema.SearchResponse
-	for _, torrent := range t {
-		logger.Debug("checking filename before required words", slog.String("filename", torrent.Filename))
-		filename := strings.ToLower(torrent.Filename)
-		for _, word := range requiredWords {
-			if strings.Contains(filename, word) {
-				newSchema = append(newSchema, torrent)
-				break
-			}
-		}
-	}
-	return newSchema
 }

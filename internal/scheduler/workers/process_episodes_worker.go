@@ -50,7 +50,7 @@ func processEpisodesWorker(episodesChan <-chan model.Episode) {
 			slog.Int64("showID", episode.ShowID),
 			slog.String("episodeName", episode.Name),
 		)
-		err := jobs.ProcessSingleEpisode(&episode, prowlarrService, qbittorrentService)
+		err := jobs.ProcessBackfillSingleEpisode(&episode, prowlarrService, qbittorrentService)
 		if err != nil {
 			episodeLogger.Error(
 				"Error processing single episode",

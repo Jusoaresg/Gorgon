@@ -58,14 +58,14 @@ func (e *Episode) AirTime() string {
 	return t.Format("15:04")
 }
 
-func (e *Episode) HasAired() (bool, error) {
+func (e *Episode) HasAired() bool {
 	if e.AirStamp == 0 {
-		return false, nil
+		return false
 	}
 	airTime := time.Unix(e.AirStamp, 0).UTC()
 
 	// If the airTime is before or equal the time now, then it has been aired
-	return !airTime.After(time.Now().UTC()), nil
+	return !airTime.After(time.Now().UTC())
 }
 
 func (e *Episode) SetNotInstalled() {

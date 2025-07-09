@@ -1,12 +1,19 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
 	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/internal/routes"
 	"github.com/jusoaresg/gorgon/internal/scheduler"
 	"github.com/jusoaresg/gorgon/internal/scheduler/cron"
-	"github.com/jusoaresg/gorgon/internal/scheduler/workers"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -44,10 +51,35 @@ func main() {
 	routes.InitializeRoutes(e)
 	cron.StartDailyUpdate(scheduler.UpdateAllShows)
 
-	go workers.StartEpisodeSyncWorker(2)
-	go workers.VerifySnatchedDownloadsWorker(5)
+	scheduler.Start()
 
 	cron.StartVerifyEpisodeWasDeleted(scheduler.VerifyEpisodeWasDeleted)
 
-	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", config.Port)))
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		err := e.Start(fmt.Sprintf(":%s", config.Port))
+		if err != nil && err != http.ErrServerClosed {
+			e.Logger.Fatal("shutting down the server due to error: ", err)
+		}
+	}()
+
+	sig := <-sigs
+	log.Printf("signal received: %s, shutting down gorgon", sig)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := e.Shutdown(ctx); err != nil {
+		log.Printf("error shutting down Echo server: %v", err)
+	}
+
+	db := config.GetSQLite()
+	if err := db.Close(); err != nil {
+		log.Printf("error closing database: %v", err)
+	} else {
+		log.Printf("database closed cleanly")
+	}
+	log.Println("shutdown complete")
 }

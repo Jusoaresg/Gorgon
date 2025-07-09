@@ -23,9 +23,10 @@ type EpisodeUpdatedWebsocketSchema struct {
 
 func ProcessSingleSnatchedDownload(ep *model.Episode, qbittorrentService *service.QBittorrentService) error {
 	logger := config.GetLogger()
-	db := config.GetSQLite()
-	episodeRepo := episodeRepository.NewEpisodeRepository(db)
-	episodeContentRepo := epContentRepository.NewEpisodeContentRepository(db)
+	safeDB := config.GetSafeDB()
+
+	episodeRepo := episodeRepository.NewEpisodeRepository(safeDB.Db)
+	episodeContentRepo := epContentRepository.NewEpisodeContentRepository(safeDB.Db)
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		return err
@@ -41,6 +42,9 @@ func ProcessSingleSnatchedDownload(ep *model.Episode, qbittorrentService *servic
 
 	if torrent.Hash == ep.TorrentHash {
 		logger.Info(fmt.Sprintf("Episode S%02d E%02d %s found - Torrent: %s", ep.Season, ep.Number, ep.Name, torrent.Name))
+
+		safeDB.Write.Lock()
+		defer safeDB.Write.Unlock()
 
 		ep.Tracking = model.TrackingDownloaded
 
@@ -66,10 +70,12 @@ func ProcessSingleSnatchedDownload(ep *model.Episode, qbittorrentService *servic
 
 			symlinkPath, err := utils.SymlinkPathForEpisode(cfg.ShowsFolder, show.Name, *ep, content)
 			if err != nil {
+				tx.Rollback()
 				return err
 			}
 			episodeDownloadFolder, err := paths.GetEpisodeDownloadFile(content.Name)
 			if err != nil {
+				tx.Rollback()
 				return err
 			}
 
