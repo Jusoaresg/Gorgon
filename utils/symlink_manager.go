@@ -18,7 +18,8 @@ func SymlinkPathForEpisode(showsFolder, showName string, episode episodeModel.Ep
 
 	fileExtension := filepath.Ext(episodeContent.Name)
 	episodeNewName := fmt.Sprintf("%s - S%dE%d - %s%s", showName, episode.Season, episode.Number, episode.Name, fileExtension)
-	destPath, err := filepath.Abs(filepath.Join(destFolder, episodeNewName))
+	normalizedNewName := NormalizeFileName(episodeNewName)
+	destPath, err := filepath.Abs(filepath.Join(destFolder, normalizedNewName))
 	if err != nil {
 		return "", err
 	}

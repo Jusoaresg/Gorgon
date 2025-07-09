@@ -1,6 +1,9 @@
 package utils
 
-import "strings"
+import (
+	"regexp"
+	"strings"
+)
 
 func NormalizeTitle(title string) string {
 	replacer := strings.NewReplacer(
@@ -11,4 +14,9 @@ func NormalizeTitle(title string) string {
 	title = strings.ToLower(title)
 	title = strings.Join(strings.Fields(title), " ") // remove duplicated spaces
 	return title
+}
+
+func NormalizeFileName(name string) string {
+	invalidChars := regexp.MustCompile(`[\/:*?"<>|]`)
+	return invalidChars.ReplaceAllString(name, "_")
 }
