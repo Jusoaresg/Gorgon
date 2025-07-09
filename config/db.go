@@ -32,7 +32,7 @@ func InitializeDb() (*sqlx.DB, error) {
 		file.Close()
 	}
 
-	db, err := sqlx.Open("sqlite", "file:"+dbPath+"?_pragma=foreign_keys=ON")
+	db, err := sqlx.Open("sqlite", "file:"+dbPath+"?_pragma=foreign_keys=ON&_pragma=journal_mode=WAL&_busy_timeout=5000")
 	if err != nil {
 		return nil, err
 	}
