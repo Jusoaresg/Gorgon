@@ -2,12 +2,12 @@
 import ShowCard from '$lib/components/ShowCard.svelte';
 import { goto } from '$app/navigation';
 import { onMount } from 'svelte';
-import { fade, fly, scale, slide } from 'svelte/transition';
-import { quintOut, quintIn } from 'svelte/easing';
+import { fade, fly, scale } from 'svelte/transition';
+import { quintOut } from 'svelte/easing';
 
 // Styles
 import '$lib/styles/shows.css';
-    import Loading from '$lib/components/Loading.svelte';
+import Loading from '$lib/components/Loading.svelte';
 
 let allShows = [];
 let shows = [];
