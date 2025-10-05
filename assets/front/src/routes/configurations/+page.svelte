@@ -307,13 +307,13 @@ onMount(async () => {
 							</div>
 
 							<div class="links">
-								<a href="#" target="_blank" class="link-btn">
+								<a href="https://github.com/Jusoaresg/Gorgon" target="_blank" class="link-btn">
 									<i class="fas fa-book"></i> Documentation
 								</a>
 								<a href="https://github.com/Jusoaresg/Gorgon" target="_blank" class="link-btn">
 									<i class="fab fa-github"></i> GitHub
 								</a>
-								<a href="#" target="_blank" class="link-btn">
+								<a href="https://github.com/Jusoaresg/Gorgon" target="_blank" class="link-btn">
 									<i class="fas fa-question-circle"></i> Support
 								</a>
 							</div>
