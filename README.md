@@ -145,13 +145,13 @@ Here are the next steps planned for Gorgon, focusing on expanding features, impr
 ### 🎯 Core Functionality
 - **Automated Searching:**
   - [ ] Implement "Search All Missing" functionality on the show page.
-  - [ ] Enable automatic and manual search triggers for individual episodes.
+  - [X] Enable automatic and manual search triggers for individual episodes.
 - **Advanced Configuration:**
-  - [ ] Implement the keyword-based scoring system for search results.
+  - [X] Implement the keyword-based scoring system for search results.
   - [ ] Add a "Downloads" page to display the status of episodes being actively downloaded.
 - **User Interface:**
   - [ ] Create a "Calendar" page to display upcoming episode releases for tracked shows.
-  - [ ] Persist the user's choice of Grid or List view on the shows page.
+  - [X] Persist the user's choice of Grid or List view on the shows page.
 - **System & Management:**
   - [ ] Implement file-based logging with a dedicated page in the UI for viewing logs.
   - [ ] Add a "Bulky Edit" feature for managing multiple shows at once.
