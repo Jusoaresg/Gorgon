@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 
+	"github.com/jmoiron/sqlx"
 	episodeModel "github.com/jusoaresg/gorgon/internal/episode/model"
 	seasonModel "github.com/jusoaresg/gorgon/internal/season/model"
 	showModel "github.com/jusoaresg/gorgon/internal/show/model"
@@ -39,6 +40,16 @@ func NewShowAggregatorService(
 		ShowAliasesRepo: showAliasRepo,
 		EpisodeRepo:     episodeRepo,
 		SeasonRepo:      seasonRepo,
+	}
+}
+
+func NewShowAggregatorServiceWithDb(db *sqlx.DB) *ShowAggregatorService {
+	aliasRepo := showAliasRepository.NewShowAliasesRepository(db)
+	return &ShowAggregatorService{
+		ShowRepo:        showRepository.NewShowRepository(db),
+		ShowAliasesRepo: &aliasRepo,
+		EpisodeRepo:     episodeRepository.NewEpisodeRepository(db),
+		SeasonRepo:      seasonRepository.NewSeasonRepository(db),
 	}
 }
 
