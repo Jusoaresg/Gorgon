@@ -2,11 +2,7 @@ package show
 
 import (
 	"github.com/jusoaresg/gorgon/config"
-	episodeRepo "github.com/jusoaresg/gorgon/internal/episode/repository"
-	seasonRepo "github.com/jusoaresg/gorgon/internal/season/repository"
-	showRepo "github.com/jusoaresg/gorgon/internal/show/repository"
 	"github.com/jusoaresg/gorgon/internal/show/service"
-	showAliasRepo "github.com/jusoaresg/gorgon/internal/show_aliases/repository"
 	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"log/slog"
 
@@ -28,12 +24,7 @@ func ListFullShows(c echo.Context) error {
 	logger.Info("Received request to List Full Shows", slog.String("endpoint", "/database/show/full"), slog.String("method", "get"))
 	db := config.GetSQLite()
 
-	showRepo := showRepo.NewShowRepository(db)
-	showAliasRepo := showAliasRepo.NewShowAliasesRepository(db)
-	episodeRepo := episodeRepo.NewEpisodeRepository(db)
-	seasonRepo := seasonRepo.NewSeasonRepository(db)
-
-	aggregatorService := service.NewShowAggregatorService(showRepo, &showAliasRepo, episodeRepo, seasonRepo)
+	aggregatorService := service.NewShowAggregatorServiceWithDb(db)
 
 	shows, err := aggregatorService.ListFullShows()
 	if err != nil {
