@@ -5,5 +5,5 @@ type IdRequest struct {
 }
 
 type NameRequest struct {
-	Name string `json:"name"`
+	Name string `json:"name" form:"name"`
 }
