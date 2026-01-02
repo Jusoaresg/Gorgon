@@ -1,9 +1,8 @@
 .PHONY: default docs run-with-docs build
 
-SKIP_BUILD_FRONT ?= false
 TAG ?= latest
 
-default: build-front
+default:
 	$(MAKE) run-with-docs
 
 docs:
@@ -12,18 +11,11 @@ docs:
 run-with-docs: docs
 	go run main.go
 
-build-front:
-	@if [ "$(SKIP_BUILD_FRONT)" = "true" ]; then \
-		echo "Skipping front-end build..."; \
-	else \
-		cd assets/front && npm run build; \
-	fi
-
-build: docs build-front
+build: docs
 	mkdir -p ./tmp
 	CGO_ENABLED=0 go build -o ./tmp/main .
 
-cross-build: docs build-front
+cross-build: docs
 	set -e; \
 	mkdir -p ./tmp; \
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./tmp/main_linux_amd64 .; \
@@ -42,7 +34,7 @@ clean:
 	rm -rf ./configs
 	rm -rf ./downloads
 
-check: build-front test lint
+check: test lint
 
 docker-build:
 	docker build -t jusoares/gorgon:$(TAG) .
