@@ -1,0 +1,26 @@
+{{ define "add-show-card" }}
+    {{ range .Shows }}
+            <div class="result-card">
+                <div class="result-poster">
+                    <img src="{{ .Show.Image.Medium }}" alt="Poster">
+                    <div class="result-overlay">
+                        {{ if .IsAdded }}
+                             <button class="btn btn-add-small" disabled style="background-color: var(--success); cursor: default;">In Library</button>
+                        {{ else }}
+                             <a class="btn btn-add-small" href="/add-show/{{ .Show.TvMazeID }}/config">Add Series</a>
+                        {{ end }}
+                    </div>
+                </div>
+                <div class="result-content">
+                    <div class="result-network">HBO</div>
+                    <h4 class="result-title">{{ .Show.Name }}</h4>
+                    <div class="result-meta">
+                        <span>{{ .Show.Premiered }}</span>
+                        <span>•</span>
+                        <span class="text-success">{{ .Show.Status }}</span>
+                    </div>
+                    <p class="result-summary">{{ .Show.Summary }}</p>
+                </div>
+            </div>
+    {{ end }}
+{{ end }}
