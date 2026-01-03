@@ -1,0 +1,203 @@
+{{ define "show" }}
+
+{{ $show := .Data.Show }}
+{{ $seasons := .Data.Seasons }}
+{{ $episodes := .Data.Episodes }}
+{{ $aliases := .Data.ShowAliases }}
+
+<div class="show-details-container">
+    <!-- Hero Section Refined -->
+    <div class="show-hero">
+        <div class="hero-backdrop" style="background-image: url('{{ $show.ImageOriginal }} ');"></div>
+        <div class="hero-content">
+            <div class="hero-poster">
+                <img src="{{ $show.ImageOriginal }}" alt="Poster">
+                <div class="poster-status badge-running">{{ $show.Status }}</div>
+            </div>
+            <div class="hero-info">
+                <div class="hero-header">
+                    <div>
+                        <h1>{{ $show.Name }}</h1>
+                        
+                        <!-- Alternative Titles (Aliases) -->
+                        {{ if $aliases }}
+                        <div class="alias-section">
+                            <span class="alias-label">Also known as</span>
+                            <div class="aliases-list">
+                                {{ range $aliases }}
+                                <span class="alias-tag">{{ .Alias }}</span>
+                                {{ end }}
+                            </div>
+                        </div>
+                        {{ end }}
+
+                        <!-- Genres -->
+                        <div class="genres-list">
+                            <!-- Assuming genres is a comma separated string in DB based on model -->
+                            {{ .Data.Show.Genres }}
+                        </div>
+                    </div>
+
+                    <div class="hero-actions">
+                        <button class="btn btn-outline" title="Refresh Show">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        </button>
+                        <button class="btn btn-outline" title="Edit Show">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        </button>
+                        <button class="btn btn-primary">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            Search Missing
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="hero-meta">
+                    <span class="meta-item">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg> 
+                        {{ $show.Language }}
+                    </span>
+                    <span class="meta-item">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z"></path></svg> 
+                        {{ $show.Premiered }}
+                    </span>
+                    {{ if $show.Rating }}
+                    <span class="meta-item star-rating">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                        {{ printf "%.1f" (derefFloat $show.Rating) }}
+                    </span>
+                    {{ end }}
+                </div>
+
+                <div class="show-stats">
+                    <div class="stat-box">
+                        <span class="stat-label">Episodes</span>
+                        <span class="stat-value">{{ len $episodes }}</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Size</span>
+                        <span class="stat-value">-- GB</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Path</span>
+                        <span class="stat-value path-value">/data/media/tv/{{ $show.Name }}</span>
+                    </div>
+                </div>
+
+                <div class="show-synopsis js-summary">
+                    {{ $show.Summary }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Seasons List (Vertical) -->
+    <div class="seasons-list">
+        {{ range $season := $seasons }}
+        <div class="season-container js-season" data-season="{{ .Number }}">
+            <div class="season-header" onclick="toggleSeason(this)">
+                <div class="season-info">
+                    <svg class="season-toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <span class="season-title">Season {{ .Number }}</span>
+                </div>
+                <div class="season-actions">
+                    <button class="btn btn-sm btn-outline" onclick="event.stopPropagation()">Monitor</button>
+                    <button class="btn btn-sm btn-outline" onclick="event.stopPropagation()">Search</button>
+                </div>
+            </div>
+
+            <div class="season-content">
+                <div class="episodes-list">
+                    {{ range $episodes }}
+                        {{ if eq .Season $season.Number }}
+                        <div class="episode-card {{ .Tracking }} js-episode">
+                            <div class="episode-header" onclick="toggleEpisode(this)">
+                                <div class="episode-main-info">
+                                    <svg class="episode-toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                    <span class="episode-number">{{ .Number }}</span>
+                                    <div class="episode-title-block">
+                                        <span class="episode-title">{{ .Name }}</span>
+                                        <div class="episode-meta-row">
+                                            <span>S{{ .Season }}E{{ .Number }}</span>
+                                            <span>•</span>
+                                            <span>{{ .AirDate }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="episode-status-block">
+                                    <span class="status-badge {{ .Tracking }}">{{ .Tracking }}</span>
+                                    
+                                    <div class="action-buttons">
+                                        <button class="btn-icon-sm" title="Automatic Search" onclick="event.stopPropagation()">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                        </button>
+                                        <button class="btn-icon-sm" title="Interactive Search" onclick="event.stopPropagation()">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {{ if .Summary }}
+                            <div class="episode-details">
+                                <div class="episode-details-content js-summary">
+                                    {{ .Summary }}
+                                </div>
+                            </div>
+                            {{ end }}
+                        </div>
+                        {{ end }}
+                    {{ end }}
+                </div>
+            </div>
+        </div>
+        {{ end }}
+    </div>
+</div>
+
+<script>
+    function toggleSeason(header) {
+        const container = header.parentElement;
+        container.classList.toggle('active');
+    }
+
+    function toggleEpisode(header) {
+        const card = header.parentElement;
+        card.classList.toggle('active');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const seasons = document.querySelectorAll('.js-season');
+        if (seasons.length > 0) {
+            seasons[seasons.length - 1].classList.add('active');
+        }
+
+        const summaries = document.querySelectorAll('.js-summary');
+        summaries.forEach(el => {
+            let text = el.innerText || el.textContent;
+            const txt = document.createElement("textarea");
+            txt.innerHTML = text;
+            text = txt.value;
+            const stripped = text.replace(/(<([^>]+)>)/gi, "");
+            el.innerText = stripped;
+        });
+
+        // Format genres from comma string to tags
+        const genreContainer = document.querySelector('.genres-list');
+        if (genreContainer) {
+            const genresRaw = genreContainer.innerText.trim();
+            if (genresRaw) {
+                const genres = genresRaw.split(',').map(g => g.trim());
+                genreContainer.innerHTML = '';
+                genres.forEach(genre => {
+                    const tag = document.createElement('span');
+                    tag.className = 'genre-tag';
+                    tag.innerText = genre;
+                    genreContainer.appendChild(tag);
+                });
+            }
+        }
+    });
+</script>
+{{ end }}
