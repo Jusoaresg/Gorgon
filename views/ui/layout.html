@@ -1,0 +1,31 @@
+{{ define "layout" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gorgon - Media Manager</title>
+    <link href="/static/css/style.css" rel="stylesheet">
+    <link href="/static/css/sidebar.css" rel="stylesheet">
+
+    {{ range .Styles }}
+        <link href="/static/css/{{ . }}" rel="stylesheet">
+    {{ end }}
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js"></script>
+</head>
+<body>
+    {{ template "sidebar" . }}
+    
+    <main class="main-content">
+        <div class="container">
+            {{ render .TemplateName . }}
+        </div>
+    </main>
+</body>
+</html>
+{{ end }}
+
