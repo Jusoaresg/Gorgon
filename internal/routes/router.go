@@ -19,8 +19,10 @@ func InitializeRoutes(e *echo.Echo) {
 	handler.InitHandler()
 
 	docs.SwaggerInfo.BasePath = basePath
-
 	logger.Info("Initializing routes", slog.String("basePath", basePath))
+
+	SetupFrontRouter(e)
+	logger.Debug("Front route initialized successfully")
 
 	v1 := e.Group(basePath)
 
@@ -42,8 +44,6 @@ func InitializeRoutes(e *echo.Echo) {
 	SetupAppConfigRouter(v1)
 	logger.Debug("App Config route initialized successfully")
 
-	logger.Info("Routes initialized", slog.String("basePath", basePath))
-
 	e.GET("/swagger.json", func(c echo.Context) error {
 		return c.Blob(http.StatusOK, "application/json", docs.SwaggerJSON)
 	})
@@ -51,4 +51,6 @@ func InitializeRoutes(e *echo.Echo) {
 	v1.GET("docs", func(c echo.Context) error {
 		return c.Render(http.StatusOK, "docs.html", nil)
 	})
+
+	logger.Info("Routes initialized", slog.String("basePath", basePath))
 }

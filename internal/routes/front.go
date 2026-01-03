@@ -4,26 +4,88 @@ import (
 	"fmt"
 	"io/fs"
 	"net/http"
+	"strconv"
 
-	"github.com/jusoaresg/gorgon/assets"
+	"github.com/jmoiron/sqlx"
+	"github.com/jusoaresg/gorgon/config"
+	tvMazeService "github.com/jusoaresg/gorgon/external/tvmaze/service"
+	"github.com/jusoaresg/gorgon/internal/show/service"
+	"github.com/jusoaresg/gorgon/views"
 	"github.com/labstack/echo/v4"
 )
 
+type FrontHandler struct {
+	db                *sqlx.DB
+	AggregatorService service.ShowAggregatorService
+	TvMazeService     tvMazeService.TvMazeSearchService
+}
+
 func SetupFrontRouter(e *echo.Echo) {
-	buildFS, err := fs.Sub(assets.FrontStaticFS, "front/build")
-	if err != nil {
-		panic(fmt.Errorf("error accessing embedded front files: %w", err))
+	e.Renderer = views.NewTemplate()
+
+	logger := config.GetLogger()
+
+	db := config.GetSQLite()
+	frontHander := &FrontHandler{
+		db:                db,
+		AggregatorService: *service.NewShowAggregatorServiceWithDb(db),
+		TvMazeService:     *tvMazeService.NewTvMazeSearchService(logger),
 	}
 
-	e.GET("/favicon.png", echo.WrapHandler(http.FileServer(http.FS(buildFS))))
-	e.GET("/_app/*", echo.WrapHandler(http.FileServer(http.FS(buildFS))))
-	e.GET("/css/*", echo.WrapHandler(http.FileServer(http.FS(buildFS))))
+	staticFS, err := fs.Sub(views.FrontStaticFS, "static")
+	if err != nil {
+		panic(fmt.Errorf("error loading static files"))
+	}
+	e.StaticFS("/static", staticFS)
 
-	e.GET("/*", func(c echo.Context) error {
-		index, err := fs.ReadFile(buildFS, "index.html")
+	e.GET("/", frontHander.ShowsRoute)
+
+	e.GET("/show/:id", func(c echo.Context) error {
+		showId, err := strconv.ParseInt(c.Param("id"), 10, 64)
 		if err != nil {
-			panic(err)
+			return err
 		}
-		return c.Blob(http.StatusOK, echo.MIMETextHTML, index)
+
+		db := config.GetSQLite()
+		aggregatorService := service.NewShowAggregatorServiceWithDb(db)
+
+		show, err := aggregatorService.GetShowWithRelations(showId)
+		if err != nil {
+			return err
+		}
+
+		return c.Render(http.StatusOK, "layout", views.PageData{
+			TemplateName: "show",
+			Data:         show,
+			Styles:       []string{"show.css"},
+		})
 	})
+
+	e.GET("/add-show", func(c echo.Context) error {
+		return c.Render(http.StatusOK, "layout", views.PageData{
+			TemplateName: "add-show",
+			Data:         nil,
+			Styles:       []string{"add-show.css"},
+		})
+	})
+
+	e.GET("/add-show/:tvmaze-id/config", frontHander.AddShowConfig)
+
+	e.GET("/calendar", func(c echo.Context) error {
+		return c.Render(http.StatusOK, "layout", views.PageData{
+			TemplateName: "calendar",
+			Data:         nil,
+			Styles:       []string{"calendar.css"},
+		})
+	})
+
+	e.GET("/settings", func(c echo.Context) error {
+		return c.Render(http.StatusOK, "layout", views.PageData{
+			TemplateName: "config",
+			Data:         nil,
+			Styles:       []string{"config.css"},
+		})
+	})
+
+	SetupFrontApi(e)
 }

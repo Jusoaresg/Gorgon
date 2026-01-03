@@ -2,11 +2,9 @@ package handler
 
 import (
 	"github.com/jusoaresg/gorgon/config"
-	"github.com/jusoaresg/gorgon/external/tvmaze/schema"
 	"github.com/jusoaresg/gorgon/external/tvmaze/service"
 	"github.com/jusoaresg/gorgon/internal/show/repository"
 	"github.com/jusoaresg/gorgon/pkg/schemas"
-	"log/slog"
 
 	"github.com/labstack/echo/v4"
 )
@@ -32,31 +30,13 @@ func SearchShowByName(c echo.Context) error {
 	}
 
 	tvMazeService := service.NewTvMazeSearchService(logger)
-
-	response, err := tvMazeService.SearchByName(request.Name)
-	if err != nil {
-		logger.Error("Error while searching for name", slog.String("error", err.Error()))
-		schemas.SendError(c, 500, "Error while searching by name")
-		return err
-	}
-
 	showRepo := repository.NewShowRepository(config.GetSQLite())
-	existingShows, err := showRepo.List()
+	showManager := service.NewShowManager(*tvMazeService, *showRepo, logger)
+
+	enriched, err := showManager.SearchAndEnrich(request.Name)
 	if err != nil {
+		schemas.SendError(c, 500, "Error While searching by name")
 		return err
-	}
-
-	existingsMap := make(map[int64]bool)
-	for _, s := range existingShows {
-		existingsMap[s.TvMazeID] = true
-	}
-
-	var enriched []schema.SearchResult
-	for _, r := range *response {
-		enriched = append(enriched, schema.SearchResult{
-			Show:    r.Show,
-			IsAdded: existingsMap[r.Show.TvMazeID],
-		})
 	}
 
 	schemas.SendSuccess(c, "SearchShowByName", &enriched)

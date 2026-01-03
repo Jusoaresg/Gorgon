@@ -46,8 +46,6 @@ func main() {
 	e.Use(middleware.CORSWithConfig(cors))
 	e.Use(middleware.Logger())
 
-	routes.SetupFrontRouter(e)
-
 	routes.InitializeRoutes(e)
 	cron.StartDailyUpdate(scheduler.UpdateAllShows)
 

@@ -1,0 +1,67 @@
+package routes
+
+import (
+	"net/http"
+	"strconv"
+
+	"github.com/jusoaresg/gorgon/config"
+	"github.com/jusoaresg/gorgon/external/tvmaze/service"
+	show "github.com/jusoaresg/gorgon/internal/show/handler"
+	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
+	showSchema "github.com/jusoaresg/gorgon/internal/show/schema"
+	"github.com/jusoaresg/gorgon/pkg/schemas"
+	"github.com/labstack/echo/v4"
+)
+
+func SetupFrontApi(e *echo.Echo) {
+	api := e.Group("front/")
+
+	api.POST("search-show", func(c echo.Context) error {
+
+		var request schemas.NameRequest
+		if err := c.Bind(&request); err != nil {
+			return nil
+		}
+
+		logger := config.GetLogger()
+		db := config.GetSQLite()
+
+		tvMazeService := service.NewTvMazeSearchService(logger)
+		showRepo := showRepository.NewShowRepository(db)
+
+		showManager := service.NewShowManager(*tvMazeService, *showRepo, logger)
+
+		shows, err := showManager.SearchAndEnrich(request.Name)
+		if err != nil {
+			return err
+		}
+
+		data := map[string]any{
+			"Shows": shows,
+		}
+
+		return c.Render(http.StatusOK, "add-show-card", data)
+	})
+
+	api.POST("add-show", AddShow)
+}
+
+func AddShow(c echo.Context) error {
+	logger := config.GetLogger()
+
+	id, err := strconv.ParseInt(c.FormValue("id"), 10, 64)
+	if err != nil {
+		return err
+	}
+
+	trackingType := c.FormValue("monitor")
+
+	request := showSchema.AddShowToListRequest{
+		Id:           int(id),
+		TrackingType: trackingType,
+	}
+	show.AddShowToListHandler(c, &request, config.GetSQLite(), logger)
+
+	c.Response().Header().Set("HX-Redirect", "/")
+	return c.NoContent(http.StatusOK)
+}
