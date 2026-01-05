@@ -74,7 +74,7 @@ func (sm *ShowManagerService) GetSeasons(tvMazeId int64) (*[]dtos.SeasonDto, err
 // NOTE: Everything here will need a refactor later, there're lot of problems
 // Probably will be problems with the seasons updating.
 func (sm *ShowManagerService) UpdateShowWithRelations(showDTO dtos.ShowDto, seasonsDTO []dtos.SeasonDto, episodes []dtos.EpisodeDto) error {
-	aggregatedShow, err := sm.ShowAggregator.GetShowWithRelations(showDTO.TvMazeID)
+	aggregatedShow, err := sm.ShowAggregator.GetShowWithRelationsByTvMazeId(showDTO.TvMazeID)
 	if err != nil {
 		sm.logger.Error(
 			"error while getting aggregated show from db to update show",

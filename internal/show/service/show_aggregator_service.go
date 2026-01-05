@@ -53,9 +53,39 @@ func NewShowAggregatorServiceWithDb(db *sqlx.DB) *ShowAggregatorService {
 	}
 }
 
-func (s *ShowAggregatorService) GetShowWithRelations(tvMazeID int64) (AggregatedShow, error) {
+func (s *ShowAggregatorService) GetShowWithRelationsByTvMazeId(tvMazeID int64) (AggregatedShow, error) {
 
 	show, err := s.ShowRepo.GetByTvMazeID(tvMazeID)
+	if err != nil {
+		return AggregatedShow{}, fmt.Errorf("failed to get show by tvmazeID: %w", err)
+	}
+
+	showAliases, err := s.ShowAliasesRepo.ListByShowID(show.ID)
+	if err != nil {
+		return AggregatedShow{}, fmt.Errorf("failed to get show aliases: %w", err)
+	}
+
+	season, err := s.SeasonRepo.ListByShowId(show.ID)
+	if err != nil {
+		return AggregatedShow{}, fmt.Errorf("Failed to get season by showID: %w", err)
+	}
+
+	episode, err := s.EpisodeRepo.ListByShowID(show.ID)
+	if err != nil {
+		return AggregatedShow{}, fmt.Errorf("Failed to get episode by showID: %w", err)
+	}
+
+	return AggregatedShow{
+		Show:        show,
+		ShowAliases: showAliases,
+		Seasons:     season,
+		Episodes:    episode,
+	}, nil
+}
+
+func (s *ShowAggregatorService) GetShowWithRelationsById(id int64) (AggregatedShow, error) {
+
+	show, err := s.ShowRepo.GetById(id)
 	if err != nil {
 		return AggregatedShow{}, fmt.Errorf("failed to get show by tvmazeID: %w", err)
 	}
