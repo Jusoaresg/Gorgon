@@ -327,47 +327,6 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "delete": {
-                "description": "Delete Show from list",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Database/Show"
-                ],
-                "summary": "Delete Show",
-                "parameters": [
-                    {
-                        "description": "Request Body",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schemas.IdRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/schemas.DefaultResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/schemas.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/schemas.ErrorResponse"
-                        }
-                    }
-                }
             }
         },
         "/database/show/aliases/{id}": {
@@ -664,6 +623,45 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Show ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete Show from list",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Database/Show"
+                ],
+                "summary": "Delete Show",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Show Id",
                         "name": "id",
                         "in": "path",
                         "required": true

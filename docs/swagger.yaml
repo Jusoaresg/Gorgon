@@ -319,33 +319,6 @@ paths:
       tags:
       - Database/Indexer
   /database/show:
-    delete:
-      description: Delete Show from list
-      parameters:
-      - description: Request Body
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schemas.IdRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/schemas.DefaultResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/schemas.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/schemas.ErrorResponse'
-      summary: Delete Show
-      tags:
-      - Database/Show
     get:
       description: List all shows
       produces:
@@ -396,6 +369,32 @@ paths:
       tags:
       - Database/Show
   /database/show/{id}:
+    delete:
+      description: Delete Show from list
+      parameters:
+      - description: Show Id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Delete Show
+      tags:
+      - Database/Show
     get:
       description: Getshow
       parameters:
