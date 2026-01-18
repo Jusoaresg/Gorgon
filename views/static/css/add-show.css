@@ -62,6 +62,7 @@
     transition: all 0.2s ease;
     display: flex;
     flex-direction: column;
+    text-decoration: none;
 }
 
 .result-card:hover {

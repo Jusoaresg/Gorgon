@@ -1,13 +1,17 @@
 {{ define "add-show-card" }}
     {{ range .Shows }}
-            <div class="result-card">
+        {{ if .IsAdded }}
+            <a href="#" class="result-card" style="cursor: default;">
+        {{ else }}
+            <a href="/add-show/{{ .Show.TvMazeID }}/config" class="result-card">
+        {{ end }}
                 <div class="result-poster">
                     <img src="{{ .Show.Image.Medium }}" alt="Poster">
                     <div class="result-overlay">
                         {{ if .IsAdded }}
-                             <button class="btn btn-add-small" disabled style="background-color: var(--success); cursor: default;">In Library</button>
+                             <span class="btn btn-add-small" style="background-color: var(--success); cursor: default;">In Library</span>
                         {{ else }}
-                             <a class="btn btn-add-small" href="/add-show/{{ .Show.TvMazeID }}/config">Add Series</a>
+                             <span class="btn btn-add-small">Add Series</span>
                         {{ end }}
                     </div>
                 </div>
@@ -21,6 +25,6 @@
                     </div>
                     <p class="result-summary">{{ .Show.Summary }}</p>
                 </div>
-            </div>
+            </a>
     {{ end }}
 {{ end }}
