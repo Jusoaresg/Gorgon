@@ -143,6 +143,16 @@
     padding: 0.2rem 0.6rem;
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.05);
+    text-decoration: none;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+
+a.meta-item:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+    border-color: var(--accent-purple);
+    transform: translateY(-1px);
 }
 
 .meta-item svg {

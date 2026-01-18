@@ -67,6 +67,15 @@
                         {{ printf "%.1f" (derefFloat $show.Rating) }}
                     </span>
                     {{ end }}
+
+                    <!-- External Links -->
+                    <span style="width: 1px; height: 1.2rem; background: rgba(255,255,255,0.1); margin: 0 0.5rem;"></span>
+                    
+                    <a href="https://www.tvmaze.com/shows/{{ $show.TvMazeID }}" target="_blank" class="meta-item" title="View on TVMaze">
+                        <img src="https://static.tvmaze.com/images/favico/favicon.ico" style="width: 14px; height: 14px; opacity: 0.8;">
+                        TVMaze
+                    </a>
+
                 </div>
 
                 <div class="show-stats">
