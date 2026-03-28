@@ -24,7 +24,7 @@ import (
 // @Router /database/show/episode/status [post]
 func ChangeEpisodeStatus(c echo.Context) error {
 	logger := config.GetLogger()
-	logger.Info("Received request to Change Episode Status", slog.String("endpoint", "/database/show/episode/:id/status"), slog.String("method", "post"))
+	logger.Info("Received request to Change Episode Status", slog.String("endpoint", "/database/show/episode/status"), slog.String("method", "post"))
 
 	var request schema.ChangeEpisodeTrackingRequest
 
