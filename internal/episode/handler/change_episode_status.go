@@ -53,6 +53,7 @@ func ChangeEpisodeStatus(c echo.Context) error {
 	event.EmitEpisodeTrackingUpdatedEvent(ep.ID, ep.Tracking)
 
 	logger.Info("Successfully updated episode", slog.Any("Episode", ep))
+	c.Response().Header().Add("HX-Refresh", "true")
 	schemas.SendSuccess(c, "Get Show", ep)
 	return nil
 }
