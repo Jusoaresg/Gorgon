@@ -44,6 +44,8 @@ func SetupFrontApi(e *echo.Echo) {
 	})
 
 	api.POST("add-show", AddShow)
+
+	api.GET("show/:id/modal/edit", EditShowModal)
 }
 
 func AddShow(c echo.Context) error {
@@ -64,4 +66,9 @@ func AddShow(c echo.Context) error {
 
 	c.Response().Header().Set("HX-Redirect", "/")
 	return c.NoContent(http.StatusOK)
+}
+
+func EditShowModal(c echo.Context) error {
+	id := c.Param("id")
+	return c.Render(http.StatusOK, "edit-show-modal", id)
 }

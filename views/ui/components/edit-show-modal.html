@@ -1,0 +1,51 @@
+{{ define "edit-show-modal" }}
+<div id="modal-container" class="modal-overlay">
+    <div class="modal-content">
+        
+        <!-- Header -->
+        <div class="modal-header">
+            <h3 class="modal-title">Edit Series</h3>
+            <button class="btn-close-modal" onclick="document.getElementById('modal-container').remove()">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body">
+            <form id="edit-show-form">
+                
+                <!-- Path (Static) -->
+                <!-- <div class="modal-form-group"> -->
+                <!--     <label>Path</label> -->
+                <!--     <input type="text" class="modal-input-static" value="/data/media/tv/The Last of Us" readonly> -->
+                <!-- </div> -->
+
+                <!-- Quality Profile -->
+                <!-- <div class="modal-form-group"> -->
+                <!--     <label>Quality Profile</label> -->
+                <!--     <select class="modal-select"> -->
+                <!--         <option value="hd-1080p" selected>HD - 1080p</option> -->
+                <!--         <option value="sd">SD - 480p</option> -->
+                <!--         <option value="ultra">Ultra HD - 4k</option> -->
+                <!--     </select> -->
+                <!-- </div> -->
+
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+            <!-- Left: Danger Zone (Delete) -->
+            <button class="btn btn-danger" onclick="alert('Delete triggered!')" hx-delete="/api/v1/database/show/{{ . }}">
+                Delete Series
+            </button>
+
+            <!-- Right: Save Actions -->
+            <!-- <div class="footer-actions-right"> -->
+            <!--     <button class="btn btn-outline" type="button" onclick="document.getElementById('modal-container').remove()">Cancel</button> -->
+            <!--     <button class="btn btn-primary" type="submit" form="edit-show-form">Save Changes</button> -->
+            <!-- </div> -->
+        </div>
+    </div>
+</div>
+{{ end }}
