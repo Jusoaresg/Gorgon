@@ -49,7 +49,7 @@ func SetupFrontRouter(e *echo.Echo) {
 		db := config.GetSQLite()
 		aggregatorService := service.NewShowAggregatorServiceWithDb(db)
 
-		show, err := aggregatorService.GetShowWithRelations(showId)
+		show, err := aggregatorService.GetShowWithRelationsById(showId)
 		if err != nil {
 			return err
 		}
