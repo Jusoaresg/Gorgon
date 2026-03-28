@@ -5,15 +5,25 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/docs"
+	tvMazeService "github.com/jusoaresg/gorgon/external/tvmaze/service"
+	showAggregator "github.com/jusoaresg/gorgon/internal/show/service"
 	"github.com/jusoaresg/gorgon/pkg/handler"
 	"github.com/labstack/echo/v4"
 )
 
+type RoutersDeps struct {
+	Db             *sqlx.DB
+	Logger         *slog.Logger
+	AggShowService *showAggregator.ShowAggregatorService
+	TvMazeService  *tvMazeService.TvMazeSearchService
+}
+
 const basePath = "/api/v1/"
 
-func InitializeRoutes(e *echo.Echo) {
+func InitializeRoutes(e *echo.Echo, deps *RoutersDeps) {
 	logger := config.GetLogger().WithGroup("routes").With("name", "initializeRoutes")
 
 	handler.InitHandler()

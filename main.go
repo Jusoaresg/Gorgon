@@ -11,9 +11,11 @@ import (
 	"time"
 
 	"github.com/jusoaresg/gorgon/config"
+	tvMazeService "github.com/jusoaresg/gorgon/external/tvmaze/service"
 	"github.com/jusoaresg/gorgon/internal/routes"
 	"github.com/jusoaresg/gorgon/internal/scheduler"
 	"github.com/jusoaresg/gorgon/internal/scheduler/cron"
+	showAggregator "github.com/jusoaresg/gorgon/internal/show/service"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -46,7 +48,18 @@ func main() {
 	e.Use(middleware.CORSWithConfig(cors))
 	e.Use(middleware.Logger())
 
-	routes.InitializeRoutes(e)
+	db := config.GetSQLite()
+	logger := config.GetLogger()
+
+	// Initialize services
+	routerDeps := &routes.RoutersDeps{
+		Db:             db,
+		Logger:         logger,
+		AggShowService: showAggregator.NewShowAggregatorServiceWithDb(db),
+		TvMazeService:  tvMazeService.NewTvMazeSearchService(logger),
+	}
+
+	routes.InitializeRoutes(e, routerDeps)
 	cron.StartDailyUpdate(scheduler.UpdateAllShows)
 
 	scheduler.Start()
@@ -73,7 +86,6 @@ func main() {
 		log.Printf("error shutting down Echo server: %v", err)
 	}
 
-	db := config.GetSQLite()
 	if err := db.Close(); err != nil {
 		log.Printf("error closing database: %v", err)
 	} else {
