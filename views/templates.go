@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"strings"
 
 	episodeModel "github.com/jusoaresg/gorgon/internal/episode/model"
 	"github.com/labstack/echo/v4"
@@ -28,6 +29,9 @@ func NewTemplate() *Template {
 	tmpl := template.New("")
 
 	tmpl.Funcs(template.FuncMap{
+		"toLower": func(text string) string {
+			return strings.ToLower(text)
+		},
 		"render": func(name string, data any) (template.HTML, error) {
 			var buf bytes.Buffer
 			err := tmpl.ExecuteTemplate(&buf, name, data)
