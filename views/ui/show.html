@@ -141,7 +141,15 @@
                                 </div>
 
                                 <div class="episode-status-block">
-                                    <span class="status-badge {{ .Tracking }}">{{ .Tracking }}</span>
+                                    <span class="status-badge {{ .Tracking }}" 
+                                          style="cursor: pointer; transition: transform 0.2s;" 
+                                          title="Change Status"
+                                          hx-get="/front/episode/{{ .ID }}/modal/tracking" 
+                                          hx-target="body" 
+                                          hx-swap="beforeend" 
+                                          onclick="event.stopPropagation()">
+                                        {{ .Tracking }}
+                                    </span>
                                     
                                     <div class="action-buttons">
                                         <button class="btn-icon-sm" title="Automatic Search" onclick="event.stopPropagation()">

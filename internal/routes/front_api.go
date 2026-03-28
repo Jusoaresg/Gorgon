@@ -6,6 +6,7 @@ import (
 
 	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/external/tvmaze/service"
+	episodeRepository "github.com/jusoaresg/gorgon/internal/episode/repository"
 	show "github.com/jusoaresg/gorgon/internal/show/handler"
 	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
 	showSchema "github.com/jusoaresg/gorgon/internal/show/schema"
@@ -46,6 +47,8 @@ func SetupFrontApi(e *echo.Echo) {
 	api.POST("add-show", AddShow)
 
 	api.GET("show/:id/modal/edit", EditShowModal)
+
+	api.GET("episode/:id/modal/tracking", ChangeEpisodeTracking)
 }
 
 func AddShow(c echo.Context) error {
@@ -71,4 +74,20 @@ func AddShow(c echo.Context) error {
 func EditShowModal(c echo.Context) error {
 	id := c.Param("id")
 	return c.Render(http.StatusOK, "edit-show-modal", id)
+}
+
+func ChangeEpisodeTracking(c echo.Context) error {
+	epIdStr := c.Param("id")
+	epIdInt, err := strconv.Atoi(epIdStr)
+	if err != nil {
+		return err
+	}
+
+	epRepo := episodeRepository.NewEpisodeRepository(config.GetSQLite())
+	episode, err := epRepo.GetByID(int64(epIdInt))
+	if err != nil {
+		return err
+	}
+
+	return c.Render(http.StatusOK, "episode-tracking-modal", episode)
 }
