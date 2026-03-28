@@ -12,6 +12,9 @@
 	--success: #10b981;
 	--warning: #f59e0b;
 	--danger: #ef4444;
+	--ended: rgba(239, 68, 68, 1);
+	--running: rgba(16, 185, 129, 1);
+	--upcoming: rgba(245, 158, 11, 1);
 	--font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
