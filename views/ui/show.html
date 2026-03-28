@@ -76,6 +76,12 @@
                         TVMaze
                     </a>
 
+                    {{ if $show.Imdb }}
+                    <a href="https://www.imdb.com/title/tt{{ printf "%07d" $show.Imdb }}" target="_blank" class="meta-item" title="View on IMDb">
+                        <img src="https://m.media-amazon.com/images/G/01/imdb/images-ANDW73HA/favicon_desktop_32x32._CB1582158068_.png" style="width: 14px; height: 14px; opacity: 0.8;">
+                        IMDb
+                    </a>
+                    {{ end }}
                 </div>
 
                 <div class="show-stats">
