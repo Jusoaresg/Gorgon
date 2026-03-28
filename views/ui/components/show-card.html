@@ -3,7 +3,7 @@
     {{ $total := len .Episodes }}
     {{ $percentage := calcPercentage $downloaded $total }}
 
-    <a href="/show/{{ .Show.TvMazeID }}" class="show-card-link">
+    <a href="/show/{{ .Show.ID }}" class="show-card-link">
         <div class="show-card">
             <div class="show-poster-wrapper">
                 <img src="{{ .Show.ImageOriginal }}" alt="{{ .Show.Name }}" loading="lazy" class="show-poster-img">
