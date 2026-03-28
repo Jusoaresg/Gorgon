@@ -64,20 +64,6 @@
     image-rendering: high-quality;
 }
 
-.poster-badge {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: var(--success);
-    color: white;
-    padding: 0.2rem 0.6rem;
-    border-radius: 4px;
-    font-size: 0.7rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-}
-
 .side-info {
     display: grid;
     grid-template-columns: 1fr 1fr;

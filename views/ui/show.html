@@ -12,7 +12,7 @@
         <div class="hero-content">
             <div class="hero-poster">
                 <img src="{{ $show.ImageOriginal }}" alt="Poster">
-                <div class="poster-status badge-running">{{ $show.Status }}</div>
+                <div class="poster-status badge-{{ toLower $show.Status }}">{{ $show.Status }}</div>
             </div>
             <div class="hero-info">
                 <div class="hero-header">
