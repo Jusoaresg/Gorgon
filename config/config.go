@@ -20,12 +20,10 @@ var (
 	BaseDir             = "."
 	ConfigFolder string = "./configs"
 
-	LogsPath    string = filepath.Join(ConfigFolder, "logs")
-	Port        string = "8080"
-	baseApiPath string
-	safeDB      SafeDB
-	logger      *slog.Logger
-	err         error
+	LogsPath string = filepath.Join(ConfigFolder, "logs")
+	Port     string = "8080"
+	safeDB   SafeDB
+	logger   *slog.Logger
 )
 
 func Init() error {
