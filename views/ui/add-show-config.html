@@ -41,7 +41,7 @@
             <header class="details-header">
                 <h1 class="show-title">{{ $show.Name }}</h1>
                 <div class="show-summary">
-                    {{ $show.Summary }}
+                    {{ safeHtml $show.Summary }}
                 </div>
             </header>
 
