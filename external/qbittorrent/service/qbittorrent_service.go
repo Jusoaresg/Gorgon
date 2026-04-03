@@ -159,7 +159,7 @@ func (q *QBittorrentService) CheckTorrents(filter string, response *[]schema.Che
 	url := fmt.Sprintf("/api/v2/torrents/info?filter=%s", filter)
 	q.Logger.Debug("Calling QBittorrent API", slog.String("url", url), slog.String("filter", filter))
 
-	if err := q.APIService.GetWithHeaders(url, &response, headers); err != nil {
+	if err := q.APIService.GetWithHeaders(url, response, headers); err != nil {
 		return fmt.Errorf("error while get torrent info: %w", err)
 	}
 
@@ -180,7 +180,7 @@ func (q *QBittorrentService) CheckTorrentsWithHash(filter, hash string, response
 	url := fmt.Sprintf("/api/v2/torrents/info?filter=%s&hashes=%s", filter, encodedHash)
 	//TODO: Logger message with url and maybe the headers
 
-	if err := q.APIService.GetWithHeaders(url, &response, headers); err != nil {
+	if err := q.APIService.GetWithHeaders(url, response, headers); err != nil {
 		return fmt.Errorf("error while get torrent info: %w", err)
 	}
 
