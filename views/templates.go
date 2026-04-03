@@ -37,6 +37,9 @@ func NewTemplate() *Template {
 			err := tmpl.ExecuteTemplate(&buf, name, data)
 			return template.HTML(buf.String()), err
 		},
+		"safeHtml": func(s string) template.HTML {
+			return template.HTML(s)
+		},
 		"derefFloat": func(f *float64) float64 {
 			if f == nil {
 				return 0
