@@ -3,11 +3,13 @@ package show
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/jusoaresg/gorgon/internal/show/schema"
-	"github.com/jusoaresg/gorgon/testutils"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/jusoaresg/gorgon/internal/show/schema"
+	"github.com/jusoaresg/gorgon/testutils"
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
@@ -31,7 +33,10 @@ func TestAddShowToList_Success(t *testing.T) {
 
 	c := e.NewContext(req, rec)
 
-	err = addShowToListHandler(c, testutils.GetTestDB())
+	logger := slog.Default()
+
+	_, err = AddShowToListHandler(c, &request, testutils.GetTestDB(), logger)
+
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Result().StatusCode)
 }
