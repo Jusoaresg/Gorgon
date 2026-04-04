@@ -29,5 +29,15 @@
     </main>
 </body>
 </html>
+
+<script>
+    function showToast(event){
+        const reponseStr = event.detail.xhr.response
+        const response = JSON.parse(reponseStr)
+        const toastMessage = response.data.toastMessage
+
+        alert(toastMessage)
+    }
+</script>
 {{ end }}
 
