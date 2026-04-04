@@ -8,6 +8,11 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+type UpdatedConfigResponse struct {
+	NewConfig    schemas.ConfigFile `json:"newConfig"`
+	ToastMessage string             `json:"toastMessage"`
+}
+
 // @BasePath /api/v1
 
 // @Summary Update App Config
@@ -41,11 +46,16 @@ func UpdateAppConfig(c echo.Context) error {
 
 	if err := config.SaveConfig(cfg); err != nil {
 		logger.Error("Failed to save app config file")
-		schemas.SendError(c, 500, "Failed to save app config file")
+		schemas.SendError(c, 500, "Failed to save app config file", UpdatedConfigResponse{
+			ToastMessage: "Failed to update config",
+		})
 		return err
 	}
 
 	logger.Info("Successfully updated app config")
-	schemas.SendSuccess(c, "Update App Config", cfg)
+	schemas.SendSuccess(c, "Update App Config", UpdatedConfigResponse{
+		NewConfig:    *cfg,
+		ToastMessage: "Successfully updated config",
+	})
 	return nil
 }
