@@ -46,7 +46,7 @@ func main() {
 		AllowCredentials: true,
 	}
 	e.Use(middleware.CORSWithConfig(cors))
-	e.Use(middleware.Logger())
+	e.Use(middleware.RequestLogger())
 
 	db := config.GetSQLite()
 	logger := config.GetLogger()
