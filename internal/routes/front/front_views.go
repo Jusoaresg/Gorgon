@@ -1,4 +1,4 @@
-package routes
+package front
 
 import (
 	"fmt"
@@ -9,6 +9,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/jusoaresg/gorgon/config"
 	tvMazeService "github.com/jusoaresg/gorgon/external/tvmaze/service"
+	"github.com/jusoaresg/gorgon/internal/routes/front/settings"
 	"github.com/jusoaresg/gorgon/internal/show/service"
 	"github.com/jusoaresg/gorgon/views"
 	"github.com/labstack/echo/v4"
@@ -26,7 +27,7 @@ func SetupFrontRouter(e *echo.Echo) {
 	logger := config.GetLogger()
 
 	db := config.GetSQLite()
-	frontHander := &FrontHandler{
+	frontHandler := &FrontHandler{
 		db:                db,
 		AggregatorService: *service.NewShowAggregatorServiceWithDb(db),
 		TvMazeService:     *tvMazeService.NewTvMazeSearchService(logger),
@@ -38,7 +39,7 @@ func SetupFrontRouter(e *echo.Echo) {
 	}
 	e.StaticFS("/static", staticFS)
 
-	e.GET("/", frontHander.ShowsRoute)
+	e.GET("/", frontHandler.ShowsRoute)
 
 	e.GET("/show/:id", func(c echo.Context) error {
 		showId, err := strconv.ParseInt(c.Param("id"), 10, 64)
@@ -69,7 +70,7 @@ func SetupFrontRouter(e *echo.Echo) {
 		})
 	})
 
-	e.GET("/add-show/:tvmaze-id/config", frontHander.AddShowConfig)
+	e.GET("/add-show/:tvmaze-id/config", frontHandler.AddShowConfig)
 
 	e.GET("/calendar", func(c echo.Context) error {
 		return c.Render(http.StatusOK, "layout", views.PageData{
@@ -79,13 +80,8 @@ func SetupFrontRouter(e *echo.Echo) {
 		})
 	})
 
-	e.GET("/settings", func(c echo.Context) error {
-		return c.Render(http.StatusOK, "layout", views.PageData{
-			TemplateName: "config",
-			Data:         nil,
-			Styles:       []string{"config.css"},
-		})
-	})
+	e.GET("/settings", settings.SettingsWithoutParam)
+	e.GET("/settings/:type", settings.SettingsWithParam)
 
 	SetupFrontApi(e)
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/docs"
 	tvMazeService "github.com/jusoaresg/gorgon/external/tvmaze/service"
+	"github.com/jusoaresg/gorgon/internal/routes/front"
 	showAggregator "github.com/jusoaresg/gorgon/internal/show/service"
 	"github.com/jusoaresg/gorgon/pkg/handler"
 	"github.com/labstack/echo/v4"
@@ -31,7 +32,7 @@ func InitializeRoutes(e *echo.Echo, deps *RoutersDeps) {
 	docs.SwaggerInfo.BasePath = basePath
 	logger.Info("Initializing routes", slog.String("basePath", basePath))
 
-	SetupFrontRouter(e)
+	front.SetupFrontRouter(e)
 	logger.Debug("Front route initialized successfully")
 
 	v1 := e.Group(basePath)

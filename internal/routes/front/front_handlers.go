@@ -1,4 +1,4 @@
-package routes
+package front
 
 import (
 	"net/http"
