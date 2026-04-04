@@ -9,9 +9,15 @@ import (
 	"github.com/jusoaresg/gorgon/internal/show/repository"
 	showService "github.com/jusoaresg/gorgon/internal/show/service"
 	"github.com/jusoaresg/gorgon/pkg/schemas"
+	"github.com/jusoaresg/gorgon/pkg/schemas/dtos"
 
 	"github.com/labstack/echo/v4"
 )
+
+type UpdateShowData struct {
+	UpdateShow   dtos.ShowDto `json:"updatedShow"`
+	ToastMessage string       `json:"toastMessage"`
+}
 
 // @BasePath /api/v1
 
@@ -40,38 +46,60 @@ func updateShowInfoHandler(c echo.Context, db *sqlx.DB) error {
 	tvMazeService := tvMazeService.NewTvMazeSearchService(logger)
 	showManager := showService.NewShowManagerService(logger, db)
 
-	show, err := showRepo.GetById(request.Id)
+	updatedShow, err := UpdateSingleShowInfo(showRepo, tvMazeService, showManager, logger, request.Id)
 	if err != nil {
-		logger.Error("Failed to fetch show from repository", slog.Int64("show_id", request.Id), slog.String("error", err.Error()))
-		return err
+		logger.Error("Failed to update show information", slog.Int("show_id", int(request.Id)))
+		schemas.SendError(c, 500, "Failed to update show info", UpdateShowData{
+			UpdateShow:   *updatedShow,
+			ToastMessage: "Failed to update show info",
+		})
+	}
+
+	logger.Info("Show info updated successfully")
+	schemas.SendSuccess(c, "Update Show Info", UpdateShowData{
+		UpdateShow:   *updatedShow,
+		ToastMessage: "Show info updated",
+	})
+	return nil
+}
+
+func UpdateSingleShowInfo(
+	showRepo *repository.ShowRepository,
+	tvMazeService *tvMazeService.TvMazeSearchService,
+	showManager *showService.ShowManagerService,
+	logger *slog.Logger,
+	showId int64,
+) (*dtos.ShowDto, error) {
+
+	show, err := showRepo.GetById(showId)
+	if err != nil {
+		logger.Error("Failed to fetch show from repository", slog.Int64("show_id", showId), slog.String("error", err.Error()))
+		return nil, err
 	}
 
 	showDTO, err := tvMazeService.SearchByTvMazeId(show.TvMazeID)
 	if err != nil {
 		logger.Error("Failed to fetch show info from TVMaze", slog.Int64("tvmaze_id", show.TvMazeID), slog.String("error", err.Error()))
-		return err
+		return nil, err
 	}
 
 	episodesDTO, err := showManager.GetEpisodes(show.TvMazeID)
 	if err != nil {
 		logger.Error("Failed to fetch episodes from TVMaze", slog.Int64("tvmaze_id", show.TvMazeID), slog.String("error", err.Error()))
-		return err
+		return nil, err
 	}
 
 	seasonsDTO, err := showManager.GetSeasons(show.TvMazeID)
 	if err != nil {
 		logger.Error("Failed to fetch seasons from TVMaze", slog.Int64("tvmaze_id", show.TvMazeID), slog.String("error", err.Error()))
-		return err
+		return nil, err
 	}
 
 	err = showManager.UpdateShowWithRelations(*showDTO, *seasonsDTO, *episodesDTO)
 	if err != nil {
 		logger.Error("Failed to update show info", slog.Int64("tvmaze_id", show.TvMazeID), slog.String("error", err.Error()))
-		schemas.SendError(c, 500, "Failed to update show info")
-		return err
+		return nil, err
 	}
 
-	logger.Info("Show info updated successfully")
-	schemas.SendSuccess(c, "Update Show Info", showDTO)
-	return nil
+	return showDTO, nil
 }
