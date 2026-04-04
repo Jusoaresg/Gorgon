@@ -14,7 +14,7 @@ func SetupAppConfigRouter(v1 *echo.Group) {
 
 	appConfigGroup := v1.Group("app/config")
 	{
-		appConfigGroup.POST("", handler.UpdateAppConfig)
+		appConfigGroup.Match([]string{"POST", "PATCH"}, "", handler.UpdateAppConfig)
 		appConfigGroup.GET("", handler.GetAppConfig)
 
 	}

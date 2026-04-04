@@ -19,24 +19,33 @@ import (
 // @Failure 400 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /app/config [post]
+// @Router /app/config [patch]
 func UpdateAppConfig(c echo.Context) error {
 	logger := config.GetLogger()
-	logger.Info("Received request to Update App Config", slog.String("endpoint", "/app/config"), slog.String("method", "post"))
+	logger.Info("Received request to Update App Config", slog.String("endpoint", "/app/config"), slog.String("method", c.Request().Method))
 
-	var request schemas.ConfigFile
+	var request schemas.UpdateConfigInput
 
 	if err := c.Bind(&request); err != nil {
 		schemas.SendError(c, 500, "Failed to bind body")
 		return err
 	}
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		logger.Error("Failed to load app config file")
+		schemas.SendError(c, 500, "Failed to load app config file")
+		return err
+	}
 
-	if err := config.SaveConfig(request); err != nil {
-		//TODO: Error logger
+	cfg.Apply(&request)
+
+	if err := config.SaveConfig(cfg); err != nil {
+		logger.Error("Failed to save app config file")
 		schemas.SendError(c, 500, "Failed to save app config file")
 		return err
 	}
 
 	logger.Info("Successfully updated app config")
-	schemas.SendSuccess(c, "Update App Config", request)
+	schemas.SendSuccess(c, "Update App Config", cfg)
 	return nil
 }
