@@ -31,6 +31,7 @@
                     hx-patch="/api/v1/app/config"
                     hx-swap="none"
                     hx-ext="json-enc-custom"
+                    hx-on::after-request="showToast(event)"
                     >
                     Save Changes
                 </button>
