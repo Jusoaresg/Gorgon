@@ -1,7 +1,7 @@
 package schemas
 
 type IdRequest struct {
-	Id int64 `json:"id"`
+	Id int64 `json:"id" form:"id"`
 }
 
 type NameRequest struct {

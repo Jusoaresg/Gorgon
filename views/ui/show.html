@@ -39,7 +39,15 @@
                     </div>
 
                     <div class="hero-actions">
-                        <button class="btn btn-outline" title="Refresh Show">
+                        <button 
+                            class="btn btn-outline" 
+                            title="Refresh Show"
+                            hx-trigger="click"
+                            hx-post="/api/v1/database/show/update-info"
+                            hx-swap="none"
+                            hx-vals='{"id": {{ $show.ID }} }'
+                            hx-on::after-request="showToast(event)"
+                            >
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                         </button>
                         <button class="btn btn-outline" title="Edit Show" hx-get="/front/show/{{ $show.ID }}/modal/edit" hx-target="body" hx-swap="beforeend">
