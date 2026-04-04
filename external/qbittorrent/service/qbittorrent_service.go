@@ -45,6 +45,11 @@ func NewQBittorrentService(logger *slog.Logger) (*QBittorrentService, error) {
 	}
 	host := configFile.QBittorrentHost
 	port := configFile.QBittorrentPort
+
+	if host == "" || port == "" {
+		return nil, &QBittorrentHostPortNotSet{}
+	}
+
 	downloadFolder := configFile.QBittorrentDownloadFolder
 
 	return &QBittorrentService{
