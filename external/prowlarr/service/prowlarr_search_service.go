@@ -40,12 +40,17 @@ func NewProwlarrSearchService(logger *slog.Logger) (*ProwlarrSearchService, erro
 		return nil, err
 	}
 
-	prowlarrHost := configFile.ProwlarrHost
-	prowlarrPort := configFile.ProwlarrPort
+	host := configFile.ProwlarrHost
+	port := configFile.ProwlarrPort
+
+	if host == "" || port == "" {
+		return nil, &ProwlarrHostPortNotSet{}
+	}
+
 	return &ProwlarrSearchService{
 		ApiKey:     configFile.ProwlarrApiKey,
 		Logger:     logger,
-		APIService: *services.NewAPIService(fmt.Sprintf("%s:%s", prowlarrHost, prowlarrPort), logger),
+		APIService: *services.NewAPIService(fmt.Sprintf("%s:%s", host, port), logger),
 		limiter:    rate.NewLimiter(rate.Every(2*time.Second), 1),
 	}, nil
 }
