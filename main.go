@@ -62,8 +62,8 @@ func main() {
 	routes.InitializeRoutes(e, routerDeps)
 	cron.StartDailyUpdate(scheduler.UpdateAllShows)
 
+	// Initialize Crons and Schedulers
 	scheduler.Start()
-
 	cron.StartVerifyEpisodeWasDeleted(scheduler.VerifyEpisodeWasDeleted)
 
 	sigs := make(chan os.Signal, 1)
