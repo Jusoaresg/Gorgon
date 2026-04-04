@@ -63,7 +63,7 @@ func NewTemplate() *Template {
 		},
 	})
 
-	tmpl, err := tmpl.ParseFS(FrontFS, "ui/*.html", "ui/components/*.html")
+	tmpl, err := tmpl.ParseFS(FrontFS, "ui/*.html", "ui/components/*.html", "ui/components/settings/*.html")
 	if err != nil {
 		panic(fmt.Errorf("error while loading embedded front %w", err))
 	}

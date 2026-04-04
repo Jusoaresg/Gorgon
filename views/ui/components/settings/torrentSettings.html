@@ -1,0 +1,50 @@
+{{ define "torrentSettings" }}
+    <!-- qBittorrent Section -->
+    <section id="qbittorrent" class="settings-section">
+        <div class="section-header">
+            <div class="section-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            </div>
+            <div>
+                <h3>qBittorrent</h3>
+                <p>Connection settings for your download client</p>
+            </div>
+        </div>
+        <div class="section-body">
+            <form>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Host</label>
+                        <input type="text" name="qbittorrentHost" placeholder="https://127.0.0.1" value="{{ .QBittorrentHost }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Port</label>
+                        <input type="number" name="qbittorrentPort" placeholder="8080" value="{{ .QBittorrentPort }}">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" name="qbittorrentUsername" placeholder="admin" value="{{ .QBittorrentUsername }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" name="qbittorrentPassword" placeholder="••••••••" value="{{ .QBittorrentPassword }}" >
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <!-- <button class="btn btn-outline">Test Connection</button> -->
+                    <button 
+                        class="btn btn-primary" 
+                        type="submit" 
+                        hx-patch="/api/v1/app/config"
+                        hx-swap="none"
+                        hx-ext="json-enc-custom"
+                        >
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+{{ end }}

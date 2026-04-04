@@ -1,0 +1,41 @@
+{{ define "prowlarrSettings" }}
+<section id="prowlarr" class="settings-section">
+    <div class="section-header">
+        <div class="section-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
+        <div>
+            <h3>Prowlarr</h3>
+            <p>Indexer manager integration</p>
+        </div>
+    </div>
+    <div class="section-body">
+        <form>
+            <div class="form-group">
+                <label>Host</label>
+                <input type="text" name="prowlarrHost" placeholder="https://127.0.0.1" value="{{ .ProwlarrHost }}">
+            </div>
+            <div class="form-group">
+                <label>Port</label>
+                <input type="number" name="prowlarrPort" placeholder="9696" value="{{ .ProwlarrPort }}">
+            </div>
+            <div class="form-group">
+                <label>API Key</label>
+                <input type="password" name="prowlarrApiKey" placeholder="your-api-key-here" value="{{ .ProwlarrApiKey }}">
+            </div>
+            <div class="form-actions">
+                <!-- <button class="btn btn-outline">Test Connection</button> -->
+                <button 
+                    class="btn btn-primary" 
+                    type="submit"
+                    hx-patch="/api/v1/app/config"
+                    hx-swap="none"
+                    hx-ext="json-enc-custom"
+                    >
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+{{ end }}
