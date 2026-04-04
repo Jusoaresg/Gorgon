@@ -13,6 +13,20 @@ import (
 	"golang.org/x/time/rate"
 )
 
+type ErrProwlarrHostPortNotSet interface {
+	Error() string
+	IsProwlarrConfigWarn() bool
+}
+type ProwlarrHostPortNotSet struct{}
+
+func (m *ProwlarrHostPortNotSet) Error() string {
+	return "Prowlar Host or Port not set"
+}
+
+func (m *ProwlarrHostPortNotSet) IsProwlarrConfigWarn() bool {
+	return true
+}
+
 type ProwlarrSearchService struct {
 	ApiKey     string
 	APIService services.APIService
