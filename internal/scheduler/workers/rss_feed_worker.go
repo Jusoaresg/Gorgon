@@ -13,15 +13,9 @@ import (
 	"github.com/jusoaresg/gorgon/internal/episode/model"
 )
 
-func StartRssFeedWorker(workerCount int) {
+func StartRssEpisodeFetcherWorker(workerCount int, prowlarrService *service.ProwlarrSearchService) {
 	logger := config.GetLogger().WithGroup("worker").With("name", "StartRssFeedWorker")
 	rssProcessor := NewRssReleaseProcessor(config.GetSQLite())
-
-	prowlarrService, err := service.NewProwlarrSearchService(logger)
-	if err != nil {
-		logger.Error("failed to create prowlarr service", slog.String("error", err.Error()))
-		return
-	}
 
 	episodeChan := make(chan model.Episode)
 	var responses []schema.SearchResponse
@@ -29,16 +23,16 @@ func StartRssFeedWorker(workerCount int) {
 	var wg sync.WaitGroup
 
 	logger.Info(
-		"starting rss feed worker",
+		"Starting rss feed worker",
 		slog.Int("worker_count", workerCount),
 	)
 
 	for i := range workerCount {
 		workerID := i
 		wg.Add(1)
-		go func() {
+		wg.Go(func() {
 			defer wg.Done()
-			logger.Info("worker started", slog.Int("worker_id", workerID))
+			logger.Info("Worker started", slog.Int("worker_id", workerID))
 
 			for ep := range episodeChan {
 				err := rssProcessor.RssProcessRelease(ep, responses)
@@ -52,7 +46,7 @@ func StartRssFeedWorker(workerCount int) {
 					continue
 				}
 			}
-		}()
+		})
 	}
 
 	ticker := time.NewTicker(time.Second * 45)

@@ -6,12 +6,14 @@ import (
 	"time"
 
 	"github.com/jusoaresg/gorgon/config"
+	prowlarr "github.com/jusoaresg/gorgon/external/prowlarr/service"
+	qbittorrent "github.com/jusoaresg/gorgon/external/qbittorrent/service"
 	"github.com/jusoaresg/gorgon/internal/episode/model"
 
 	"github.com/jmoiron/sqlx"
 )
 
-func StartEpisodeSearchWorker(workerCount int) {
+func StartEpisodeSearchWorker(workerCount int, prowlarrService *prowlarr.ProwlarrSearchService, qbittorrentService *qbittorrent.QBittorrentService) {
 	logger := config.GetLogger().WithGroup("worker").With("name", "episodeSync")
 	episodeChan := make(chan model.Episode, 50)
 	var wg sync.WaitGroup
@@ -21,11 +23,11 @@ func StartEpisodeSearchWorker(workerCount int) {
 	for i := range workerCount {
 		workerID := i
 		wg.Add(1)
-		go func() {
+		wg.Go(func() {
 			defer wg.Done()
 			logger.Info("worker started", slog.Int("worker_id", workerID))
-			processEpisodesWorker(episodeChan)
-		}()
+			processEpisodesWorker(episodeChan, prowlarrService, qbittorrentService)
+		})
 	}
 
 	ticker := time.NewTicker(time.Minute * 5)
