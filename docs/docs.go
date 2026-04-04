@@ -1338,7 +1338,7 @@ const docTemplate = `{
         "schemas.ErrorResponse": {
             "type": "object",
             "properties": {
-                "errorCode": {
+                "data": {
                     "type": "string"
                 },
                 "message": {

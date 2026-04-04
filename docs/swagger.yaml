@@ -133,7 +133,7 @@ definitions:
     type: object
   schemas.ErrorResponse:
     properties:
-      errorCode:
+      data:
         type: string
       message:
         type: string

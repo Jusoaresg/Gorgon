@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func SendSuccess(c echo.Context, handler string, data interface{}) {
+func SendSuccess(c echo.Context, handler string, data any) {
 	c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	c.JSONPretty(200, gin.H{
 		"message": fmt.Sprintf("Operation from handler %s successful", handler),
@@ -15,20 +15,21 @@ func SendSuccess(c echo.Context, handler string, data interface{}) {
 	}, "  ")
 }
 
-func SendError(c echo.Context, code int, msg string) {
+func SendError(c echo.Context, code int, msg string, data ...any) {
 	c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	c.JSON(code, gin.H{
-		"message":   msg,
-		"errorCode": code,
-	})
+	c.Response().Status = code
+	c.JSONPretty(code, gin.H{
+		"message": msg,
+		"data":    data,
+	}, "  ")
 }
 
 type ErrorResponse struct {
-	Message   string `json:"message"`
-	ErrorCode string `json:"errorCode"`
+	Message string `json:"message"`
+	Data    string `json:"data"`
 }
 
 type DefaultResponse struct {
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
+	Message string `json:"message"`
+	Data    any    `json:"data"`
 }
