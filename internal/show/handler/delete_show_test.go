@@ -51,16 +51,17 @@ func TestDeleteShow_NotFound(t *testing.T) {
 	request := schemas.IdRequest{
 		Id: 1,
 	}
-
 	requestJSON, err := json.Marshal(request)
 	assert.NoError(t, err)
 
-	req := httptest.NewRequest(http.MethodDelete, "/api/v1/database/show", bytes.NewReader(requestJSON))
+	req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/database/show/%d", request.Id), bytes.NewReader(requestJSON))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
 	rec := httptest.NewRecorder()
 
 	c := echo.New().NewContext(req, rec)
+	c.SetParamNames("id")
+	c.SetParamValues(strconv.FormatInt(request.Id, 10))
 
 	err = deleteShowHandler(c, db)
 	assert.Error(t, err)
