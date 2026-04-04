@@ -7,6 +7,7 @@ import (
 
 	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/external/tvmaze/service"
+	showHandler "github.com/jusoaresg/gorgon/internal/show/handler"
 	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
 	showManager "github.com/jusoaresg/gorgon/internal/show/service"
 	"github.com/jusoaresg/gorgon/pkg/services"
@@ -43,6 +44,7 @@ func UpdateAllShows() {
 		}
 
 		if int64(showOld.Updated) < updatedAt {
+
 			logger.Info(
 				"updating show",
 				slog.Int64("show_id", showOld.ID),
