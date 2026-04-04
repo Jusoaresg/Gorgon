@@ -3,12 +3,15 @@ package show
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"strconv"
+	"testing"
+
 	"github.com/jusoaresg/gorgon/internal/show/repository"
 	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"github.com/jusoaresg/gorgon/testutils"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
@@ -28,12 +31,14 @@ func TestDeleteShow_Success(t *testing.T) {
 	requestJSON, err := json.Marshal(request)
 	assert.NoError(t, err)
 
-	req := httptest.NewRequest(http.MethodDelete, "/api/v1/database/show", bytes.NewReader(requestJSON))
+	req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/database/show/%d", id), bytes.NewReader(requestJSON))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
 	rec := httptest.NewRecorder()
 
 	c := echo.New().NewContext(req, rec)
+	c.SetParamNames("id")
+	c.SetParamValues(strconv.FormatInt(id, 10))
 
 	err = deleteShowHandler(c, db)
 	assert.NoError(t, err)
