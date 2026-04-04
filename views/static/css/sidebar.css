@@ -166,8 +166,8 @@
 	gap: 0.5rem;
 	font-size: 0.75rem;
 	color: var(--text-muted);
-	padding-top: 0.8rem;
-	border-top: 1px solid rgba(255, 255, 255, 0.05);
+	/* padding-top: 0.8rem; */
+	/* border-top: 1px solid rgba(255, 255, 255, 0.05); */
 }
 
 .system-status-dot {
