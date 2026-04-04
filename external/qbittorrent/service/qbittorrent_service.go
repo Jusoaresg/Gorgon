@@ -13,6 +13,20 @@ import (
 	"github.com/jusoaresg/gorgon/pkg/services"
 )
 
+type ErrQBittorrentHostPortNotSet interface {
+	Error() string
+	IsProwlarrConfigWarn() bool
+}
+type QBittorrentHostPortNotSet struct{}
+
+func (m *QBittorrentHostPortNotSet) Error() string {
+	return "QBittorrent Host or Port not set"
+}
+
+func (m *QBittorrentHostPortNotSet) IsProwlarrConfigWarn() bool {
+	return true
+}
+
 type QBittorrentService struct {
 	APIService     *services.APIService
 	Logger         *slog.Logger
