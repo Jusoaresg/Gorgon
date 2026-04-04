@@ -2,7 +2,7 @@
 
 **Gorgon** is a self-hosted media automation tool for tracking and managing TV shows.
 
-Built in **Go** with a **SvelteKit** frontend, Gorgon allows users to automatically search, monitor, and organize episodes through a clean web interface. It integrates with torrent clients and indexers to automate the download and organization of content — similar to projects like Sonarr or Pymedusa.
+Built in **Go** with a **HTML + HTMX** frontend, Gorgon allows users to automatically search, monitor, and organize episodes through a clean web interface. It integrates with torrent clients and indexers to automate the download and organization of content. Similar to projects like Sonarr or Pymedusa.
 
 ---
 
@@ -13,7 +13,7 @@ Built in **Go** with a **SvelteKit** frontend, Gorgon allows users to automatica
 - 💾 Automate downloads with qBittorrent integration
 - 🧹 Organize downloads into structured folders with symlinks
 - 🧠 Background workers for syncing, cleanup, and update routines
-- 💻 Web UI built with SvelteKit for easy use and management
+- 💻 Web UI built with HTML + HTMX for lightweight, dynamic interactions
 
 ---
 
@@ -26,7 +26,7 @@ Built in **Go** with a **SvelteKit** frontend, Gorgon allows users to automatica
 ## 📦 Stack
 
 - **Backend**: Go (REST API, modular architecture)
-- **Frontend**: SvelteKit (SPA)
+- **Frontend**: HTML + HTMX (server-rendered with progressive enhancement)
 - **Database**: SQLite (lightweight and embedded)
 - **Torrent Client**: [qBittorrent](https://www.qbittorrent.org/)
 - **Indexer Integration**: [Prowlarr](https://github.com/Prowlarr/Prowlarr)
@@ -41,7 +41,6 @@ Built in **Go** with a **SvelteKit** frontend, Gorgon allows users to automatica
 - [qBittorrent](https://www.qbittorrent.org/) with Web UI enabled
 - [Prowlarr](https://github.com/Prowlarr/Prowlarr) for torrent indexers
 - Go 1.21+
-- Node.js 20+ (for the frontend)
 - SQLite (default DB)
 
 ---
