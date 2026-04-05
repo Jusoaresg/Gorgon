@@ -6,11 +6,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/external/prowlarr/schema"
 	"github.com/jusoaresg/gorgon/external/prowlarr/service"
 	"github.com/jusoaresg/gorgon/internal/episode/model"
+	"github.com/jusoaresg/gorgon/internal/episode/repository"
 )
 
 func StartRssEpisodeFetcherWorker(workerCount int, prowlarrService *service.ProwlarrSearchService) {
@@ -82,20 +82,11 @@ func fetchRssFeedWantedEpisodes() []model.Episode {
 	logger := config.GetLogger().WithGroup("worker").With("name", "fetchWantedEps")
 	db := config.GetSQLite()
 
-	var episodes []model.Episode
+	episodeRepositoy := repository.NewEpisodeRepository(db)
 
-	query, args, err := sqlx.In(`
-		SELECT * FROM episodes WHERE tracking IN (?)
-		`, []string{"wanted", "missing"})
+	episodes, err := episodeRepositoy.ListByTracking("wanted", "missing")
 	if err != nil {
-		logger.Error("failed to build sql query with sqlx.in", slog.String("error", err.Error()))
-		return nil
-	}
-	query = db.Rebind(query)
-
-	err = db.Select(&episodes, query, args...)
-	if err != nil {
-		logger.Error("failed to execute SELECT query", slog.String("error", err.Error()))
+		logger.Error("Failed to list episodes by tracking", slog.String("error", err.Error()))
 	}
 	return episodes
 }
