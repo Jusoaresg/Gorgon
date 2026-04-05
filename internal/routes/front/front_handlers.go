@@ -2,7 +2,9 @@ package front
 
 import (
 	"net/http"
+	"sort"
 	"strconv"
+	"time"
 
 	"github.com/jusoaresg/gorgon/internal/show/service"
 	"github.com/jusoaresg/gorgon/views"
@@ -27,7 +29,9 @@ func (h *FrontHandler) ShowsRoute(c echo.Context) error {
 	search := c.QueryParam("search")
 	status := c.QueryParam("status")
 	sort := c.QueryParam("sort")
-	_ = sort
+	if sort == "" {
+		sort = "added"
+	}
 
 	shows, err := h.AggregatorService.ListFullShowsFiltered(search, status)
 	if err != nil {
@@ -45,6 +49,8 @@ func (h *FrontHandler) ShowsRoute(c echo.Context) error {
 			Sort:   sort,
 		},
 	}
+
+	SortShows(shows, sort)
 
 	if c.Request().Header.Get("HX-Request") == "true" {
 		return c.Render(http.StatusOK, "shows-grid-htmx", ShowsGridData{
@@ -75,4 +81,33 @@ func (h *FrontHandler) AddShowConfig(c echo.Context) error {
 		Data:         show,
 		Styles:       []string{"add-show-config.css"},
 	})
+}
+
+func SortShows(shows []service.AggregatedShow, sortBy string) {
+	switch sortBy {
+	case "name":
+		sort.Slice(shows, func(i, j int) bool {
+			return shows[i].Show.Name < shows[j].Show.Name
+		})
+	case "next":
+		sort.Slice(shows, func(i, j int) bool {
+			return nextEpisodeTime(shows[i]) < nextEpisodeTime(shows[j])
+		})
+	case "added":
+		sort.Slice(shows, func(i, j int) bool {
+			return shows[i].Show.Updated < shows[j].Show.Updated
+		})
+	}
+}
+
+func nextEpisodeTime(show service.AggregatedShow) int64 {
+	var next int64 = 1<<63 - 1 // maior int64 possível
+	now := time.Now().Unix()
+
+	for _, ep := range show.Episodes {
+		if ep.AirStamp > now && ep.AirStamp < next {
+			next = ep.AirStamp
+		}
+	}
+	return next
 }
