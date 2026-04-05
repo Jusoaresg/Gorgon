@@ -147,3 +147,38 @@ func (s *ShowAggregatorService) ListFullShows() ([]AggregatedShow, error) {
 
 	return aggregated, nil
 }
+
+func (s *ShowAggregatorService) ListFullShowsFiltered(search, status string) ([]AggregatedShow, error) {
+	shows, err := s.ShowRepo.ListFiltered(search, status)
+	if err != nil {
+		return nil, err
+	}
+
+	var aggregated []AggregatedShow
+
+	for _, show := range shows {
+		aliases, err := s.ShowAliasesRepo.ListByShowID(show.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		seasons, err := s.SeasonRepo.ListByShowId(show.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		episodes, err := s.EpisodeRepo.ListByShowID(show.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		aggregated = append(aggregated, AggregatedShow{
+			Show:        show,
+			ShowAliases: aliases,
+			Seasons:     seasons,
+			Episodes:    episodes,
+		})
+	}
+
+	return aggregated, nil
+}

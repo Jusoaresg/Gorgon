@@ -1,39 +1,68 @@
 {{ define "shows" }}
+
+{{ $shows := .Data.Shows }}
+{{ $filters := .Data.Filters }}
+
 <div class="shows-page-container">
     <div class="simple-header">
         <div class="header-left">
             <h1>Shows</h1>
             <div class="header-stats">
-                <span class="text-secondary">{{ len .Data }} Series</span>
+                <span class="text-secondary" id="shows-count">{{ len $shows }} Series</span>
             </div>
         </div>
 
         <div class="header-toolbar">
             <div class="search-wrapper">
                 <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                <input type="text" placeholder="Search..." class="search-input">
+                <input 
+                    type="text" 
+                    name="search"
+                    hx-replace-url="true"
+                    placeholder="Search..." 
+                    class="search-input"
+                    hx-get="/"
+                    hx-trigger="keyup changed delay:300ms"
+                    hx-target="#shows-grid"
+                    hx-swap="outerHTML transition:true"
+                    hx-include=".header-toolbar select, .header-toolbar input"
+                    value="{{ $filters.Search }}"
+                >
             </div>
             
             <div class="filters-group">
-                <select class="simple-select">
-                    <option value="all">Status: All</option>
-                    <option value="running">Running</option>
-                    <option value="ended">Ended</option>
+                <select 
+                    class="simple-select status"
+                    name="status"
+                    hx-replace-url="true"
+                    hx-get="/" 
+                    hx-trigger="change" 
+                    hx-target="#shows-grid" 
+                    hx-swap="outerHTML transition:true"
+                    hx-include=".header-toolbar select, .header-toolbar input"
+                >
+                    <option value="" {{ if eq $filters.Status "" }}selected{{ end }}>Status: All</option>
+                    <option value="Running" {{ if eq $filters.Status "running" }}selected{{ end }}>Running</option>
+                    <option value="Ended" {{ if eq $filters.Status "ended" }}selected{{ end }}>Ended</option>
                 </select>
                 
-                <select class="simple-select">
-                    <option value="name">Sort: Name</option>
-                    <option value="next">Next Ep</option>
-                    <option value="added">Added</option>
-                </select>
+                <!-- <select  -->
+                <!--     class="simple-select sort" -->
+                <!--     hx-replace-url="true" -->
+                <!--     hx-get="/"  -->
+                <!--     hx-trigger="change"  -->
+                <!--     hx-target="#shows-grid"  -->
+                <!--     hx-swap="outerHTML transition:true" -->
+                <!--     hx-include=".header-toolbar select, .header-toolbar input" -->
+                <!-- > -->
+                <!--     <option value="name" {{ if eq $filters.Sort "name" }}selected{{ end }}>Sort: Name</option> -->
+                <!--     <option value="next" {{ if eq $filters.Sort "next" }}selected{{ end }}>Next Ep</option> -->
+                <!--     <option value="added" {{ if eq $filters.Sort "added" }}selected{{ end }}>Added</option> -->
+                <!-- </select> -->
             </div>
         </div>
     </div>
 
-    <div class="shows-grid">
-        {{ range .Data }}
-            {{ template "show-card" . }}
-        {{ end }}
-    </div>
+    {{ template "shows-grid" . }}
 </div>
 {{ end }}

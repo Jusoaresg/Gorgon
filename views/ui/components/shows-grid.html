@@ -1,0 +1,12 @@
+{{ define "shows-grid" }}
+<div class="shows-grid" id="shows-grid">
+    {{ range .Data.Shows }}
+        {{ template "show-card" . }}
+    {{ end }}
+</div>
+{{ end }}
+
+{{ define "shows-grid-htmx" }}
+    {{ template "shows-grid" . }}
+    <span class="text-secondary" id="shows-count" hx-swap-oob="true">{{ len .Data.Shows }} Series</span>
+{{ end }}

@@ -23,9 +23,14 @@ func ListShows(c echo.Context) error {
 	logger := config.GetLogger()
 	logger.Info("Received request to List Shows", slog.String("endpoint", "/database/show"), slog.String("method", "get"))
 
+	search := c.QueryParam("search")
+	status := c.QueryParam("status")
+	sort := c.QueryParam("sort")
+	_ = sort
+
 	showRepo := repository.NewShowRepository(config.GetSQLite())
 
-	show, err := showRepo.List()
+	show, err := showRepo.ListFiltered(search, status)
 	if err != nil {
 		logger.Error("Error while fetching shows from database", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, "Error while fetching shows")
