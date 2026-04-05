@@ -163,7 +163,7 @@ func (s *EpisodeRepository) ListReleasedByTracking(trackings ...string) ([]model
 		return episodes, nil
 	}
 
-	query, args, err := sqlx.In("SELECT * FROM episodes WHERE tracking IN (?) WHERE airstamp <= ?", trackings, time.Now().Unix())
+	query, args, err := sqlx.In("SELECT * FROM episodes WHERE tracking IN (?) AND airstamp <= ?", trackings, time.Now().Unix())
 	if err != nil {
 		return episodes, err
 	}
