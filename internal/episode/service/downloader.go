@@ -9,6 +9,10 @@ import (
 	"github.com/jusoaresg/gorgon/internal/episode/model"
 )
 
+type EpisodeDownloaderInterface interface {
+	DownloadEpisode(ep model.Episode, response schema.SearchResponse) error
+}
+
 func DownloadEpisode(ep model.Episode, response schema.SearchResponse) error {
 	logger := config.GetLogger()
 
