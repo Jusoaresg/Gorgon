@@ -411,6 +411,49 @@ const docTemplate = `{
                 }
             }
         },
+        "/database/show/episode/search": {
+            "post": {
+                "description": "Search and Process the episode ( Automatic Search )",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Database/Show/Episode"
+                ],
+                "summary": "Search Process Episode",
+                "parameters": [
+                    {
+                        "description": "Request Body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.IdRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/database/show/episode/status": {
             "post": {
                 "description": "Change Episode Tracking Status",
