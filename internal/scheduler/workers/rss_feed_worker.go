@@ -13,12 +13,17 @@ import (
 	"github.com/jusoaresg/gorgon/internal/episode/repository"
 )
 
+// NOTE: Responses could be a pointer
+type EpisodeJob struct {
+	Episode   model.Episode
+	Responses []schema.SearchResponse
+}
+
 func StartRssEpisodeFetcherWorker(workerCount int, prowlarrService *service.ProwlarrSearchService) {
 	logger := config.GetLogger().WithGroup("worker").With("name", "StartRssFeedWorker")
 	rssProcessor := NewRssReleaseProcessor(config.GetSQLite())
 
-	episodeChan := make(chan model.Episode)
-	var responses []schema.SearchResponse
+	jobChan := make(chan EpisodeJob, workerCount)
 
 	var wg sync.WaitGroup
 
@@ -34,14 +39,14 @@ func StartRssEpisodeFetcherWorker(workerCount int, prowlarrService *service.Prow
 			defer wg.Done()
 			logger.Info("Worker started", slog.Int("worker_id", workerID))
 
-			for ep := range episodeChan {
-				err := rssProcessor.RssProcessRelease(ep, responses)
+			for job := range jobChan {
+				err := rssProcessor.RssProcessRelease(job.Episode, job.Responses)
 				if err != nil {
 					logger.Error(
 						"failed to process episode",
 						slog.String("error", err.Error()),
-						slog.Int64("show_id", ep.ShowID),
-						slog.Int64("episode_id", ep.ID),
+						slog.Int64("show_id", job.Episode.ShowID),
+						slog.Int64("episode_id", job.Episode.ID),
 					)
 					continue
 				}
@@ -62,9 +67,11 @@ func StartRssEpisodeFetcherWorker(workerCount int, prowlarrService *service.Prow
 			continue
 		}
 
+		var currentResponses []schema.SearchResponse
+
 		//TODO: Required words here
 		query := strings.Join([]string{"multi subs"}, " ")
-		prowlarrService.Search(&schema.SearchRequest{Query: query}, &responses)
+		prowlarrService.Search(&schema.SearchRequest{Query: query}, &currentResponses)
 
 		for _, ep := range episodes {
 			logger.Info(
@@ -73,7 +80,10 @@ func StartRssEpisodeFetcherWorker(workerCount int, prowlarrService *service.Prow
 				slog.Int64("show_id", ep.ShowID),
 				slog.String("name", ep.Name),
 			)
-			episodeChan <- ep
+			jobChan <- EpisodeJob{
+				Episode:   ep,
+				Responses: currentResponses,
+			}
 		}
 	}
 }
