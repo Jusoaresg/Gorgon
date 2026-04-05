@@ -1,6 +1,9 @@
 package episode
 
 import (
+	"log/slog"
+	"strconv"
+
 	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/internal/episode/events"
 	episodeModel "github.com/jusoaresg/gorgon/internal/episode/model"
@@ -10,8 +13,6 @@ import (
 	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
 	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"github.com/jusoaresg/gorgon/utils"
-	"log/slog"
-	"strconv"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
