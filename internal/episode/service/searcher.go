@@ -6,6 +6,10 @@ import (
 	"github.com/jusoaresg/gorgon/external/prowlarr/service"
 )
 
+type EpisodeSearcherInterface interface {
+	SearchEpisode(query string) ([]schema.SearchResponse, error)
+}
+
 func SearchEpisode(query string) ([]schema.SearchResponse, error) {
 	logger := config.GetLogger()
 	prowlarrService, err := service.NewProwlarrSearchService(logger)
