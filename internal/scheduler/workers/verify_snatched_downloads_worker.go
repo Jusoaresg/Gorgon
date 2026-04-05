@@ -12,7 +12,7 @@ import (
 )
 
 func VerifySnatchedDownloadsWorker(workerCount int, qbittorrentService *qbittorrent.QBittorrentService) {
-	episodeChan := make(chan model.Episode, 50)
+	episodeChan := make(chan model.Episode, 100)
 	var wg sync.WaitGroup
 
 	for range workerCount {
