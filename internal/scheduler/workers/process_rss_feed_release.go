@@ -42,7 +42,7 @@ func (rss *RssReleaseProcessor) RssProcessRelease(ep model.Episode, responses []
 	aliases, err := showService.GetNormalizedTitleAlias(show)
 	if err != nil {
 		logger.Error(
-			"error normalizing show aliases",
+			"Error normalizing show aliases",
 			slog.String("error", err.Error()),
 			slog.Int64("show_id", ep.ShowID),
 			slog.Int64("episode_id", ep.ID),
@@ -76,12 +76,12 @@ func (rss *RssReleaseProcessor) RssProcessRelease(ep model.Episode, responses []
 	processedResponses = episodeService.FilterRequiredWords(processedResponses)
 	processedResponses = episodeService.FilterByEpisodeScore(processedResponses)
 	if len(processedResponses) == 0 {
-		logger.Info("no matching releases after filtering")
+		logger.Debug("No matching releases after filtering")
 		return nil
 	}
 
 	logger.Info(
-		"downloading episode",
+		"Downloading episode",
 		slog.String("title", processedResponses[0].Title),
 		slog.Int64("show_id", ep.ShowID),
 		slog.Int64("episode_id", ep.ID),
