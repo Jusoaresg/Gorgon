@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+
 	"github.com/jusoaresg/gorgon/internal/episode/model"
 
 	"github.com/jmoiron/sqlx"
@@ -14,7 +15,7 @@ type EpisodeRepositoryInterface interface {
 	GetByID(id int64) (model.Episode, error)
 	List() ([]model.Episode, error)
 	ListByShowID(showID int64) ([]model.Episode, error)
-	ListByTracking(tracking string) ([]model.Episode, error)
+	ListByTracking(trackings ...string) ([]model.Episode, error)
 	Update(episode model.Episode) error
 	UpdateTx(tx *sqlx.Tx, episode model.Episode) error
 }
@@ -131,11 +132,25 @@ func (s *EpisodeRepository) List() ([]model.Episode, error) {
 	return episodes, nil
 }
 
-func (s *EpisodeRepository) ListByTracking(tracking string) ([]model.Episode, error) {
+func (s *EpisodeRepository) ListByTracking(trackings ...string) ([]model.Episode, error) {
 	var episodes []model.Episode
-	if err := s.db.Select(&episodes, "SELECT * FROM episodes WHERE tracking = ?", tracking); err != nil {
-		return []model.Episode{}, err
+
+	if len(trackings) <= 0 {
+		return episodes, nil
 	}
+
+	query, args, err := sqlx.In("SELECT * FROM episodes WHERE tracking IN (?)", trackings)
+	if err != nil {
+		return episodes, err
+	}
+
+	query = s.db.Rebind(query)
+
+	err = s.db.Select(episodes, query, args)
+	if err != nil {
+		return episodes, err
+	}
+
 	return episodes, nil
 }
 
