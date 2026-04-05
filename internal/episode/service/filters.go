@@ -12,6 +12,7 @@ import (
 func FilterRequiredWords(t []schema.SearchResponse) []schema.SearchResponse {
 	logger := config.GetLogger()
 
+	//NOTE: This will be changed later
 	var requiredWords []string
 	requiredWords = append(requiredWords, "multisubs")
 	requiredWords = append(requiredWords, "multisub")
