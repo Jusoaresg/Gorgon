@@ -86,7 +86,8 @@ func (rss *RssReleaseProcessor) RssProcessRelease(ep model.Episode, responses []
 		slog.Int64("show_id", ep.ShowID),
 		slog.Int64("episode_id", ep.ID),
 	)
-	episodeService.DownloadEpisode(ep, processedResponses[0])
+	episodeDownloader := episodeService.EpisodeDownloader{}
+	episodeDownloader.DownloadEpisode(ep, processedResponses[0])
 
 	return nil
 }
