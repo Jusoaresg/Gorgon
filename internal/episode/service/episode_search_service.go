@@ -45,21 +45,22 @@ func (s *EpisodeSearchService) ProcessSingleEpisode(episodeID int) error {
 		return err
 	}
 
-	show, err := s.ShowRepo.GetById(int64(episode.ShowID))
-	if err != nil {
-		return err
-	}
-
 	if aired := episode.HasAired(); !aired {
-		s.logger.Warn(
+		s.logger.Info(
 			"Episode has not aired yet",
 			slog.Int64("episode_id", episode.ID),
 			slog.Int64("show_id", episode.ShowID),
 		)
 		return nil
 	}
+
+	show, err := s.ShowRepo.GetById(int64(episode.ShowID))
+	if err != nil {
+		return err
+	}
+
 	s.logger.Info(
-		"Searching if episode is avaible",
+		"Searching if episode is available",
 		slog.String("show_name", show.Name),
 		slog.Int64("show_id", show.ID),
 		slog.Int("episode", episode.Number),
