@@ -54,7 +54,7 @@ func StartRssEpisodeFetcherWorker(workerCount int, prowlarrService *service.Prow
 		})
 	}
 
-	ticker := time.NewTicker(time.Second * 45)
+	ticker := time.NewTicker(time.Minute * 1)
 	defer ticker.Stop()
 
 	for {
