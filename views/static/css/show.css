@@ -484,6 +484,18 @@ a.meta-item:hover {
     border-color: var(--accent-purple);
 }
 
+.btn-icon-sm.btn-delete {
+    background-color: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.18);
+    color: rgba(239, 68, 68, 0.65);
+}
+
+.btn-icon-sm.btn-delete:hover {
+    background-color: rgba(239, 68, 68, 0.18);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: var(--danger);
+}
+
 @media (max-width: 1024px) {
     .hero-content {
         flex-direction: column;
