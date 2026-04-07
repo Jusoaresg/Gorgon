@@ -21,7 +21,7 @@ func NewAPIService(url string, logger *slog.Logger) (a *APIService) {
 	return &APIService{
 		Url: url,
 		Client: &http.Client{
-			Timeout: 10 * time.Second,
+			Timeout: 60 * time.Second,
 		},
 		Logger: logger.WithGroup("apiService"),
 	}
