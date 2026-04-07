@@ -22,7 +22,6 @@ func StartEpisodeSearchWorker(workerCount int, prowlarrService *prowlarr.Prowlar
 
 	for i := range workerCount {
 		workerID := i
-		wg.Add(1)
 		wg.Go(func() {
 			defer wg.Done()
 			logger.Info("worker started", slog.Int("worker_id", workerID))

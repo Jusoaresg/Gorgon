@@ -16,7 +16,6 @@ func VerifySnatchedDownloadsWorker(workerCount int, qbittorrentService *qbittorr
 	var wg sync.WaitGroup
 
 	for range workerCount {
-		wg.Add(1)
 		wg.Go(func() {
 			defer wg.Done()
 			processSnatchedDownloadsWorker(episodeChan, qbittorrentService)

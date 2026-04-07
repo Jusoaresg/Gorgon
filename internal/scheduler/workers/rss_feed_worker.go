@@ -34,7 +34,6 @@ func StartRssEpisodeFetcherWorker(workerCount int, prowlarrService *service.Prow
 
 	for i := range workerCount {
 		workerID := i
-		wg.Add(1)
 		wg.Go(func() {
 			defer wg.Done()
 			logger.Info("Worker started", slog.Int("worker_id", workerID))
