@@ -13,6 +13,11 @@ import (
 	"golang.org/x/time/rate"
 )
 
+var (
+	prowlarrSemaphore   = make(chan struct{}, 3)
+	prowlarrRateLimiter = rate.NewLimiter(rate.Every(2*time.Second), 1)
+)
+
 type ErrProwlarrHostPortNotSet interface {
 	Error() string
 	IsProwlarrConfigWarn() bool
@@ -51,7 +56,6 @@ func NewProwlarrSearchService(logger *slog.Logger) (*ProwlarrSearchService, erro
 		ApiKey:     configFile.ProwlarrApiKey,
 		Logger:     logger,
 		APIService: *services.NewAPIService(fmt.Sprintf("%s:%s", host, port), logger),
-		limiter:    rate.NewLimiter(rate.Every(2*time.Second), 1),
 	}, nil
 }
 
@@ -59,11 +63,16 @@ func (p *ProwlarrSearchService) Name() string {
 	return "ProwlarrSearch"
 }
 
-func (p *ProwlarrSearchService) waitTicker(ctx context.Context) error {
-	if err := p.limiter.Wait(ctx); err != nil {
+func (p *ProwlarrSearchService) waitAndLock(ctx context.Context) error {
+	if err := prowlarrRateLimiter.Wait(ctx); err != nil {
 		return err
 	}
+	prowlarrSemaphore <- struct{}{}
 	return nil
+}
+
+func (p *ProwlarrSearchService) unlock() {
+	<-prowlarrSemaphore
 }
 
 func (p *ProwlarrSearchService) CheckConnection() error {
@@ -78,17 +87,21 @@ func (p *ProwlarrSearchService) CheckConnection() error {
 }
 
 func (p *ProwlarrSearchService) Search(request *schema.SearchRequest, model *[]schema.SearchResponse) error {
-	if err := p.waitTicker(context.Background()); err != nil {
+	if err := p.waitAndLock(context.Background()); err != nil {
 		return err
 	}
+	defer p.unlock()
+
 	queryEscaped := url.QueryEscape(request.Query)
 	return p.APIService.Get(fmt.Sprintf("/api/v1/search?query=%s&apikey=%s", queryEscaped, p.ApiKey), &model)
 }
 
 func (p *ProwlarrSearchService) SearchByType(request *schema.SearchByTypeRequest, model *[]schema.SearchResponse) error {
-	if err := p.waitTicker(context.Background()); err != nil {
+	if err := p.waitAndLock(context.Background()); err != nil {
 		return err
 	}
+	defer p.unlock()
+
 	queryEscaped := url.QueryEscape(request.Query)
 	typeEscaped := url.QueryEscape(request.Type)
 	return p.APIService.Get(fmt.Sprintf("/api/v1/search?query=%s&type=%s&apikey=%s", queryEscaped, typeEscaped, p.ApiKey), &model)
