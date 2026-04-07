@@ -81,6 +81,7 @@ func (s *EpisodeSearchService) ProcessSingleEpisode(episodeID int) error {
 	responses = FilterRequiredWords(responses)
 	if len(responses) <= 0 {
 		s.logger.Info("No avaible episode found", slog.String("show", show.Name), slog.Int("episode", episode.Number))
+		return nil
 	}
 
 	responses = FilterByEpisodeScore(responses)
