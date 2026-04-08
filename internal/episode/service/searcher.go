@@ -3,7 +3,7 @@ package service
 import (
 	"fmt"
 	"log/slog"
-	"sync"
+	"regexp"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -14,6 +14,8 @@ import (
 	showModel "github.com/jusoaresg/gorgon/internal/show/model"
 	showService "github.com/jusoaresg/gorgon/internal/show/service"
 )
+
+var latinRegex = regexp.MustCompile(`^[a-zA-Z0-9\s\-_!?',.:]+$`)
 
 type EpisodeSearcherInterface interface {
 	SearchEpisodeByQuery(query string) ([]schema.SearchResponse, error)
@@ -45,7 +47,7 @@ func (s *EpisodeSearcher) SearchEpisodeAliasesById(episode episodeModel.Episode,
 	logger := config.GetLogger()
 	const cooldownDuration = 5 * time.Minute
 
-	titleAlias, err := showService.GetNormalizedTitleAlias(show)
+	rawAliases, err := showService.GetNormalizedTitleAlias(show)
 	if err != nil {
 		logger.Error(
 			"Failed to get normalized title alias",
@@ -55,11 +57,20 @@ func (s *EpisodeSearcher) SearchEpisodeAliasesById(episode episodeModel.Episode,
 		return nil, err
 	}
 
-	var mu sync.Mutex
-	var wg sync.WaitGroup
-	var responses []schema.SearchResponse
+	var cleanAliases []string
+	for _, alias := range rawAliases {
+		if alias == show.Name {
+			continue
+		}
 
-	for _, title := range titleAlias {
+		if latinRegex.MatchString(alias) {
+			cleanAliases = append(cleanAliases, alias)
+		}
+	}
+
+	var allResponses []schema.SearchResponse
+
+	for _, title := range cleanAliases {
 		termKey := fmt.Sprintf("%s S%02dE%02d", title, episode.Season, episode.Number)
 
 		if val, ok := config.ProwlarrCooldownCache.Load(termKey); ok {
@@ -71,20 +82,37 @@ func (s *EpisodeSearcher) SearchEpisodeAliasesById(episode episodeModel.Episode,
 		}
 		config.ProwlarrCooldownCache.Store(termKey, time.Now())
 
-		wg.Add(1)
-		go func(query string) {
-			defer wg.Done()
-			tmpResp, err := s.SearchEpisodeByQuery(query)
-			if err != nil {
-				logger.Error("Search failed", slog.String("query", query), slog.String("error", err.Error()))
-				return
-			}
-			mu.Lock()
-			responses = append(responses, tmpResp...)
-			mu.Unlock()
-		}(termKey)
+		tmpResp, err := s.SearchEpisodeByQuery(termKey)
+		if err != nil {
+			logger.Error(
+				"Search failed",
+				slog.String("query", termKey),
+				slog.String("error", err.Error()),
+			)
+			continue
+		}
+
+		if len(tmpResp) <= 0 {
+			continue
+		}
+
+		allResponses = append(allResponses, tmpResp...)
+
+		if s.hasGoodQuality(tmpResp) {
+			logger.Info("Good quality torrent found! Stopping extra searches", slog.String("used_alias", title))
+			break
+		}
 	}
 
-	wg.Wait()
-	return responses, nil
+	return allResponses, nil
+}
+
+func (s *EpisodeSearcher) hasGoodQuality(results []schema.SearchResponse) bool {
+	for _, response := range results {
+		score := ScoreEpisode(response)
+		if score >= 60 {
+			return true
+		}
+	}
+	return false
 }
