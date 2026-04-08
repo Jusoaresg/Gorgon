@@ -2,8 +2,10 @@ package service
 
 import (
 	"log/slog"
+	"sync"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/jusoaresg/gorgon/internal/episode/model"
 	episodeRepository "github.com/jusoaresg/gorgon/internal/episode/repository"
 	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
 )
@@ -101,4 +103,60 @@ func (s *EpisodeSearchService) ProcessSingleEpisode(episodeID int) error {
 	s.logger.Info("Added torrent to qbittorrent", slog.String("show", show.Name), slog.Int("episode", episode.Number))
 
 	return nil
+}
+
+func (s *EpisodeSearchService) ProcessShowWantedEpisodes(showID int) {
+	go func() {
+		allEpisodes, err := s.EpisodeRepo.ListByShowID(int64(showID))
+		if err != nil {
+			return
+		}
+
+		var episodes []model.Episode
+		for _, episode := range allEpisodes {
+			if episode.Tracking == model.TrackingMissing ||
+				episode.Tracking == model.TrackingWanted {
+				episodes = append(episodes, episode)
+			}
+		}
+		if len(episodes) <= 0 {
+			return
+		}
+
+		show, err := s.ShowRepo.GetById(int64(showID))
+		if err != nil {
+			return
+		}
+
+		var notAiredYet []model.Episode
+
+		var wg sync.WaitGroup
+		for _, episode := range episodes {
+			ep := episode
+
+			if aired := ep.HasAired(); !aired {
+				notAiredYet = append(notAiredYet, episode)
+				continue
+			}
+
+			wg.Go(func() {
+				if err := s.ProcessSingleEpisode(int(ep.ID)); err != nil {
+					s.logger.Error(
+						"Error processing episode",
+						slog.Int64("episode_id", ep.ID),
+						slog.Any("err", err),
+					)
+					return
+				}
+			})
+
+		}
+		wg.Wait()
+
+		s.logger.Info(
+			"Episodes not aired yet",
+			slog.Any("episode_id", notAiredYet),
+			slog.Int64("show_id", show.ID),
+		)
+	}()
 }
