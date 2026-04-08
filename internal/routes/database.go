@@ -45,6 +45,9 @@ func SetupDatabaseRouter(v1 *echo.Group) {
 				episodeGroup.POST("/search", episodeHandler.SearchProcessEpisode)
 				logger.Info("POST route added to /api/v1/database/show/episode/search")
 
+				episodeGroup.POST("/search/all", episodeHandler.SearchProcessShowWantedEpisodes)
+				logger.Info("POST route added to /api/v1/database/show/episode/search/all")
+
 				episodeGroup.GET("/:id", episodeHandler.GetShowEpisodes)
 				logger.Info("GET route added to /api/v1/database/show/episode/:id")
 

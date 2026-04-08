@@ -454,6 +454,49 @@ const docTemplate = `{
                 }
             }
         },
+        "/database/show/episode/search/all": {
+            "post": {
+                "description": "Search and process show wanted episodes ( Automatic Show Search )",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Database/Show/Episode"
+                ],
+                "summary": "Search Process Show Wanted Episodes",
+                "parameters": [
+                    {
+                        "description": "Request Body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.IdRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/database/show/episode/status": {
             "post": {
                 "description": "Change Episode Tracking Status",

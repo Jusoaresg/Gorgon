@@ -556,6 +556,35 @@ paths:
       summary: Search Process Episode
       tags:
       - Database/Show/Episode
+  /database/show/episode/search/all:
+    post:
+      description: Search and process show wanted episodes ( Automatic Show Search
+        )
+      parameters:
+      - description: Request Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.IdRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Search Process Show Wanted Episodes
+      tags:
+      - Database/Show/Episode
   /database/show/episode/status:
     post:
       description: Change Episode Tracking Status
