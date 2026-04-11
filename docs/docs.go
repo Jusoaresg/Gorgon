@@ -499,14 +499,14 @@ const docTemplate = `{
         },
         "/database/show/episode/status": {
             "post": {
-                "description": "Change Episode Tracking Status",
+                "description": "Change Episodes Tracking Status",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Database/Show/Episode"
                 ],
-                "summary": "Change Episode Status",
+                "summary": "Change Episodes Status",
                 "parameters": [
                     {
                         "description": "Request Body",
@@ -1232,8 +1232,11 @@ const docTemplate = `{
         "schema.ChangeEpisodeTrackingRequest": {
             "type": "object",
             "properties": {
-                "episode_id": {
-                    "type": "integer"
+                "episode_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "tracking": {
                     "type": "string"

@@ -7,8 +7,10 @@ definitions:
     type: object
   schema.ChangeEpisodeTrackingRequest:
     properties:
-      episode_id:
-        type: integer
+      episode_ids:
+        items:
+          type: integer
+        type: array
       tracking:
         type: string
     type: object
@@ -587,7 +589,7 @@ paths:
       - Database/Show/Episode
   /database/show/episode/status:
     post:
-      description: Change Episode Tracking Status
+      description: Change Episodes Tracking Status
       parameters:
       - description: Request Body
         in: body
@@ -610,7 +612,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/schemas.ErrorResponse'
-      summary: Change Episode Status
+      summary: Change Episodes Status
       tags:
       - Database/Show/Episode
   /database/show/full:
