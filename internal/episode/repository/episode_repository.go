@@ -14,6 +14,7 @@ type EpisodeRepositoryInterface interface {
 	CreateTx(tx *sqlx.Tx, episode model.Episode) (int64, error)
 	DeleteByID(id int64) error
 	GetByID(id int64) (model.Episode, error)
+	GetAllByID(ids ...int64) ([]model.Episode, error)
 	List() ([]model.Episode, error)
 	ListByShowID(showID int64) ([]model.Episode, error)
 	ListByTracking(trackings ...string) ([]model.Episode, error)
@@ -117,6 +118,28 @@ func (s *EpisodeRepository) GetByID(id int64) (model.Episode, error) {
 		return model.Episode{}, err
 	}
 	return episode, nil
+}
+
+func (s *EpisodeRepository) GetAllByID(ids ...int64) ([]model.Episode, error) {
+	var episodes []model.Episode
+
+	if len(ids) <= 0 {
+		return episodes, nil
+	}
+
+	query, args, err := sqlx.In("SELECT * FROM episodes WHERE id IN (?)", ids)
+	if err != nil {
+		return episodes, err
+	}
+
+	query = s.db.Rebind(query)
+
+	err = s.db.Select(&episodes, query, args...)
+	if err != nil {
+		return episodes, err
+	}
+
+	return episodes, nil
 }
 
 func (s *EpisodeRepository) DeleteByID(id int64) error {
