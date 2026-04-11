@@ -40,7 +40,9 @@ func ScoreEpisode(t schema.SearchResponse) int {
 	score := getPreferredWordsScore(t) + getQualityScore(t)
 
 	health := t.Seeders - t.Leechers
-	if health > 30 {
+	if t.Seeders == 0 {
+		health = -50
+	} else if health > 30 {
 		health = 30
 	} else if health < 0 {
 		health = 0
