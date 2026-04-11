@@ -17,6 +17,7 @@ type EpisodeRepositoryInterface interface {
 	GetAllByID(ids ...int64) ([]model.Episode, error)
 	List() ([]model.Episode, error)
 	ListByShowID(showID int64) ([]model.Episode, error)
+	ListBySeasonID(seasonId int) ([]model.Episode, error)
 	ListByTracking(trackings ...string) ([]model.Episode, error)
 	ListReleasedByTracking(trackings ...string) ([]model.Episode, error)
 	Update(episode model.Episode) error
@@ -152,6 +153,15 @@ func (s *EpisodeRepository) DeleteByID(id int64) error {
 func (s *EpisodeRepository) List() ([]model.Episode, error) {
 	var episodes []model.Episode
 	if err := s.db.Select(&episodes, "SELECT * FROM episodes"); err != nil {
+		return []model.Episode{}, err
+	}
+	return episodes, nil
+}
+
+func (s *EpisodeRepository) ListBySeasonID(seasonId int) ([]model.Episode, error) {
+	var episodes []model.Episode
+
+	if err := s.db.Select(&episodes, "SELECT * FROM episodes WHERE season_id = ?", seasonId); err != nil {
 		return []model.Episode{}, err
 	}
 	return episodes, nil
