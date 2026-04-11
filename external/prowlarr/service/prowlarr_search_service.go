@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/jusoaresg/gorgon/config"
@@ -86,14 +87,21 @@ func (p *ProwlarrSearchService) CheckConnection() error {
 	return nil
 }
 
-func (p *ProwlarrSearchService) Search(request *schema.SearchRequest, model *[]schema.SearchResponse) error {
+func (p *ProwlarrSearchService) Search(request *schema.SearchRequest, model *[]schema.SearchResponse, indexerIds ...int) error {
 	if err := p.waitAndLock(context.Background()); err != nil {
 		return err
 	}
 	defer p.unlock()
 
-	queryEscaped := url.QueryEscape(request.Query)
-	return p.APIService.Get(fmt.Sprintf("/api/v1/search?query=%s&apikey=%s", queryEscaped, p.ApiKey), &model)
+	params := url.Values{}
+	params.Set("query", request.Query)
+	params.Set("apikey", p.ApiKey)
+
+	for _, indexer := range indexerIds {
+		params.Add("indexerIds", strconv.Itoa(indexer))
+	}
+
+	return p.APIService.Get(fmt.Sprintf("/api/v1/search?%s", params.Encode()), &model)
 }
 
 func (p *ProwlarrSearchService) SearchByType(request *schema.SearchByTypeRequest, model *[]schema.SearchResponse) error {
