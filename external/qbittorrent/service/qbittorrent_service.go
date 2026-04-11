@@ -156,8 +156,7 @@ func (q *QBittorrentService) DeleteTorrent(hash string, deleteFile bool) error {
 	}
 
 	url := fmt.Sprintf("/api/v2/torrents/delete?hashes=%s&deleteFiles=%t", hash, deleteFile)
-	var response any
-	if err := q.APIService.GetWithHeaders(url, response, headers); err != nil {
+	if err := q.APIService.GetWithHeaders(url, nil, headers); err != nil {
 		return err
 	}
 
