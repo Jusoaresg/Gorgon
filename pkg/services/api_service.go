@@ -100,7 +100,12 @@ func (a *APIService) GetWithHeaders(endpoint string, response any, headers map[s
 	}
 
 	if err := json.Unmarshal(body, &response); err != nil {
-		return fmt.Errorf("Error while decoding response body: %w", err)
+		if strResp, ok := response.(*string); ok {
+			*strResp = string(body)
+			return nil
+		}
+
+		return fmt.Errorf("Error while decoding response body: %w. Raw body: %s", err, string(body))
 	}
 
 	return nil
