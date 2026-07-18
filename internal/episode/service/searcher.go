@@ -26,6 +26,20 @@ type EpisodeSearcher struct{}
 
 func (s *EpisodeSearcher) SearchEpisodeByQuery(query string) ([]schema.SearchResponse, error) {
 	logger := config.GetLogger()
+	prowlarrIndexerService := service.NewProwlarrIndexerService(logger)
+
+	var indexers []schema.IndexerResponse
+	err := prowlarrIndexerService.GetIndexers(&indexers)
+	if err != nil {
+		return nil, err
+	}
+	var indexerIds []int
+	for _, indexer := range indexers {
+		if indexer.Enabled {
+			indexerIds = append(indexerIds, indexer.Id)
+		}
+	}
+
 	prowlarrService, err := service.NewProwlarrSearchService(logger)
 	if err != nil {
 		return nil, err
@@ -36,7 +50,7 @@ func (s *EpisodeSearcher) SearchEpisodeByQuery(query string) ([]schema.SearchRes
 	}
 
 	var response []schema.SearchResponse
-	err = prowlarrService.Search(&request, &response)
+	err = prowlarrService.Search(&request, &response, indexerIds...)
 	if err != nil {
 		return nil, err
 	}
