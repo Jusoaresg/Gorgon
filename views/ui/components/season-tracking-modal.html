@@ -1,0 +1,75 @@
+{{ define "season-tracking-modal" }}
+{{ $season := .Season }}
+<div id="modal-container" class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        
+        <!-- Header -->
+        <div class="modal-header">
+            <div>
+                <h3 class="modal-title">Season Tracking Status</h3>
+                <span class="modal-subtitle">S{{ $season.Number }}</span>
+            </div>
+            <button class="btn-close-modal" onclick="closeModal(null)">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body">
+            <form 
+                id="episode-tracking-form" 
+                hx-post="/api/v1/database/show/episode/status" 
+hx-vals='{"episode_ids": [{{ range $i, $id := .EpisodeIds }}{{ if $i }},{{ end }}{{ $id }}{{ end }}]}'
+                hx-include=".tracking-option input:checked"
+                hx-ext="json-enc-custom"
+                parse-types="true"
+                hx-swap="none"
+            >
+                <div class="tracking-options">
+                    <!-- Wanted Option -->
+                    <label class="tracking-option wanted">
+                        <input type="radio" name="tracking" value="wanted">
+                        <div class="tracking-card">
+                            <div class="icon-wrapper" style="color: var(--success);">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                            <span class="tracking-title">Wanted</span>
+                            <span class="tracking-desc">Search & Download</span>
+                        </div>
+                    </label>
+
+                    <!-- Skipped Option -->
+                    <label class="tracking-option skipped">
+                        <input type="radio" name="tracking" value="skipped">
+                        <div class="tracking-card">
+                            <div class="icon-wrapper" style="color: var(--text-muted);">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                            </div>
+                            <span class="tracking-title">Skipped</span>
+                            <span class="tracking-desc">Ignore this episode</span>
+                        </div>
+                    </label>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+            <div class="footer-actions-right">
+                <button class="btn btn-outline" onclick="closeModal(null)">Cancel</button>
+                <button class="btn btn-primary" type="submit" form="episode-tracking-form">
+                    Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function closeModal(e) {
+        const modal = document.getElementById('modal-container');
+        if (modal) modal.remove();
+    }
+</script>
+{{ end }}
