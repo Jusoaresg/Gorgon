@@ -7,6 +7,8 @@ import (
 	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/external/tvmaze/service"
 	episodeRepository "github.com/jusoaresg/gorgon/internal/episode/repository"
+	seasonModel "github.com/jusoaresg/gorgon/internal/season/model"
+	seasonRepository "github.com/jusoaresg/gorgon/internal/season/repository"
 	show "github.com/jusoaresg/gorgon/internal/show/handler"
 	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
 	showSchema "github.com/jusoaresg/gorgon/internal/show/schema"
@@ -49,6 +51,7 @@ func SetupFrontApi(e *echo.Echo) {
 	api.GET("show/:id/modal/edit", EditShowModal)
 
 	api.GET("episode/:id/modal/tracking", ChangeEpisodeTracking)
+	api.GET("season/:id/modal/tracking", ChangeSeasonTracking)
 }
 
 func AddShow(c echo.Context) error {
@@ -90,4 +93,41 @@ func ChangeEpisodeTracking(c echo.Context) error {
 	}
 
 	return c.Render(http.StatusOK, "episode-tracking-modal", episode)
+}
+
+func ChangeSeasonTracking(c echo.Context) error {
+	seasonIdStr := c.Param("id")
+	seasonIdInt, err := strconv.Atoi(seasonIdStr)
+	if err != nil {
+		return err
+	}
+
+	db := config.GetSQLite()
+
+	seasonRepo := seasonRepository.NewSeasonRepository(db)
+	episodeRepo := episodeRepository.NewEpisodeRepository(db)
+
+	episodes, err := episodeRepo.ListBySeasonID(seasonIdInt)
+	if err != nil {
+		return err
+	}
+
+	season, err := seasonRepo.GetById(int64(seasonIdInt))
+	if err != nil {
+		return err
+	}
+
+	type seasonModal struct {
+		Season     seasonModel.Season
+		EpisodeIds []int
+	}
+
+	episodesIds := make([]int, 0, len(episodes))
+	for _, e := range episodes {
+		episodesIds = append(episodesIds, int(e.ID))
+	}
+	return c.Render(http.StatusOK, "season-tracking-modal", seasonModal{
+		Season:     season,
+		EpisodeIds: episodesIds,
+	})
 }
