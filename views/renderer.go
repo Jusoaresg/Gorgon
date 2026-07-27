@@ -16,7 +16,9 @@ func Render(c echo.Context, view View) error {
 	}
 
 	if template != view.Default {
-		return c.Render(http.StatusOK, template, view.Data)
+		return c.Render(http.StatusOK, template, PageData{
+			Data: view.Data,
+		})
 	}
 
 	return c.Render(http.StatusOK, view.Layout, PageData{
