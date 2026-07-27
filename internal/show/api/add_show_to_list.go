@@ -1,24 +1,22 @@
-package show
+package api
 
 import (
 	"log/slog"
 	"strconv"
 
-	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/external/tvmaze/service"
 	episodeModel "github.com/jusoaresg/gorgon/internal/episode/model"
 	episodeRepository "github.com/jusoaresg/gorgon/internal/episode/repository"
 	seasonRepository "github.com/jusoaresg/gorgon/internal/season/repository"
 	"github.com/jusoaresg/gorgon/internal/show/model"
 	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
-	"github.com/jusoaresg/gorgon/internal/show/schema"
+	showSchema "github.com/jusoaresg/gorgon/internal/show/schema"
 	showManager "github.com/jusoaresg/gorgon/internal/show/service"
 	showAliasRepository "github.com/jusoaresg/gorgon/internal/show_aliases/repository"
 	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"github.com/jusoaresg/gorgon/pkg/schemas/dtos"
 	"github.com/jusoaresg/gorgon/pkg/services"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 )
 
@@ -29,33 +27,32 @@ import (
 // @Tags Database/Show
 // @Accept json
 // @Produce json
-// @Param request body show.AddShowToListRequest true "Request Body"
+// @Param request body showSchema.AddShowToListRequest true "Request Body"
 // @Success 200 {object} schemas.DefaultResponse
 // @Failure 400 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /database/show [post]
-func AddShowToList(c echo.Context) error {
-	logger := config.GetLogger()
-	logger.Info("Received request to Add Show To List", slog.String("endpoint", "/api/v1/database/show"), slog.String("method", "POST"))
+func (h *Handler) AddShowToList(c echo.Context) error {
+	h.Logger.Info("Received request to Add Show To List", slog.String("endpoint", "/api/v1/database/show"), slog.String("method", "POST"))
 
-	var request show.AddShowToListRequest
+	var request showSchema.AddShowToListRequest
 
 	if err := c.Bind(&request); err != nil {
-		logger.Error("Failed to bind body request")
+		h.Logger.Error("Failed to bind body request")
 		schemas.SendError(c, 500, "Failed to bind body request")
 		return err
 	}
 
-	show, err := AddShowToListHandler(c, &request, config.GetSQLite(), logger)
+	showModel, err := h.addShowToListHandler(c, &request)
 	if err != nil {
 		return err
 	}
 
-	schemas.SendSuccess(c, "Add Show To List", &show)
+	schemas.SendSuccess(c, "Add Show To List", showModel)
 	return nil
 }
 
-func AddShowToListHandler(c echo.Context, request *show.AddShowToListRequest, db *sqlx.DB, logger *slog.Logger) (*model.Show, error) {
+func (h *Handler) addShowToListHandler(c echo.Context, request *showSchema.AddShowToListRequest) (*model.Show, error) {
 
 	validTrackings := map[string]bool{
 		"all":    true,
@@ -68,8 +65,8 @@ func AddShowToListHandler(c echo.Context, request *show.AddShowToListRequest, db
 		return nil, echo.NewHTTPError(400, "Invalid tracking type")
 	}
 
-	tvMazeService := service.NewTvMazeSearchService(logger)
-	showManagerService := showManager.NewShowManagerService(logger, db)
+	tvMazeService := service.NewTvMazeSearchService(h.Logger)
+	showManagerService := showManager.NewShowManagerService(h.Logger, h.DB)
 
 	idString := strconv.Itoa(request.Id)
 	id64, err := strconv.ParseInt(idString, 10, 64)
@@ -100,27 +97,27 @@ func AddShowToListHandler(c echo.Context, request *show.AddShowToListRequest, db
 
 	show := showDto.ToModel()
 
-	tx, err := db.Beginx()
+	tx, err := h.DB.Beginx()
 	if err != nil {
 		return nil, err
 	}
 
-	showRepo := showRepository.NewShowRepository(db)
+	showRepo := showRepository.NewShowRepository(h.DB)
 	showID, err := showRepo.CreateTx(tx, show)
 	if err != nil {
-		logger.Error("Failed to add show to database", slog.String("error", err.Error()))
+		h.Logger.Error("Failed to add show to database", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, "Failed to add show to database")
 		return nil, err
 	}
 
-	aliasRepo := showAliasRepository.NewShowAliasesRepository(db)
+	aliasRepo := showAliasRepository.NewShowAliasesRepository(h.DB)
 	aliases := showDto.ToAliasModel()
 	for _, alias := range aliases {
 		alias.ShowID = showID
 		alias.Source = "tvmaze"
 		_, err := aliasRepo.CreateTx(tx, alias)
 		if err != nil {
-			logger.Error(
+			h.Logger.Error(
 				"failed to create show alias",
 				slog.String("error", err.Error()),
 				slog.String("alias", alias.Alias),
@@ -134,10 +131,10 @@ func AddShowToListHandler(c echo.Context, request *show.AddShowToListRequest, db
 	var episodes []episodeModel.Episode
 
 	for _, season := range seasons {
-		seasonRepo := seasonRepository.NewSeasonRepository(db)
+		seasonRepo := seasonRepository.NewSeasonRepository(h.DB)
 		seasonID, err := seasonRepo.CreateTx(tx, season)
 		if err != nil {
-			logger.Error("Failed to add season to database", slog.String("error", err.Error()))
+			h.Logger.Error("Failed to add season to database", slog.String("error", err.Error()))
 			schemas.SendError(c, 500, "Failed to add season to database")
 			return nil, err
 		}
@@ -152,16 +149,16 @@ func AddShowToListHandler(c echo.Context, request *show.AddShowToListRequest, db
 	}
 
 	for _, episode := range episodes {
-		episodeRepo := episodeRepository.NewEpisodeRepository(db)
+		episodeRepo := episodeRepository.NewEpisodeRepository(h.DB)
 		if _, err := episodeRepo.CreateTx(tx, episode); err != nil {
-			logger.Error("Failed to add episode to database", slog.String("error", err.Error()))
+			h.Logger.Error("Failed to add episode to database", slog.String("error", err.Error()))
 			schemas.SendError(c, 500, "Failed to add episode to database")
 			return nil, err
 		}
 	}
 
 	if err := tx.Commit(); err != nil {
-		logger.Error("Failed to commit transaction", slog.String("error", err.Error()))
+		h.Logger.Error("Failed to commit transaction", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, "Failed to commit transaction")
 		return nil, err
 	}

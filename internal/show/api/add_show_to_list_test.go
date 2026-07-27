@@ -1,4 +1,4 @@
-package show
+package api
 
 import (
 	"bytes"
@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/jusoaresg/gorgon/internal/show/schema"
+	showSchema "github.com/jusoaresg/gorgon/internal/show/schema"
 	"github.com/jusoaresg/gorgon/testutils"
 
 	"github.com/labstack/echo/v4"
@@ -19,7 +19,7 @@ func TestAddShowToList_Success(t *testing.T) {
 	e := echo.New()
 	_ = e
 
-	request := show.AddShowToListRequest{
+	request := showSchema.AddShowToListRequest{
 		Id:           10,
 		TrackingType: "all",
 	}
@@ -34,8 +34,14 @@ func TestAddShowToList_Success(t *testing.T) {
 	c := e.NewContext(req, rec)
 
 	logger := slog.Default()
+	db := testutils.GetTestDB()
 
-	_, err = AddShowToListHandler(c, &request, testutils.GetTestDB(), logger)
+	h := &Handler{
+		Logger: logger,
+		DB:     db,
+	}
+
+	_, err = h.addShowToListHandler(c, &request)
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Result().StatusCode)

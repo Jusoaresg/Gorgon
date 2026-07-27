@@ -1,10 +1,8 @@
-package show
+package api
 
 import (
 	"log/slog"
 
-	"github.com/jmoiron/sqlx"
-	"github.com/jusoaresg/gorgon/config"
 	tvMazeService "github.com/jusoaresg/gorgon/external/tvmaze/service"
 	"github.com/jusoaresg/gorgon/internal/show/repository"
 	showService "github.com/jusoaresg/gorgon/internal/show/service"
@@ -30,32 +28,28 @@ type UpdateShowData struct {
 // @Failure 400 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /database/show/update-info [post]
-func UpdateShowInfo(c echo.Context) error {
-	return updateShowInfoHandler(c, config.GetSQLite())
-}
-
-func updateShowInfoHandler(c echo.Context, db *sqlx.DB) error {
-	logger := config.GetLogger()
-	logger.Info("Received request to update show info", slog.String("endpoint", "/database/show/update-info"), slog.String("method", "POST"))
+func (h *Handler) UpdateShowInfo(c echo.Context) error {
+	h.Logger.Info("Received request to update show info", slog.String("endpoint", "/database/show/update-info"), slog.String("method", "POST"))
 
 	var request schemas.IdRequest
 	if err := c.Bind(&request); err != nil {
 		return err
 	}
-	showRepo := repository.NewShowRepository(db)
-	tvMazeService := tvMazeService.NewTvMazeSearchService(logger)
-	showManager := showService.NewShowManagerService(logger, db)
 
-	updatedShow, err := UpdateSingleShowInfo(showRepo, tvMazeService, showManager, logger, request.Id)
+	showRepo := repository.NewShowRepository(h.DB)
+	tvMazeSvc := tvMazeService.NewTvMazeSearchService(h.Logger)
+	showManager := showService.NewShowManagerService(h.Logger, h.DB)
+
+	updatedShow, err := UpdateSingleShowInfo(showRepo, tvMazeSvc, showManager, h.Logger, request.Id)
 	if err != nil {
-		logger.Error("Failed to update show information", slog.Int("show_id", int(request.Id)))
+		h.Logger.Error("Failed to update show information", slog.Int("show_id", int(request.Id)))
 		schemas.SendError(c, 500, "Failed to update show info", UpdateShowData{
 			UpdateShow:   *updatedShow,
 			ToastMessage: "Failed to update show info",
 		})
 	}
 
-	logger.Info("Show info updated successfully")
+	h.Logger.Info("Show info updated successfully")
 	schemas.SendSuccess(c, "Update Show Info", UpdateShowData{
 		UpdateShow:   *updatedShow,
 		ToastMessage: "Show info updated",

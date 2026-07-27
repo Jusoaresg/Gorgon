@@ -1,11 +1,10 @@
-package show
+package api
 
 import (
-	"github.com/jusoaresg/gorgon/config"
-	"github.com/jusoaresg/gorgon/internal/show/repository"
-	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"log/slog"
 	"strconv"
+
+	"github.com/jusoaresg/gorgon/pkg/schemas"
 
 	"github.com/labstack/echo/v4"
 )
@@ -21,9 +20,8 @@ import (
 // @Failure 400 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /database/show/{id} [get]
-func GetShow(c echo.Context) error {
-	logger := config.GetLogger()
-	logger.Info("Received request to Get Show", slog.String("endpoint", "/database/show/:id"), slog.String("method", "get"))
+func (h *Handler) GetShow(c echo.Context) error {
+	h.Logger.Info("Received request to Get Show", slog.String("endpoint", "/database/show/:id"), slog.String("method", "get"))
 
 	id := c.Param("id")
 	id64, err := strconv.ParseInt(id, 10, 64)
@@ -33,15 +31,14 @@ func GetShow(c echo.Context) error {
 	}
 
 	//TODO: Maybe returning the episodes and seasons ?
-	showRepo := repository.NewShowRepository(config.GetSQLite())
-	show, err := showRepo.GetById(id64)
+	show, err := h.ShowRepo.GetById(id64)
 	if err != nil {
-		logger.Error("Error while fetching show from database", slog.String("error", err.Error()))
+		h.Logger.Error("Error while fetching show from database", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, "Error while fetching show")
 		return err
 	}
 
-	logger.Info("Successfully fetched show", slog.Any("Show", show))
+	h.Logger.Info("Successfully fetched show", slog.Any("Show", show))
 	schemas.SendSuccess(c, "Get Show", show)
 	return nil
 }
