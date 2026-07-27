@@ -1,7 +1,6 @@
-package indexer
+package api
 
 import (
-	"github.com/jusoaresg/gorgon/internal/indexer/repository"
 	"github.com/jusoaresg/gorgon/pkg/schemas"
 
 	"github.com/labstack/echo/v4"
@@ -18,20 +17,18 @@ import (
 // @Failure 400 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /database/indexer/{id} [get]
-func GetIndexer(c echo.Context) error {
+func (h *Handler) GetIndexer(c echo.Context) error {
 	var request schemas.IdRequest
 	if err := c.Bind(&request); err != nil {
 		schemas.SendError(c, 400, "Failed to bind request body")
 		return err
 	}
 
-	indexerRepo := repository.NewIndexerRepository()
-
-	indexer, err := indexerRepo.GetById(int(request.Id))
+	indexer, err := h.IndexerRepo.GetById(int(request.Id))
 	if err != nil {
 		return err
 	}
 
-	schemas.SendSuccess(c, "List Indexers", indexer)
+	schemas.SendSuccess(c, "Get Indexer", indexer)
 	return nil
 }

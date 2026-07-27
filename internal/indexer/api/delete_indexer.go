@@ -1,8 +1,8 @@
-package indexer
+package api
 
 import (
 	"fmt"
-	"github.com/jusoaresg/gorgon/internal/indexer/repository"
+
 	"github.com/jusoaresg/gorgon/pkg/schemas"
 
 	"github.com/labstack/echo/v4"
@@ -19,15 +19,13 @@ import (
 // @Failure 400 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /database/indexer [delete]
-func DeleteIndexer(c echo.Context) error {
+func (h *Handler) DeleteIndexer(c echo.Context) error {
 	var request schemas.IdRequest
 	if err := c.Bind(&request); err != nil {
 		return err
 	}
 
-	indexerRepo := repository.NewIndexerRepository()
-
-	if err := indexerRepo.DeleteById(int(request.Id)); err != nil {
+	if err := h.IndexerRepo.DeleteById(int(request.Id)); err != nil {
 		schemas.SendError(c, 500, fmt.Sprintf("Error while deleting indexer: %s", err.Error()))
 		return err
 	}

@@ -1,7 +1,6 @@
-package indexer
+package api
 
 import (
-	"github.com/jusoaresg/gorgon/internal/indexer/repository"
 	"github.com/jusoaresg/gorgon/pkg/schemas"
 
 	"github.com/labstack/echo/v4"
@@ -17,10 +16,8 @@ import (
 // @Failure 400 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /database/indexer [get]
-func ListIndexers(c echo.Context) error {
-	indexerRepo := repository.NewIndexerRepository()
-
-	indexers, err := indexerRepo.List()
+func (h *Handler) ListIndexers(c echo.Context) error {
+	indexers, err := h.IndexerRepo.List()
 	if err != nil {
 		return err
 	}

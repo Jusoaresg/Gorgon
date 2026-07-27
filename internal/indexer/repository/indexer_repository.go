@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/internal/indexer/model"
 
 	"github.com/jmoiron/sqlx"
@@ -11,9 +10,9 @@ type IndexerRepository struct {
 	db *sqlx.DB
 }
 
-func NewIndexerRepository() IndexerRepository {
-	return IndexerRepository{
-		db: config.GetSQLite(),
+func NewIndexerRepository(db *sqlx.DB) *IndexerRepository {
+	return &IndexerRepository{
+		db: db,
 	}
 }
 

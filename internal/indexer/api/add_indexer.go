@@ -1,15 +1,12 @@
-package indexer
+package api
 
 import (
 	"encoding/json"
-	"github.com/jusoaresg/gorgon/config"
+
 	"github.com/jusoaresg/gorgon/external/prowlarr/schema"
-	"github.com/jusoaresg/gorgon/external/prowlarr/service"
 	"github.com/jusoaresg/gorgon/internal/indexer/model"
-	"github.com/jusoaresg/gorgon/internal/indexer/repository"
 	"github.com/jusoaresg/gorgon/pkg/schemas"
 
-	"github.com/gin-gonic/gin"
 	"github.com/labstack/echo/v4"
 )
 
@@ -25,26 +22,21 @@ import (
 // @Failure 400 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /database/indexer [post]
-func AddIndexer(c echo.Context) error {
-	logger := config.GetLogger()
-
+func (h *Handler) AddIndexer(c echo.Context) error {
 	var request schemas.IdRequest
 	if err := c.Bind(&request); err != nil {
 		return err
 	}
 
-	indexerRepo := repository.NewIndexerRepository()
-	prowlarrIndexerService := service.NewProwlarrIndexerService(logger)
-
 	var response schema.IndexerResponse
-	if err := prowlarrIndexerService.GetIndexer(int(request.Id), &response); err != nil {
-		c.JSON(500, gin.H{"error": "Failed to get indexer"})
+	if err := h.ProwlarrIndexerSvc.GetIndexer(int(request.Id), &response); err != nil {
+		schemas.SendError(c, 500, "Failed to get indexer")
 		return err
 	}
 
 	indexerUrlsJSON, err := json.Marshal(response.IndexerUrls)
 	if err != nil {
-		c.JSON(500, gin.H{"error": "Failed to marshal indexer URLs"})
+		schemas.SendError(c, 500, "Failed to marshal indexer URLs")
 		return err
 	}
 
@@ -56,7 +48,7 @@ func AddIndexer(c echo.Context) error {
 		Language:       response.Language,
 	}
 
-	if err := indexerRepo.Create(indexer); err != nil {
+	if err := h.IndexerRepo.Create(indexer); err != nil {
 		return err
 	}
 
