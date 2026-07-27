@@ -1,4 +1,4 @@
-package handler
+package api
 
 import (
 	"log/slog"
@@ -18,17 +18,16 @@ import (
 // @Failure 400 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /app/config [get]
-func GetAppConfig(c echo.Context) error {
-	logger := config.GetLogger()
-	logger.Info("Received request to Update App Config", slog.String("endpoint", "/app/config"), slog.String("method", "get"))
+func (h *Handler) GetAppConfig(c echo.Context) error {
+	h.Logger.Info("Received request to Get App Config", slog.String("endpoint", "/app/config"), slog.String("method", "get"))
 
-	config, err := config.LoadConfig()
+	cfg, err := config.LoadConfig()
 	if err != nil {
 		schemas.SendError(c, 500, "Failed to get app config file")
 		return err
 	}
 
-	logger.Info("Successfully get app config")
-	schemas.SendSuccess(c, "Get App Config", *config)
+	h.Logger.Info("Successfully get app config")
+	schemas.SendSuccess(c, "Get App Config", *cfg)
 	return nil
 }

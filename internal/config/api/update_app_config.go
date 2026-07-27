@@ -1,4 +1,4 @@
-package handler
+package api
 
 import (
 	"log/slog"
@@ -25,9 +25,8 @@ type UpdatedConfigResponse struct {
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /app/config [post]
 // @Router /app/config [patch]
-func UpdateAppConfig(c echo.Context) error {
-	logger := config.GetLogger()
-	logger.Info("Received request to Update App Config", slog.String("endpoint", "/app/config"), slog.String("method", c.Request().Method))
+func (h *Handler) UpdateAppConfig(c echo.Context) error {
+	h.Logger.Info("Received request to Update App Config", slog.String("endpoint", "/app/config"), slog.String("method", c.Request().Method))
 
 	var request schemas.UpdateConfigInput
 
@@ -37,7 +36,7 @@ func UpdateAppConfig(c echo.Context) error {
 	}
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		logger.Error("Failed to load app config file")
+		h.Logger.Error("Failed to load app config file")
 		schemas.SendError(c, 500, "Failed to load app config file")
 		return err
 	}
@@ -45,14 +44,14 @@ func UpdateAppConfig(c echo.Context) error {
 	cfg.Apply(&request)
 
 	if err := config.SaveConfig(cfg); err != nil {
-		logger.Error("Failed to save app config file")
+		h.Logger.Error("Failed to save app config file")
 		schemas.SendError(c, 500, "Failed to save app config file", UpdatedConfigResponse{
 			ToastMessage: "Failed to update config",
 		})
 		return err
 	}
 
-	logger.Info("Successfully updated app config")
+	h.Logger.Info("Successfully updated app config")
 	schemas.SendSuccess(c, "Update App Config", UpdatedConfigResponse{
 		NewConfig:    *cfg,
 		ToastMessage: "Successfully updated config",
