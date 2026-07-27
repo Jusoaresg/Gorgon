@@ -1,13 +1,9 @@
-package episode
+package api
 
 import (
 	"log/slog"
 	"net/http"
 
-	"github.com/jusoaresg/gorgon/config"
-	episodeRepository "github.com/jusoaresg/gorgon/internal/episode/repository"
-	"github.com/jusoaresg/gorgon/internal/episode/service"
-	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
 	"github.com/jusoaresg/gorgon/pkg/schemas"
 
 	"github.com/labstack/echo/v4"
@@ -24,11 +20,8 @@ import (
 // @Failure 400 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /database/show/episode/search [post]
-func SearchProcessEpisode(c echo.Context) error {
-	logger := config.GetLogger()
-	logger.Info("Received request to Search Process Episode", slog.String("endpoint", "/database/show/episode/search"), slog.String("method", c.Request().Method))
-
-	db := config.GetSQLite()
+func (h *Handler) SearchProcessEpisode(c echo.Context) error {
+	h.Logger.Info("Received request to Search Process Episode", slog.String("endpoint", "/database/show/episode/search"), slog.String("method", c.Request().Method))
 
 	var request schemas.IdRequest
 	if err := c.Bind(&request); err != nil {
@@ -36,19 +29,7 @@ func SearchProcessEpisode(c echo.Context) error {
 		return err
 	}
 
-	episodeRepo := episodeRepository.NewEpisodeRepository(db)
-	showRepo := showRepository.NewShowRepository(db)
-
-	episodeSearchService := service.NewEpisodeSearchService(
-		db,
-		logger,
-		&service.EpisodeSearcher{},
-		&service.EpisodeDownloader{},
-		episodeRepo,
-		showRepo,
-	)
-
-	err := episodeSearchService.ProcessSingleEpisode(int(request.Id))
+	err := h.EpisodeSearchSvc.ProcessSingleEpisode(int(request.Id))
 	if err != nil {
 		schemas.SendError(c, http.StatusInternalServerError, "Failed to process episode", nil)
 		return err

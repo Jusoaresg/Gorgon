@@ -1,13 +1,11 @@
-package episode
+package api
 
 import (
 	"log/slog"
 
-	"github.com/jusoaresg/gorgon/config"
-	"github.com/jusoaresg/gorgon/external/qbittorrent/service"
-	event "github.com/jusoaresg/gorgon/internal/episode/events"
-	"github.com/jusoaresg/gorgon/internal/episode/repository"
+	episodeEvents "github.com/jusoaresg/gorgon/internal/episode/events"
 	"github.com/jusoaresg/gorgon/internal/episode/schema"
+	"github.com/jusoaresg/gorgon/external/qbittorrent/service"
 	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"github.com/jusoaresg/gorgon/utils"
 
@@ -25,9 +23,8 @@ import (
 // @Failure 400 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /database/show/episode/status [post]
-func ChangeEpisodeStatus(c echo.Context) error {
-	logger := config.GetLogger()
-	logger.Info("Received request to Change Episode Status", slog.String("endpoint", "/database/show/episode/status"), slog.String("method", "post"))
+func (h *Handler) ChangeEpisodeStatus(c echo.Context) error {
+	h.Logger.Info("Received request to Change Episode Status", slog.String("endpoint", "/database/show/episode/status"), slog.String("method", "post"))
 
 	var request schema.ChangeEpisodeTrackingRequest
 
@@ -36,12 +33,14 @@ func ChangeEpisodeStatus(c echo.Context) error {
 		return err
 	}
 
-	episodeRepository := repository.NewEpisodeRepository(config.GetSQLite())
-	qbittorrentService, err := service.NewQBittorrentService(logger)
-
-	episodes, err := episodeRepository.GetAllByID(utils.ToInt64Slice(request.EpisodeIds)...)
+	qbittorrentService, err := service.NewQBittorrentService(h.Logger)
 	if err != nil {
-		logger.Error("Error while fetching episode from database", slog.String("error", err.Error()))
+		h.Logger.Error("Failed to create qbittorrent service", slog.String("error", err.Error()))
+	}
+
+	episodes, err := h.EpisodeRepo.GetAllByID(utils.ToInt64Slice(request.EpisodeIds)...)
+	if err != nil {
+		h.Logger.Error("Error while fetching episode from database", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, "Error while fetching episode")
 		return err
 	}
@@ -51,7 +50,7 @@ func ChangeEpisodeStatus(c echo.Context) error {
 		if episode.TorrentHash != "" {
 			err := qbittorrentService.DeleteTorrent(episode.TorrentHash, true)
 			if err != nil {
-				logger.Error(
+				h.Logger.Error(
 					"Error while deleting torrent",
 					slog.String("error", err.Error()),
 					slog.Int64("episode_id", episode.ID),
@@ -61,15 +60,15 @@ func ChangeEpisodeStatus(c echo.Context) error {
 		}
 		episode.Tracking = request.Tracking
 
-		if err := episodeRepository.Update(episode); err != nil {
+		if err := h.EpisodeRepo.Update(episode); err != nil {
 			schemas.SendError(c, 500, "Failed to update episode tracking status")
 			return err
 		}
 
-		event.EmitEpisodeTrackingUpdatedEvent(episode.ID, episode.Tracking)
+		episodeEvents.EmitEpisodeTrackingUpdatedEvent(episode.ID, episode.Tracking)
 	}
 
-	logger.Info("Successfully updated episodes", slog.Any("Episodes", episodes))
+	h.Logger.Info("Successfully updated episodes", slog.Any("Episodes", episodes))
 	c.Response().Header().Add("HX-Refresh", "true")
 	schemas.SendSuccess(c, "Change episodes tracking", episodes)
 	return nil

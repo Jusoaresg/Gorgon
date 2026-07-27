@@ -1,11 +1,10 @@
-package episode
+package api
 
 import (
-	"github.com/jusoaresg/gorgon/config"
-	"github.com/jusoaresg/gorgon/internal/episode/repository"
-	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"log/slog"
 	"strconv"
+
+	"github.com/jusoaresg/gorgon/pkg/schemas"
 
 	"github.com/labstack/echo/v4"
 )
@@ -21,9 +20,8 @@ import (
 // @Failure 400 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /database/show/episode/{id} [get]
-func GetShowEpisodes(c echo.Context) error {
-	logger := config.GetLogger()
-	logger.Info("Received request to Get Show Episodes", slog.String("endpoint", "/database/show/episode/:id"), slog.String("method", "get"))
+func (h *Handler) GetShowEpisodes(c echo.Context) error {
+	h.Logger.Info("Received request to Get Show Episodes", slog.String("endpoint", "/database/show/episode/:id"), slog.String("method", "get"))
 
 	id := c.Param("id")
 	idInt64, err := strconv.ParseInt(id, 10, 64)
@@ -32,15 +30,14 @@ func GetShowEpisodes(c echo.Context) error {
 		return err
 	}
 
-	episodeRepo := repository.NewEpisodeRepository(config.GetSQLite())
-	episodes, err := episodeRepo.ListByShowID(idInt64)
+	episodes, err := h.EpisodeRepo.ListByShowID(idInt64)
 	if err != nil {
-		logger.Error("Error while fetching show episodes from database", slog.String("error", err.Error()))
+		h.Logger.Error("Error while fetching show episodes from database", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, "Error while fetching show episodes")
 		return err
 	}
 
-	logger.Info("Successfully fetched show episodes")
+	h.Logger.Info("Successfully fetched show episodes")
 	schemas.SendSuccess(c, "Get Show Episodes", episodes)
 	return nil
 }
