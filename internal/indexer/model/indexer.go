@@ -6,6 +6,6 @@ type Indexer struct {
 	Name           string `db:"name" json:"name"`
 	Enabled        bool   `db:"enabled" json:"enabled"`
 	DefinitionName string `db:"definition_name" json:"definitionName"`
-	IndexerUrls    string `db:"indexer_urls" json:"indexerUrls"`
+	IndexerUrls    string `db:"indexers_urls" json:"indexerUrls"`
 	Language       string `db:"language" json:"language"`
 }

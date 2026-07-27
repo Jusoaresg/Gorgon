@@ -1,10 +1,14 @@
 package repository
 
 import (
+	"errors"
+
 	"github.com/jusoaresg/gorgon/internal/indexer/model"
 
 	"github.com/jmoiron/sqlx"
 )
+
+var ErrIndexerNotFound = errors.New("indexer not found")
 
 type IndexerRepository struct {
 	db *sqlx.DB
@@ -51,15 +55,23 @@ func (s *IndexerRepository) GetById(id int) (model.Indexer, error) {
 }
 
 func (s *IndexerRepository) DeleteById(id int) error {
-	if _, err := s.db.Exec("DELETE FROM indexers WHERE id = ?", id); err != nil {
+	result, err := s.db.Exec("DELETE FROM indexers WHERE id = ?", id)
+	if err != nil {
 		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrIndexerNotFound
 	}
 	return nil
 }
 
 func (s *IndexerRepository) List() ([]model.Indexer, error) {
 	var indexers []model.Indexer
-	if err := s.db.Select(&indexers, "SELECT * FROM seasons"); err != nil {
+	if err := s.db.Select(&indexers, "SELECT * FROM indexers"); err != nil {
 		return []model.Indexer{}, err
 	}
 	return indexers, nil

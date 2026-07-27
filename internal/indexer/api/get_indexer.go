@@ -1,6 +1,8 @@
 package api
 
 import (
+	"strconv"
+
 	"github.com/jusoaresg/gorgon/pkg/schemas"
 
 	"github.com/labstack/echo/v4"
@@ -18,13 +20,14 @@ import (
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /database/indexer/{id} [get]
 func (h *Handler) GetIndexer(c echo.Context) error {
-	var request schemas.IdRequest
-	if err := c.Bind(&request); err != nil {
-		schemas.SendError(c, 400, "Failed to bind request body")
+	id := c.Param("id")
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		schemas.SendError(c, 400, "Invalid indexer id")
 		return err
 	}
 
-	indexer, err := h.IndexerRepo.GetById(int(request.Id))
+	indexer, err := h.IndexerRepo.GetById(idInt)
 	if err != nil {
 		return err
 	}
