@@ -111,6 +111,26 @@ func (a *APIService) GetWithHeaders(endpoint string, response any, headers map[s
 	return nil
 }
 
+func (a *APIService) GetWithHeadersRaw(endpoint string, headers map[string]string) (*http.Response, error) {
+	url := fmt.Sprintf("%s%s", a.Url, endpoint)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error while creating GET request: %w", err)
+	}
+
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+
+	resp, err := a.Client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("Error while making GET request: %w", err)
+	}
+
+	return resp, nil
+}
+
 func (a *APIService) Post(endpoint string, requestData any, response any, headersInfo ...map[string]string) (*http.Response, error) {
 	url := fmt.Sprintf("%s%s", a.Url, endpoint)
 
