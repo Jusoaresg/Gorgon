@@ -7,7 +7,7 @@ import (
 
 	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/external/tvmaze/service"
-	showHandler "github.com/jusoaresg/gorgon/internal/show/handler"
+	showHandler "github.com/jusoaresg/gorgon/internal/show/api"
 	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
 	showManager "github.com/jusoaresg/gorgon/internal/show/service"
 	"github.com/jusoaresg/gorgon/pkg/services"

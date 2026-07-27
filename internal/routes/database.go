@@ -1,19 +1,31 @@
 package routes
 
 import (
-	"github.com/jusoaresg/gorgon/config"
-	episodeHandler "github.com/jusoaresg/gorgon/internal/episode/handler"
-	indexerHandler "github.com/jusoaresg/gorgon/internal/indexer/handler"
-	seasonHandler "github.com/jusoaresg/gorgon/internal/season/handler"
-	showHandler "github.com/jusoaresg/gorgon/internal/show/handler"
-	showAliasesHandler "github.com/jusoaresg/gorgon/internal/show_aliases/handler"
 	"log/slog"
+
+	"github.com/jusoaresg/gorgon/config"
+	"github.com/jusoaresg/gorgon/internal/episode"
+	episodeApi "github.com/jusoaresg/gorgon/internal/episode/api"
+	"github.com/jusoaresg/gorgon/internal/indexer"
+	indexerApi "github.com/jusoaresg/gorgon/internal/indexer/api"
+	"github.com/jusoaresg/gorgon/internal/season"
+	seasonApi "github.com/jusoaresg/gorgon/internal/season/api"
+	"github.com/jusoaresg/gorgon/internal/show"
+	showApi "github.com/jusoaresg/gorgon/internal/show/api"
+	"github.com/jusoaresg/gorgon/internal/show_aliases"
+	showAliasesApi "github.com/jusoaresg/gorgon/internal/show_aliases/api"
 
 	"github.com/labstack/echo/v4"
 )
 
-func SetupDatabaseRouter(v1 *echo.Group) {
+func SetupDatabaseRouter(v1 *echo.Group, deps *show.Dependencies, episodeDeps *episode.Dependencies, seasonDeps *season.Dependencies, indexerDeps *indexer.Dependencies, showAliasesDeps *show_aliases.Dependencies) {
 	logger := config.GetLogger()
+
+	showHandler := showApi.NewHandler(deps)
+	episodeHandler := episodeApi.NewHandler(episodeDeps)
+	seasonHandler := seasonApi.NewHandler(seasonDeps)
+	indexerHandler := indexerApi.NewHandler(indexerDeps)
+	showAliasesHandler := showAliasesApi.NewHandler(showAliasesDeps)
 
 	listGroup := v1.Group("database/")
 	{
@@ -57,7 +69,7 @@ func SetupDatabaseRouter(v1 *echo.Group) {
 
 			aliasGroup := showGroup.Group("/aliases")
 			{
-				aliasGroup.GET("/:id", showAliasesHandler.GetShowEpisodes)
+				aliasGroup.GET("/:id", showAliasesHandler.GetShowAliases)
 			}
 
 			seasonsGroup := showGroup.Group("/season")
@@ -72,7 +84,7 @@ func SetupDatabaseRouter(v1 *echo.Group) {
 			indexerGroup.GET(":id", indexerHandler.GetIndexer)
 			logger.Info("GET route added to /api/v1/database/indexer/:id")
 			indexerGroup.GET("", indexerHandler.ListIndexers)
-			logger.Info("POST route added to /api/v1/database/indexer")
+			logger.Info("GET route added to /api/v1/database/indexer")
 
 			indexerGroup.POST("", indexerHandler.AddIndexer)
 			logger.Info("POST route added to /api/v1/database/indexer")
