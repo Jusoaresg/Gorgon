@@ -38,7 +38,10 @@ func RegisterShowRoutes(e *echo.Echo, deps *show.Dependencies) {
 	front := e.Group("/front/")
 	front.POST("search-show", handler.SearchShowHTMX)
 	front.POST("add-show", handler.AddShowHTMX)
-	front.GET("show/:id/modal/edit", handler.EditShowModalHTMX)
-	front.GET("episode/:id/modal/tracking", handler.ChangeEpisodeTrackingModal)
-	front.GET("season/:id/modal/tracking", handler.ChangeSeasonTrackingModal)
+    front.GET("show/:id/modal/edit", handler.EditShowModalHTMX)
+    front.GET("episode/:id/modal/tracking", handler.ChangeEpisodeTrackingModal)
+    front.GET("season/:id/modal/tracking", handler.ChangeSeasonTrackingModal)
+    front.GET("episode/:id/interactive-search", handler.InteractiveSearchModal)
+    front.GET("episode/:id/search-results", handler.SearchEpisodeResults)
+    front.POST("episode/:id/download", handler.DownloadEpisodeTorrent)
 }

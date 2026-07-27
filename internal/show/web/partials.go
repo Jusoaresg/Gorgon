@@ -1,14 +1,19 @@
 package web
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/jusoaresg/gorgon/config"
+	prowlarrSchema "github.com/jusoaresg/gorgon/external/prowlarr/schema"
+	prowlarrService "github.com/jusoaresg/gorgon/external/prowlarr/service"
+	qbittorrentService "github.com/jusoaresg/gorgon/external/qbittorrent/service"
 	tvMazeService "github.com/jusoaresg/gorgon/external/tvmaze/service"
 	episodeModel "github.com/jusoaresg/gorgon/internal/episode/model"
 	episodeRepository "github.com/jusoaresg/gorgon/internal/episode/repository"
+	episodeEvents "github.com/jusoaresg/gorgon/internal/episode/events"
 	seasonModel "github.com/jusoaresg/gorgon/internal/season/model"
 	seasonRepository "github.com/jusoaresg/gorgon/internal/season/repository"
 	showSchema "github.com/jusoaresg/gorgon/internal/show/schema"
@@ -18,6 +23,7 @@ import (
 	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"github.com/jusoaresg/gorgon/pkg/schemas/dtos"
 	"github.com/jusoaresg/gorgon/pkg/services"
+	"github.com/jusoaresg/gorgon/utils"
 	"github.com/labstack/echo/v4"
 )
 
@@ -209,4 +215,159 @@ func (h *Handler) ChangeSeasonTrackingModal(c echo.Context) error {
 		Season:     season,
 		EpisodeIds: episodesIds,
 	})
+}
+
+type interactiveSearchData struct {
+	EpisodeID   int64
+	EpisodeName string
+	Season      int
+	Number      int
+	AutoSearch  bool
+}
+
+type searchResultsData struct {
+	Results   []prowlarrSchema.SearchResponse
+	EpisodeID int64
+}
+
+func (h *Handler) InteractiveSearchModal(c echo.Context) error {
+	epIdStr := c.Param("id")
+	epId, err := strconv.ParseInt(epIdStr, 10, 64)
+	if err != nil {
+		return err
+	}
+
+	episode, err := h.EpisodeRepo.GetByID(epId)
+	if err != nil {
+		return err
+	}
+
+	return c.Render(http.StatusOK, "interactive-search-modal", interactiveSearchData{
+		EpisodeID:   episode.ID,
+		EpisodeName: episode.Name,
+		Season:      episode.Season,
+		Number:      episode.Number,
+		AutoSearch:  true,
+	})
+}
+
+func (h *Handler) SearchEpisodeResults(c echo.Context) error {
+	epIdStr := c.Param("id")
+	epId, err := strconv.ParseInt(epIdStr, 10, 64)
+	if err != nil {
+		return err
+	}
+
+	logger := config.GetLogger()
+
+	episode, err := h.EpisodeRepo.GetByID(epId)
+	if err != nil {
+		return err
+	}
+
+	show, err := h.ShowRepo.GetById(episode.ShowID)
+	if err != nil {
+		return err
+	}
+
+	aliasRepo := showAliasRepository.NewShowAliasesRepository(h.DB)
+	aliases, err := aliasRepo.ListByShowID(show.ID)
+	if err != nil {
+		logger.Error("error fetching show aliases", slog.String("error", err.Error()))
+		return err
+	}
+
+	titles := []string{utils.NormalizeTitle(show.Name)}
+	for _, alias := range aliases {
+		titles = append(titles, alias.Alias)
+	}
+
+	searchService, err := prowlarrService.NewProwlarrSearchService(logger)
+	if err != nil {
+		logger.Error("error initializing prowlarr service", slog.String("error", err.Error()))
+		return err
+	}
+
+	var allResults []prowlarrSchema.SearchResponse
+	for _, title := range titles {
+		query := fmt.Sprintf("%s S%02dE%02d", title, episode.Season, episode.Number)
+		searchKey := prowlarrSchema.SearchByTypeRequest{
+			Query: query,
+			Type:  "tvsearch",
+		}
+
+		var results []prowlarrSchema.SearchResponse
+		if err := searchService.SearchByType(&searchKey, &results); err != nil {
+			logger.Error("error searching prowlarr",
+				slog.String("query", query),
+				slog.String("error", err.Error()),
+			)
+			continue
+		}
+		allResults = append(allResults, results...)
+	}
+
+	return c.Render(http.StatusOK, "search-results-list", searchResultsData{
+		Results:   allResults,
+		EpisodeID: epId,
+	})
+}
+
+func (h *Handler) DownloadEpisodeTorrent(c echo.Context) error {
+	epIdStr := c.Param("id")
+	epId, err := strconv.ParseInt(epIdStr, 10, 64)
+	if err != nil {
+		schemas.SendError(c, 400, "Invalid episode ID")
+		return nil
+	}
+
+	var request struct {
+		Guid     string `json:"guid"`
+		InfoHash string `json:"infoHash"`
+	}
+	if err := c.Bind(&request); err != nil {
+		schemas.SendError(c, 400, "Invalid request")
+		return nil
+	}
+
+	logger := config.GetLogger()
+
+	ep, err := h.EpisodeRepo.GetByID(epId)
+	if err != nil {
+		logger.Error("error fetching episode", slog.String("error", err.Error()))
+		schemas.SendError(c, 500, "Episode not found")
+		return nil
+	}
+
+	torrentService, err := qbittorrentService.NewQBittorrentService(logger)
+	if err != nil {
+		logger.Error("error initializing qbittorrent service", slog.String("error", err.Error()))
+		schemas.SendError(c, 500, "Torrent client not available")
+		return nil
+	}
+
+	if err := torrentService.AddTorrent(request.Guid); err != nil {
+		logger.Error("error adding torrent", slog.String("error", err.Error()))
+		schemas.SendError(c, 500, "Failed to add torrent")
+		return nil
+	}
+
+	ep.Tracking = episodeModel.TrackingSnatched
+	ep.TorrentHash = request.InfoHash
+
+	if err := h.EpisodeRepo.Update(ep); err != nil {
+		logger.Error("error updating episode tracking", slog.String("error", err.Error()))
+		schemas.SendError(c, 500, "Failed to update episode")
+		return nil
+	}
+
+	episodeEvents.EmitEpisodeTrackingUpdatedEvent(ep.ID, ep.Tracking)
+
+	logger.Info("torrent added and episode snatched",
+		slog.Int64("episode_id", ep.ID),
+		slog.String("hash", request.InfoHash),
+	)
+
+	schemas.SendSuccess(c, "Download started", nil)
+	return nil
 }
