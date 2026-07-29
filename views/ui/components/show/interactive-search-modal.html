@@ -43,6 +43,47 @@
     .search-modal-body::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
     .spin { animation: spin 1s linear infinite; }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .alias-loading {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        color: var(--text-muted);
+        font-size: 13px;
+    }
+    .alias-results-group {
+        margin-bottom: 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .alias-results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 16px;
+        background: var(--bg-hover);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text);
+        border-bottom: 1px solid var(--border);
+    }
+    .alias-results-count {
+        font-weight: 400;
+        color: var(--text-muted);
+        font-size: 11px;
+    }
+    .alias-results-group .result-card {
+        border: none;
+        border-radius: 0;
+        margin-bottom: 0;
+        border-bottom: 1px solid var(--border);
+    }
+    .alias-results-group .result-card:last-child {
+        border-bottom: none;
+    }
+    .alias-results-group .no-results {
+        padding: 16px;
+    }
     .result-card {
         display: flex;
         align-items: center;
@@ -154,6 +195,61 @@
     })();
 </script>
 {{ end }}
+{{ end }}
+
+{{ define "search-results-progress" }}
+<div id="aliases-search-container">
+{{ range $i, $t := .Titles }}
+<div id="alias-search-{{$i}}"
+     hx-get="/front/episode/{{$.EpisodeID}}/search-alias?t={{$t.Encoded}}&s={{$.Season}}&n={{$.Number}}"
+     hx-trigger="load{{$t.Delay}}"
+     hx-swap="outerHTML">
+    <div class="alias-loading">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="spin" style="vertical-align: middle; margin-right: 8px;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        <span>Searching "{{$t.Name}}"{{if $t.Delay}} (low priority){{end}}...</span>
+    </div>
+</div>
+{{ end }}
+</div>
+{{ end }}
+
+{{ define "search-alias-results" }}
+<div class="alias-results-group">
+    <div class="alias-results-header">
+        <span>{{ .Alias }}</span>
+        <span class="alias-results-count">{{ len .Results }} found</span>
+    </div>
+    {{ if .Results }}
+    {{ range .Results }}
+    <div class="result-card">
+        <div class="result-info">
+            <div class="result-title" title="{{ .Title }}">{{ .Title }}</div>
+            <div class="result-meta">
+                <span>{{ .Indexer }}</span>
+                <span>{{ .FormatSize }}</span>
+                <span class="seeders">&#9650; {{ .Seeders }}</span>
+                <span class="leechers">&#9660; {{ .Leechers }}</span>
+                <span>{{ .FormatAge }}</span>
+            </div>
+        </div>
+        <div class="result-actions">
+            <a href="{{ .InfoUrl }}" target="_blank" class="btn btn-sm btn-outline" title="Open in Prowlarr">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+            </a>
+            <button class="btn btn-sm btn-primary download-btn"
+                    onclick="downloadEpisode(this, {{ $.EpisodeID }}, '{{ .Guid }}', '{{ .InfoHash }}')">
+                <span class="btn-spinner"></span>
+                <span class="btn-label">Download</span>
+            </button>
+        </div>
+    </div>
+    {{ end }}
+    {{ else }}
+    <div class="no-results">No results for this title</div>
+    {{ end }}
+</div>
 {{ end }}
 
 {{ define "search-results-list" }}
