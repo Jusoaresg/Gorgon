@@ -12,6 +12,7 @@ import (
 
 type EpisodeSearchInterface interface {
 	ProcessSingleEpisode(episodeID int) error
+	ProcessSeasonEpisodes(seasonID int)
 }
 
 type EpisodeSearchService struct {
@@ -158,5 +159,35 @@ func (s *EpisodeSearchService) ProcessShowWantedEpisodes(showID int) {
 			slog.Any("episode_id", notAiredYet),
 			slog.Int64("show_id", show.ID),
 		)
+	}()
+}
+
+func (s *EpisodeSearchService) ProcessSeasonEpisodes(seasonID int) {
+	go func() {
+		allEpisodes, err := s.EpisodeRepo.ListBySeasonID(seasonID)
+		if err != nil {
+			return
+		}
+
+		var wg sync.WaitGroup
+		for _, episode := range allEpisodes {
+			ep := episode
+
+			if aired := ep.HasAired(); !aired {
+				continue
+			}
+
+			wg.Go(func() {
+				if err := s.ProcessSingleEpisode(int(ep.ID)); err != nil {
+					s.logger.Error(
+						"Error processing episode",
+						slog.Int64("episode_id", ep.ID),
+						slog.Any("err", err),
+					)
+					return
+				}
+			})
+		}
+		wg.Wait()
 	}()
 }

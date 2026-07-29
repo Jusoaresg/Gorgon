@@ -9,8 +9,13 @@
                     <span class="season-title">Season {{ $season.Number }}</span>
                 </div>
                 <div class="season-actions">
-                    <button class="btn btn-sm btn-outline" onclick="event.stopPropagation()">Monitor</button>
-                    <button class="btn btn-sm btn-outline" onclick="event.stopPropagation()">Search</button>
+                    <button class="btn btn-sm btn-outline" onclick="event.stopPropagation()"
+                            hx-get="/front/season/{{ $season.ID }}/modal/tracking"
+                            hx-target="body"
+                            hx-swap="beforeend">Monitor</button>
+                    <button class="btn btn-sm btn-outline" onclick="event.stopPropagation()"
+                            hx-post="/api/v1/database/show/episode/search/season/{{ $season.ID }}"
+                            hx-swap="none">Search</button>
                 </div>
             </div>
 
