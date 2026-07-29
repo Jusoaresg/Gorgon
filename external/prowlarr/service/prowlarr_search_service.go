@@ -14,11 +14,6 @@ import (
 	"golang.org/x/time/rate"
 )
 
-var (
-	prowlarrSemaphore   = make(chan struct{}, 3)
-	prowlarrRateLimiter = rate.NewLimiter(rate.Every(2*time.Second), 1)
-)
-
 type ErrProwlarrHostPortNotSet interface {
 	Error() string
 	IsProwlarrConfigWarn() bool
@@ -33,14 +28,24 @@ func (m *ProwlarrHostPortNotSet) IsProwlarrConfigWarn() bool {
 	return true
 }
 
+var (
+	interactiveLimiter   = rate.NewLimiter(5, 10)
+	interactiveSemaphore = make(chan struct{}, 5)
+)
+
 type ProwlarrSearchService struct {
 	ApiKey     string
 	APIService services.APIService
 	Logger     *slog.Logger
 	limiter    *rate.Limiter
+	semaphore  chan struct{}
 }
 
 func NewProwlarrSearchService(logger *slog.Logger) (*ProwlarrSearchService, error) {
+	return newProwlarrSearchService(logger, rate.Every(2*time.Second), 1, 3)
+}
+
+func NewInteractiveProwlarrSearchService(logger *slog.Logger) (*ProwlarrSearchService, error) {
 	configFile, err := config.LoadConfig()
 	if err != nil {
 		return nil, err
@@ -57,6 +62,30 @@ func NewProwlarrSearchService(logger *slog.Logger) (*ProwlarrSearchService, erro
 		ApiKey:     configFile.ProwlarrApiKey,
 		Logger:     logger,
 		APIService: *services.NewAPIService(fmt.Sprintf("%s:%s", host, port), logger),
+		limiter:    interactiveLimiter,
+		semaphore:  interactiveSemaphore,
+	}, nil
+}
+
+func newProwlarrSearchService(logger *slog.Logger, limit rate.Limit, burst int, semSize int) (*ProwlarrSearchService, error) {
+	configFile, err := config.LoadConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	host := configFile.ProwlarrHost
+	port := configFile.ProwlarrPort
+
+	if host == "" || port == "" {
+		return nil, &ProwlarrHostPortNotSet{}
+	}
+
+	return &ProwlarrSearchService{
+		ApiKey:     configFile.ProwlarrApiKey,
+		Logger:     logger,
+		APIService: *services.NewAPIService(fmt.Sprintf("%s:%s", host, port), logger),
+		limiter:    rate.NewLimiter(limit, burst),
+		semaphore:  make(chan struct{}, semSize),
 	}, nil
 }
 
@@ -65,15 +94,15 @@ func (p *ProwlarrSearchService) Name() string {
 }
 
 func (p *ProwlarrSearchService) waitAndLock(ctx context.Context) error {
-	if err := prowlarrRateLimiter.Wait(ctx); err != nil {
+	if err := p.limiter.Wait(ctx); err != nil {
 		return err
 	}
-	prowlarrSemaphore <- struct{}{}
+	p.semaphore <- struct{}{}
 	return nil
 }
 
 func (p *ProwlarrSearchService) unlock() {
-	<-prowlarrSemaphore
+	<-p.semaphore
 }
 
 func (p *ProwlarrSearchService) CheckConnection() error {
@@ -104,13 +133,18 @@ func (p *ProwlarrSearchService) Search(request *schema.SearchRequest, model *[]s
 	return p.APIService.Get(fmt.Sprintf("/api/v1/search?%s", params.Encode()), &model)
 }
 
-func (p *ProwlarrSearchService) SearchByType(request *schema.SearchByTypeRequest, model *[]schema.SearchResponse) error {
+func (p *ProwlarrSearchService) SearchByType(request *schema.SearchByTypeRequest, model *[]schema.SearchResponse, indexerIds ...int) error {
 	if err := p.waitAndLock(context.Background()); err != nil {
 		return err
 	}
 	defer p.unlock()
 
-	queryEscaped := url.QueryEscape(request.Query)
-	typeEscaped := url.QueryEscape(request.Type)
-	return p.APIService.Get(fmt.Sprintf("/api/v1/search?query=%s&type=%s&apikey=%s", queryEscaped, typeEscaped, p.ApiKey), &model)
+	params := url.Values{}
+	params.Set("query", request.Query)
+	params.Set("type", request.Type)
+	params.Set("apikey", p.ApiKey)
+	for _, id := range indexerIds {
+		params.Add("indexerIds", strconv.Itoa(id))
+	}
+	return p.APIService.Get(fmt.Sprintf("/api/v1/search?%s", params.Encode()), &model)
 }
