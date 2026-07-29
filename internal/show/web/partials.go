@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
+	"regexp"
 	"strconv"
 
 	"github.com/jusoaresg/gorgon/config"
@@ -26,6 +28,27 @@ import (
 	"github.com/jusoaresg/gorgon/utils"
 	"github.com/labstack/echo/v4"
 )
+
+var latinAliasRegex = regexp.MustCompile(`^[a-zA-Z0-9\s\-_!?',.:]+$`)
+
+type aliasProgressItem struct {
+	Name    string
+	Encoded string
+	Delay   string // " delay:3s" for low-priority aliases, empty for high-priority
+}
+
+type searchProgressData struct {
+	EpisodeID int64
+	Season    int
+	Number    int
+	Titles    []aliasProgressItem
+}
+
+type searchAliasResultsData struct {
+	Alias     string
+	Results   []prowlarrSchema.SearchResponse
+	EpisodeID int64
+}
 
 func (h *Handler) SearchShowHTMX(c echo.Context) error {
 	var request schemas.NameRequest
@@ -277,38 +300,103 @@ func (h *Handler) SearchEpisodeResults(c echo.Context) error {
 		return err
 	}
 
-	titles := []string{utils.NormalizeTitle(show.Name)}
-	for _, alias := range aliases {
-		titles = append(titles, alias.Alias)
+	titles := []aliasProgressItem{
+		{Name: utils.NormalizeTitle(show.Name), Encoded: url.QueryEscape(utils.NormalizeTitle(show.Name))},
 	}
 
-	searchService, err := prowlarrService.NewProwlarrSearchService(logger)
+	for _, alias := range aliases {
+		if !latinAliasRegex.MatchString(alias.Alias) {
+			continue
+		}
+		titles = append(titles, aliasProgressItem{
+			Name:    alias.Alias,
+			Encoded: url.QueryEscape(alias.Alias),
+		})
+	}
+
+	for _, alias := range aliases {
+		if latinAliasRegex.MatchString(alias.Alias) {
+			continue
+		}
+		titles = append(titles, aliasProgressItem{
+			Name:    alias.Alias,
+			Encoded: url.QueryEscape(alias.Alias),
+			Delay:   " delay:3s",
+		})
+	}
+
+	return c.Render(http.StatusOK, "search-results-progress", searchProgressData{
+		EpisodeID: epId,
+		Season:    episode.Season,
+		Number:    episode.Number,
+		Titles:    titles,
+	})
+}
+
+func (h *Handler) SearchAliasResult(c echo.Context) error {
+	epIdStr := c.Param("id")
+	epId, err := strconv.ParseInt(epIdStr, 10, 64)
 	if err != nil {
-		logger.Error("error initializing prowlarr service", slog.String("error", err.Error()))
 		return err
 	}
 
-	var allResults []prowlarrSchema.SearchResponse
-	for _, title := range titles {
-		query := fmt.Sprintf("%s S%02dE%02d", title, episode.Season, episode.Number)
-		searchKey := prowlarrSchema.SearchByTypeRequest{
-			Query: query,
-			Type:  "tvsearch",
-		}
-
-		var results []prowlarrSchema.SearchResponse
-		if err := searchService.SearchByType(&searchKey, &results); err != nil {
-			logger.Error("error searching prowlarr",
-				slog.String("query", query),
-				slog.String("error", err.Error()),
-			)
-			continue
-		}
-		allResults = append(allResults, results...)
+	title := c.QueryParam("t")
+	if title == "" {
+		return c.NoContent(http.StatusBadRequest)
 	}
 
-	return c.Render(http.StatusOK, "search-results-list", searchResultsData{
-		Results:   allResults,
+	seasonStr := c.QueryParam("s")
+	numberStr := c.QueryParam("n")
+	season, _ := strconv.Atoi(seasonStr)
+	number, _ := strconv.Atoi(numberStr)
+
+	logger := config.GetLogger()
+
+	prowlarrIndexerService := prowlarrService.NewProwlarrIndexerService(logger)
+	var indexers []prowlarrSchema.IndexerResponse
+	if err := prowlarrIndexerService.GetIndexers(&indexers); err != nil {
+		logger.Error("error fetching prowlarr indexers", slog.String("error", err.Error()))
+		return c.Render(http.StatusOK, "search-alias-results", searchAliasResultsData{
+			Alias:     title,
+			Results:   nil,
+			EpisodeID: epId,
+		})
+	}
+
+	var indexerIds []int
+	for _, indexer := range indexers {
+		if indexer.Enabled {
+			indexerIds = append(indexerIds, indexer.Id)
+		}
+	}
+
+	searchService, err := prowlarrService.NewInteractiveProwlarrSearchService(logger)
+	if err != nil {
+		logger.Error("error initializing prowlarr service", slog.String("error", err.Error()))
+		return c.Render(http.StatusOK, "search-alias-results", searchAliasResultsData{
+			Alias:     title,
+			Results:   nil,
+			EpisodeID: epId,
+		})
+	}
+
+	query := fmt.Sprintf("%s S%02dE%02d", title, season, number)
+	searchKey := prowlarrSchema.SearchByTypeRequest{
+		Query: query,
+		Type:  "tvsearch",
+	}
+
+	var results []prowlarrSchema.SearchResponse
+	if err := searchService.SearchByType(&searchKey, &results, indexerIds...); err != nil {
+		logger.Error("error searching prowlarr",
+			slog.String("query", query),
+			slog.String("error", err.Error()),
+		)
+	}
+
+	return c.Render(http.StatusOK, "search-alias-results", searchAliasResultsData{
+		Alias:     title,
+		Results:   results,
 		EpisodeID: epId,
 	})
 }
