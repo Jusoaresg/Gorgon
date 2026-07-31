@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"fmt"
+	"io/fs"
 	"log/slog"
 	"net/http"
 
@@ -10,6 +12,7 @@ import (
 	episodeRouter "github.com/jusoaresg/gorgon/internal/episode/web"
 	showRouter "github.com/jusoaresg/gorgon/internal/show/web"
 	"github.com/jusoaresg/gorgon/pkg/handler"
+	"github.com/jusoaresg/gorgon/views"
 	"github.com/labstack/echo/v4"
 )
 
@@ -19,6 +22,14 @@ func InitializeRoutes(e *echo.Echo, deps *app.Dependencies) {
 	logger := config.GetLogger().WithGroup("routes").With("name", "initializeRoutes")
 
 	handler.InitHandler()
+
+	e.Renderer = views.NewTemplate()
+
+	staticFS, err := fs.Sub(views.FrontStaticFS, "static")
+	if err != nil {
+		panic(fmt.Errorf("error loading static files"))
+	}
+	e.StaticFS("/static", staticFS)
 
 	docs.SwaggerInfo.BasePath = basePath
 	logger.Info("Initializing routes", slog.String("basePath", basePath))

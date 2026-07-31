@@ -1,24 +1,13 @@
 package web
 
 import (
-	"fmt"
-	"io/fs"
 	"net/http"
 
 	"github.com/jusoaresg/gorgon/internal/show"
-	"github.com/jusoaresg/gorgon/views"
 	"github.com/labstack/echo/v4"
 )
 
 func RegisterShowRoutes(e *echo.Echo, deps *show.Dependencies) {
-	e.Renderer = views.NewTemplate()
-
-	staticFS, err := fs.Sub(views.FrontStaticFS, "static")
-	if err != nil {
-		panic(fmt.Errorf("error loading static files"))
-	}
-	e.StaticFS("/static", staticFS)
-
 	handler := NewHandler(deps)
 
 	e.GET("/", func(c echo.Context) error {
