@@ -9,6 +9,7 @@ import (
 	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/docs"
 	"github.com/jusoaresg/gorgon/internal/app"
+	downloadsRouter "github.com/jusoaresg/gorgon/internal/downloads/web"
 	episodeRouter "github.com/jusoaresg/gorgon/internal/episode/web"
 	showRouter "github.com/jusoaresg/gorgon/internal/show/web"
 	"github.com/jusoaresg/gorgon/pkg/handler"
@@ -39,6 +40,9 @@ func InitializeRoutes(e *echo.Echo, deps *app.Dependencies) {
 
 	episodeRouter.RegisterEpisodeRoutes(e, deps.Episode)
 	logger.Debug("Show web routes initialized successfully")
+
+	downloadsRouter.RegisterDownloadsRoutes(e, deps.Downloads)
+	logger.Debug("Downloads web routes initialized successfully")
 
 	v1 := e.Group(basePath)
 
