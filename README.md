@@ -147,7 +147,7 @@ Here are the next steps planned for Gorgon, focusing on expanding features, impr
   - [X] Enable automatic and manual search triggers for individual episodes.
 - **Advanced Configuration:**
   - [X] Implement the keyword-based scoring system for search results.
-  - [ ] Add a "Downloads" page to display the status of episodes being actively downloaded.
+  - [X] Add a "Downloads" page to display the status of episodes being actively downloaded.
 - **User Interface:**
   - [ ] Create a "Calendar" page to display upcoming episode releases for tracked shows.
   - [X] Persist the user's choice of Grid or List view on the shows page.
