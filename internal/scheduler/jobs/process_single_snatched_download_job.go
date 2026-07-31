@@ -15,12 +15,6 @@ import (
 	"log/slog"
 )
 
-type EpisodeUpdatedWebsocketSchema struct {
-	Type      string `json:"type"`
-	EpisodeId int64  `json:"episodeId"`
-	Tracking  string `json:"tracking"`
-}
-
 func ProcessSingleSnatchedDownload(ep *model.Episode, qbittorrentService *service.QBittorrentService) error {
 	logger := config.GetLogger()
 	safeDB := config.GetSafeDB()

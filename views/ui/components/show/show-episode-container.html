@@ -1,5 +1,5 @@
 {{ define "show-episode-container" }}
-<div class="episode-card {{ .Tracking }}">
+<div class="episode-card {{ .Tracking }}" data-episode-id="{{ .ID }}">
     <div class="episode-header" onclick="toggleEpisode(this)">
         <div class="episode-main-info">
             <svg class="episode-toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>

@@ -69,7 +69,6 @@ func (h *Handler) ChangeEpisodeStatus(c echo.Context) error {
 	}
 
 	h.Logger.Info("Successfully updated episodes", slog.Any("Episodes", episodes))
-	c.Response().Header().Add("HX-Refresh", "true")
 	schemas.SendSuccess(c, "Change episodes tracking", episodes)
 	return nil
 }

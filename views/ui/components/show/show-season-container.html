@@ -23,7 +23,7 @@
                 <div class="episodes-list">
                     {{ range $episodes }}
                         {{ if eq .Season $season.Number }}
-                        <div class="episode-card {{ .Tracking }} js-episode">
+                        <div class="episode-card {{ .Tracking }} js-episode" data-episode-id="{{ .ID }}">
                             <div class="episode-header" onclick="toggleEpisode(this)">
                                 <div class="episode-main-info">
                                     <svg class="episode-toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
@@ -50,11 +50,11 @@
                                     </span>
                                     
                                     <div class="action-buttons">
-                                        {{ if eq .Tracking "downloaded" }}
                                             <button 
                                                 class="btn-icon-sm btn-delete" 
                                                 title="Delete Episode" 
                                                 onclick="event.stopPropagation()"
+                                                {{ if ne .Tracking "downloaded" }}style="display: none;"{{ end }}
 
                                                 hx-trigger="click"
                                                 hx-delete="/api/v1/database/show/episode/{{ .ID }}"
@@ -65,7 +65,6 @@
                                                     <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
                                                 </svg>
                                             </button>
-                                        {{ end }}
 
                                         <button 
                                             class="btn-icon-sm" 

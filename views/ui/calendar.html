@@ -57,7 +57,7 @@
                             <span class="cal-card-title" title="{{ $ep.Name }}">{{ $ep.Name }}</span>
                             {{ end }}
                             <span class="cal-card-airtime">{{ airTimeUnix $ep.AirStamp }}</span>
-                            <span class="cal-card-track {{ $ep.Tracking }}"
+                            <span class="cal-card-track {{ $ep.Tracking }}" data-episode-id="{{ $ep.ID }}"
                                   title="Change Status"
                                   hx-get="/front/episode/{{ $ep.ID }}/modal/tracking"
                                   hx-target="body"
