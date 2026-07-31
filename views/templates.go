@@ -84,6 +84,103 @@ func NewTemplate() *Template {
 		"nowDate": func() string {
 			return time.Now().UTC().Format("2006-01-02")
 		},
+		"formatBytes": func(value any) string {
+			var size float64
+			switch v := value.(type) {
+			case int:
+				size = float64(v)
+			case int64:
+				size = float64(v)
+			case float64:
+				size = v
+			default:
+				return "0 B"
+			}
+			return formatSizeBytes(size)
+		},
+		"formatSpeed": func(bytesPerSec any) string {
+			var bps float64
+			switch v := bytesPerSec.(type) {
+			case int:
+				bps = float64(v)
+			case int64:
+				bps = float64(v)
+			case float64:
+				bps = v
+			default:
+				return "0 B/s"
+			}
+			return formatSizeBytes(bps) + "/s"
+		},
+		"formatEta": func(seconds int) string {
+			if seconds <= 0 || seconds >= 8640000 {
+				return "∞"
+			}
+			h := seconds / 3600
+			m := (seconds % 3600) / 60
+			s := seconds % 60
+			if h > 0 {
+				return fmt.Sprintf("%dh %dm", h, m)
+			}
+			if m > 0 {
+				return fmt.Sprintf("%dm %ds", m, s)
+			}
+			return fmt.Sprintf("%ds", s)
+		},
+		"toPercent": func(progress float32) int {
+			pct := int(progress * 100)
+			if pct < 0 {
+				return 0
+			}
+			if pct > 100 {
+				return 100
+			}
+			return pct
+		},
+		"torrentStateLabel": func(state string) string {
+			switch state {
+			case "downloading", "forcedDL":
+				return "Downloading"
+			case "metaDL":
+				return "Fetching Metadata"
+			case "queuedDL":
+				return "Queued"
+			case "stalledDL":
+				return "Stalled"
+			case "pausedDL":
+				return "Paused"
+			case "checkingDL", "checkingResumeData":
+				return "Checking"
+			case "allocating":
+				return "Allocating"
+			case "moving":
+				return "Moving"
+			case "uploading", "stalledUP", "queuedUP", "pausedUP", "forcedUP", "checkingUP":
+				return "Waiting to Import"
+			default:
+				return "Unknown"
+			}
+		},
+		"torrentStateClass": func(state string) string {
+			switch state {
+			case "downloading", "forcedDL":
+				return "downloading"
+			case "metaDL":
+				return "metadata"
+			case "queuedDL", "pausedDL":
+				return "queued"
+			case "stalledDL":
+				return "stalled"
+			case "checkingDL", "checkingResumeData", "allocating":
+				return "checking"
+			case "moving":
+				return "moving"
+			case "uploading", "stalledUP", "queuedUP", "pausedUP", "forcedUP", "checkingUP":
+				return "waiting"
+			default:
+				return "paused"
+			}
+		},
 	})
 
 	tmpl, err := tmpl.ParseFS(
@@ -100,4 +197,17 @@ func NewTemplate() *Template {
 	return &Template{
 		templates: tmpl,
 	}
+}
+
+func formatSizeBytes(size float64) string {
+	const unit = 1024
+	if size < unit {
+		return fmt.Sprintf("%.0f B", size)
+	}
+	div, exp := float64(unit), 0
+	for n := size / unit; n >= unit; n /= unit {
+		div *= unit
+		exp++
+	}
+	return fmt.Sprintf("%.1f %cB", size/div, "KMGTPE"[exp])
 }

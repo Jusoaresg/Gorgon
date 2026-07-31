@@ -1,0 +1,110 @@
+{{ define "downloads" }}
+<div id="downloads-container"
+    hx-get="/front/downloads/items"
+    hx-trigger="every 2s"
+    hx-swap="outerHTML">
+    {{ template "download-inner" . }}
+</div>
+{{ end }}
+
+{{ define "download-items" }}
+<div id="downloads-container"
+    hx-get="/front/downloads/items"
+    hx-trigger="every 2s"
+    hx-swap="outerHTML">
+    {{ template "download-inner" . }}
+</div>
+{{ end }}
+
+{{ define "download-inner" }}
+{{ $data := .Data }}
+<div id="downloads-page">
+    <div class="downloads-header">
+        <div>
+            <h1>Downloads</h1>
+            <p class="text-secondary">active transfers in the torrent client</p>
+        </div>
+        {{ if $data.Items }}
+        <span class="downloads-count">{{ len $data.Items }} active</span>
+        {{ end }}
+    </div>
+
+    {{ if $data.ErrorMessage }}
+    <div class="downloads-error">
+        <svg class="downloads-error-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path></svg>
+        <span>{{ $data.ErrorMessage }}</span>
+    </div>
+    {{ else if not $data.Items }}
+    <div class="downloads-empty">
+        <svg class="downloads-empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"></path></svg>
+        <span>No active downloads</span>
+        <p class="text-secondary">Episodes being downloaded will show up here.</p>
+    </div>
+    {{ else }}
+    <div class="downloads-list">
+        {{ range $item := $data.Items }}
+        <div class="download-card">
+            <div class="download-card-poster">
+                {{ if and $item.Episode $item.Episode.ShowImage }}
+                <img src="{{ $item.Episode.ShowImage }}" alt="{{ $item.Episode.ShowName }}" loading="lazy">
+                {{ else }}
+                <div class="download-card-poster-fallback">
+                    <svg class="download-card-fallback-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 17l4 4 4-4m-4-5v9M20.88 18.09A5 5 0 0018 9h-1.26A8 8 0 103 16.29"></path></svg>
+                </div>
+                {{ end }}
+            </div>
+
+            <div class="download-card-main">
+                <div class="download-card-header">
+                    <div class="download-title-block">
+                        {{ if $item.Episode }}
+                        <span class="download-show-name">{{ $item.Episode.ShowName }}</span>
+                        <span class="download-spec">S{{ $item.Episode.Season }}E{{ printf "%02d" $item.Episode.Number }}</span>
+                        {{ if $item.Episode.Name }}
+                        <span class="download-episode-name" title="{{ $item.Episode.Name }}">{{ $item.Episode.Name }}</span>
+                        {{ end }}
+                        {{ else }}
+                        <span class="download-show-name">{{ $item.Torrent.Name }}</span>
+                        {{ end }}
+                    </div>
+                    <span class="download-state-badge state-{{ torrentStateClass $item.Torrent.State }}">{{ torrentStateLabel $item.Torrent.State }}</span>
+                </div>
+
+                <div class="download-torrent-name" title="{{ $item.Torrent.Name }}">{{ $item.Torrent.Name }}</div>
+
+                <div class="download-progress-row">
+                    <div class="download-progress-bar">
+                        <div class="download-progress-fill" style="width: {{ toPercent $item.Torrent.Progress }}%"></div>
+                    </div>
+                    <span class="download-progress-pct">{{ toPercent $item.Torrent.Progress }}%</span>
+                </div>
+
+                <div class="download-stats">
+                    <span class="download-stat">
+                        <svg class="download-stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 4v12m0 0l4-4m-4 4l-4-4"></path></svg>
+                        {{ formatSpeed $item.Torrent.DlSpeed }}
+                    </span>
+                    <span class="download-stat">
+                        <svg class="download-stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 4v12m0 0l4-4m-4 4l-4-4"></path></svg>
+                        {{ formatSpeed $item.Torrent.UpSpeed }}
+                    </span>
+                    <span class="download-stat">
+                        <svg class="download-stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        {{ $item.Torrent.NumSeeds }} / {{ $item.Torrent.NumLeechs }}
+                    </span>
+                    <span class="download-stat">
+                        <svg class="download-stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        {{ formatEta $item.Torrent.Eta }}
+                    </span>
+                    <span class="download-stat">
+                        <svg class="download-stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 .55.45 1 1 1h14c.55 0 1-.45 1-1V7c0-.55-.45-1-1-1H5c-.55 0-1 .45-1 1zm2 3h12M6 13h4"></path></svg>
+                        {{ formatBytes $item.Torrent.Completed }} / {{ formatBytes $item.Torrent.Size }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        {{ end }}
+    </div>
+    {{ end }}
+</div>
+{{ end }}
