@@ -152,7 +152,7 @@ Here are the next steps planned for Gorgon, focusing on expanding features, impr
   - [X] Create a "Calendar" page to display upcoming episode releases for tracked shows.
   - [X] Persist the user's choice of Grid or List view on the shows page.
 - **System & Management:**
-  - [ ] Implement file-based logging with a dedicated page in the UI for viewing logs.
+  - [X] Implement file-based logging with a dedicated page in the UI for viewing logs.
   - [ ] Add a "Bulky Edit" feature for managing multiple shows at once.
 
 ### 🔌 Integrations
