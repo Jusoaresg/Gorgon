@@ -14,7 +14,7 @@ import (
 
 type Dependencies struct {
 	ShowRepo           repository.ShowRepositoryInterface
-	ShowAliasRepo      showAliasRepository.ShowAliasesRepositoryInterface
+	ShowAliasesRepo    showAliasRepository.ShowAliasesRepositoryInterface
 	AggregatorService  service.ShowAggregatorService
 	TvMazeService      tvMazeService.TvMazeSearchService
 	ShowManager        tvMazeService.ShowManager
@@ -28,12 +28,12 @@ type Dependencies struct {
 func NewDependencies(DB *sqlx.DB, logger *slog.Logger) *Dependencies {
 	tvMazeSvc := tvMazeService.NewTvMazeSearchService(logger)
 	showRepo := repository.NewShowRepository(DB)
-	aliasRepo := showAliasRepository.NewShowAliasesRepository(DB)
+	showAliasesRepo := showAliasRepository.NewShowAliasesRepository(DB)
 	showManagerSvc := service.NewShowManagerService(logger, DB)
 
 	return &Dependencies{
 		ShowRepo:           showRepo,
-		ShowAliasRepo:      &aliasRepo,
+		ShowAliasesRepo:    &showAliasesRepo,
 		AggregatorService:  *service.NewShowAggregatorServiceWithDb(DB),
 		TvMazeService:      *tvMazeSvc,
 		ShowManager:        *tvMazeService.NewShowManager(*tvMazeSvc, *showRepo, logger),

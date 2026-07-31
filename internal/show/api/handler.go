@@ -25,7 +25,7 @@ type Handler struct {
 func NewHandler(deps *show.Dependencies) *Handler {
 	return &Handler{
 		ShowRepo:           deps.ShowRepo,
-		ShowAliasRepo:      deps.ShowAliasRepo,
+		ShowAliasRepo:      deps.ShowAliasesRepo,
 		AggregatorService:  deps.AggregatorService,
 		TvMazeService:      deps.TvMazeService,
 		ShowManager:        deps.ShowManager,

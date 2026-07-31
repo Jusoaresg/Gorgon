@@ -7,6 +7,7 @@ import (
 	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/docs"
 	"github.com/jusoaresg/gorgon/internal/app"
+	episodeRouter "github.com/jusoaresg/gorgon/internal/episode/web"
 	showRouter "github.com/jusoaresg/gorgon/internal/show/web"
 	"github.com/jusoaresg/gorgon/pkg/handler"
 	"github.com/labstack/echo/v4"
@@ -23,6 +24,9 @@ func InitializeRoutes(e *echo.Echo, deps *app.Dependencies) {
 	logger.Info("Initializing routes", slog.String("basePath", basePath))
 
 	showRouter.RegisterShowRoutes(e, deps.Show)
+	logger.Debug("Show web routes initialized successfully")
+
+	episodeRouter.RegisterEpisodeRoutes(e, deps.Episode)
 	logger.Debug("Show web routes initialized successfully")
 
 	v1 := e.Group(basePath)
