@@ -115,13 +115,96 @@ func (h *Handler) AddShowConfigRoute(c echo.Context) error {
 	})
 }
 
+func computeWeekStart(weekParam string) time.Time {
+	now := time.Now()
+	if weekParam != "" {
+		parsed, err := time.Parse("2006-01-02", weekParam)
+		if err == nil {
+			weekStart := parsed
+			return time.Date(weekStart.Year(), weekStart.Month(), weekStart.Day(), 0, 0, 0, 0, time.UTC)
+		}
+	}
+	weekday := now.Weekday()
+	if weekday == time.Sunday {
+		return time.Date(now.Year(), now.Month(), now.AddDate(0, 0, -6).Day(), 0, 0, 0, 0, time.UTC)
+	}
+	daysSinceMonday := int(weekday) - 1
+	return time.Date(now.Year(), now.Month(), now.AddDate(0, 0, -daysSinceMonday).Day(), 0, 0, 0, 0, time.UTC)
+}
+
+func (h *Handler) computeCalendarData(weekParam string) (CalendarData, error) {
+	weekStart := computeWeekStart(weekParam)
+	weekEnd := weekStart.AddDate(0, 0, 7)
+	today := time.Now().UTC().Format("2006-01-02")
+
+	var episodes []CalendarEpisode
+	err := h.DB.Select(&episodes, `
+		SELECT e.id, e.show_id, e.name, e.number, e.season, e.airstamp, e.tracking,
+		       s.name AS show_name, s.image_medium AS show_image, s.status AS show_status
+		FROM episodes e
+		JOIN shows s ON e.show_id = s.id
+		WHERE e.airstamp >= ? AND e.airstamp < ?
+		ORDER BY e.airstamp ASC
+	`, weekStart.Unix(), weekEnd.Unix())
+	if err != nil {
+		return CalendarData{}, err
+	}
+
+	days := make([]CalendarDay, 7)
+	for i := 0; i < 7; i++ {
+		day := weekStart.AddDate(0, 0, i)
+		days[i] = CalendarDay{
+			Date:        day.Format("2006-01-02"),
+			DayName:     day.Format("Monday"),
+			DisplayDate: day.Format("2 Jan"),
+			Episodes:    []CalendarEpisode{},
+		}
+	}
+
+	for _, ep := range episodes {
+		t := time.Unix(ep.AirStamp, 0).UTC()
+		dayIdx := int(t.Sub(weekStart).Hours() / 24)
+		if dayIdx >= 0 && dayIdx < 7 {
+			days[dayIdx].Episodes = append(days[dayIdx].Episodes, ep)
+		}
+	}
+
+	currentWeekStart := computeWeekStart("")
+	isCurrentWeek := weekStart.Equal(currentWeekStart)
+
+	return CalendarData{
+		Days:          days,
+		WeekStart:     weekStart.Format("Jan 2"),
+		WeekEnd:       weekEnd.AddDate(0, 0, -1).Format("Jan 2, 2006"),
+		PrevWeek:      weekStart.AddDate(0, 0, -7).Format("2006-01-02"),
+		NextWeek:      weekStart.AddDate(0, 0, 7).Format("2006-01-02"),
+		Today:         today,
+		IsCurrentWeek: isCurrentWeek,
+	}, nil
+}
+
 func (h *Handler) CalendarRoute(c echo.Context) error {
+	data, err := h.computeCalendarData(c.QueryParam("week"))
+	if err != nil {
+		return err
+	}
+
 	return views.Render(c, views.View{
-		Layout:  "layout",
-		Default: "calendar",
-		Data:    nil,
-		Styles:  []string{"calendar.css"},
+		Layout:    "layout",
+		Default:   "calendar",
+		Templates: map[string]string{"week": "calendar-week"},
+		Data:      data,
+		Styles:    []string{"calendar.css"},
 	})
+}
+
+func (h *Handler) CalendarWeekHTMX(c echo.Context) error {
+	data, err := h.computeCalendarData(c.QueryParam("week"))
+	if err != nil {
+		return err
+	}
+
+	return c.Render(200, "calendar-week", views.PageData{Data: data})
 }
 
 type SettingType int

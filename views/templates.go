@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/jusoaresg/gorgon/internal/episode/model"
 	episodeModel "github.com/jusoaresg/gorgon/internal/episode/model"
@@ -77,6 +78,12 @@ func NewTemplate() *Template {
 			return dict, nil
 		},
 		"airDate": func(e model.Episode) string { return e.AirDate() },
+		"airTimeUnix": func(airstamp int64) string {
+			return time.Unix(airstamp, 0).UTC().Format("Mon 15:04")
+		},
+		"nowDate": func() string {
+			return time.Now().UTC().Format("2006-01-02")
+		},
 	})
 
 	tmpl, err := tmpl.ParseFS(

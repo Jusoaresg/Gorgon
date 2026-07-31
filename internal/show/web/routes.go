@@ -46,4 +46,5 @@ func RegisterShowRoutes(e *echo.Echo, deps *show.Dependencies) {
     front.GET("episode/:id/search-results", handler.SearchEpisodeResults)
     front.GET("episode/:id/search-alias", handler.SearchAliasResult)
     front.POST("episode/:id/download", handler.DownloadEpisodeTorrent)
+    front.GET("calendar/week", handler.CalendarWeekHTMX)
 }
