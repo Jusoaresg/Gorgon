@@ -1,6 +1,13 @@
 package web
 
 import (
+	"bufio"
+	"compress/gzip"
+	"encoding/json"
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -178,6 +185,177 @@ func (h *Handler) SettingsTypeRoute(c echo.Context) error {
 		},
 		Styles: []string{"settings.css"},
 	})
+}
+
+type LogEntry struct {
+	Time    string
+	Level   string
+	Message string
+	Context string
+}
+
+type LogFileInfo struct {
+	Name      string
+	Size      string
+	IsCurrent bool
+}
+
+type LogsData struct {
+	Files       []LogFileInfo
+	Entries     []LogEntry
+	CurrentFile string
+	Search      string
+	Level       string
+}
+
+func (h *Handler) LogsRoute(c echo.Context) error {
+	logsPath := config.LogsPath
+
+	search := c.QueryParam("search")
+	levelFilter := c.QueryParam("level")
+	selectedFile := c.QueryParam("file")
+
+	if selectedFile == "" {
+		selectedFile = fmt.Sprintf("gorgon-%s.log", time.Now().In(time.FixedZone("BRT", -3*60*60)).Format("2006-01-02"))
+	}
+
+	entries := readLogFile(filepath.Join(logsPath, selectedFile))
+	entries = filterLogs(entries, search, levelFilter)
+
+	for i, j := 0, len(entries)-1; i < j; i, j = i+1, j-1 {
+		entries[i], entries[j] = entries[j], entries[i]
+	}
+
+	var files []LogFileInfo
+	entriesDir, err := os.ReadDir(logsPath)
+	if err == nil {
+		for _, f := range entriesDir {
+			if f.IsDir() {
+				continue
+			}
+			name := f.Name()
+			if !strings.HasPrefix(name, "gorgon-") {
+				continue
+			}
+			info, _ := f.Info()
+			size := info.Size()
+			sizeStr := formatSize(size)
+			isCurrent := name == fmt.Sprintf("gorgon-%s.log", time.Now().In(time.FixedZone("BRT", -3*60*60)).Format("2006-01-02"))
+			if strings.HasSuffix(name, ".gz") {
+				isCurrent = false
+			}
+			files = append(files, LogFileInfo{
+				Name:      name,
+				Size:      sizeStr,
+				IsCurrent: isCurrent,
+			})
+		}
+	}
+
+	sort.Slice(files, func(i, j int) bool {
+		return files[i].Name > files[j].Name
+	})
+
+	return views.Render(c, views.View{
+		Layout:    "layout",
+		Default:   "logs",
+		Templates: map[string]string{"log-entries": "log-entries"},
+		Data: LogsData{
+			Files:       files,
+			Entries:     entries,
+			CurrentFile: selectedFile,
+			Search:      search,
+			Level:       levelFilter,
+		},
+		Styles: []string{"logs.css"},
+	})
+}
+
+func readLogFile(path string) []LogEntry {
+	f, err := os.Open(path)
+	if err != nil {
+		gzPath := path + ".gz"
+		f, err = os.Open(gzPath)
+		if err != nil {
+			return nil
+		}
+		defer f.Close()
+		gzr, err := gzip.NewReader(f)
+		if err != nil {
+			return nil
+		}
+		defer gzr.Close()
+		return parseLogLines(gzr)
+	}
+	defer f.Close()
+	return parseLogLines(f)
+}
+
+func parseLogLines(r io.Reader) []LogEntry {
+	var entries []LogEntry
+	scanner := bufio.NewScanner(r)
+	for scanner.Scan() {
+		line := scanner.Bytes()
+		var raw map[string]any
+		if err := json.Unmarshal(line, &raw); err != nil {
+			continue
+		}
+
+		entry := LogEntry{}
+
+		if t, ok := raw["time"].(string); ok {
+			parsed, err := time.Parse(time.RFC3339Nano, t)
+			if err == nil {
+				entry.Time = parsed.Format("2006-01-02 15:04:05")
+			} else {
+				entry.Time = t
+			}
+		}
+		if l, ok := raw["level"].(string); ok {
+			entry.Level = l
+		}
+		if m, ok := raw["msg"].(string); ok {
+			entry.Message = m
+		}
+
+		delete(raw, "time")
+		delete(raw, "level")
+		delete(raw, "msg")
+
+		if len(raw) > 0 {
+			b, _ := json.Marshal(raw)
+			entry.Context = string(b)
+		}
+
+		entries = append(entries, entry)
+	}
+	return entries
+}
+
+func filterLogs(entries []LogEntry, search, level string) []LogEntry {
+	if search == "" && level == "" {
+		return entries
+	}
+	var filtered []LogEntry
+	for _, e := range entries {
+		if level != "" && !strings.EqualFold(e.Level, level) {
+			continue
+		}
+		if search != "" && !strings.Contains(strings.ToLower(e.Message), strings.ToLower(search)) && !strings.Contains(e.Context, search) {
+			continue
+		}
+		filtered = append(filtered, e)
+	}
+	return filtered
+}
+
+func formatSize(bytes int64) string {
+	if bytes < 1024 {
+		return fmt.Sprintf("%d B", bytes)
+	} else if bytes < 1024*1024 {
+		return fmt.Sprintf("%.1f KB", float64(bytes)/1024)
+	}
+	return fmt.Sprintf("%.1f MB", float64(bytes)/(1024*1024))
 }
 
 // INFO: Helpers

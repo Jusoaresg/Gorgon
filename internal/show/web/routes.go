@@ -31,6 +31,7 @@ func RegisterShowRoutes(e *echo.Echo, deps *show.Dependencies) {
 	e.GET("/add-show", handler.AddShowRoute)
 	e.GET("/add-show/:tvmaze-id/config", handler.AddShowConfigRoute)
 	e.GET("/calendar", handler.CalendarRoute)
+	e.GET("/logs", handler.LogsRoute)
 	e.GET("/settings", handler.SettingsRoute)
 	e.GET("/settings/:type", handler.SettingsTypeRoute)
 
