@@ -166,7 +166,7 @@ func (q *QBittorrentService) AddTorrent(torrentUrl string) error {
 	writer.WriteField("category", "gorgon")
 	writer.WriteField("skip_checking", "false")
 	writer.WriteField("root_folder", "false")
-	writer.WriteField("paused", "true")
+	writer.WriteField("paused", "false")
 	writer.Close()
 
 	headers := map[string]string{

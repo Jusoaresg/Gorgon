@@ -187,7 +187,7 @@ func TestAddTorrent_Success(t *testing.T) {
 			r.ParseMultipartForm(10 << 20)
 			assert.Equal(t, "magnet:?xt=urn:btih:test123", r.FormValue("urls"))
 			assert.Equal(t, "gorgon", r.FormValue("category"))
-			assert.Equal(t, "true", r.FormValue("paused"))
+			assert.Equal(t, "false", r.FormValue("paused"))
 
 			resp := addTorrentResponse{
 				AddedTorrentIds: []string{"test123"},
