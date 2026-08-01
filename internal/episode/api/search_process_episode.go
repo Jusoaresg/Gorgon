@@ -2,7 +2,6 @@ package api
 
 import (
 	"log/slog"
-	"net/http"
 
 	"github.com/jusoaresg/gorgon/pkg/schemas"
 
@@ -25,16 +24,24 @@ func (h *Handler) SearchProcessEpisode(c echo.Context) error {
 
 	var request schemas.IdRequest
 	if err := c.Bind(&request); err != nil {
-		schemas.SendError(c, 500, "Failed to bind body")
+		schemas.SendError(c, 500, "Failed to bind body", SearchResponse{
+			ToastMessage: "Failed to start search",
+		})
 		return err
 	}
 
-	err := h.EpisodeSearchSvc.ProcessSingleEpisode(int(request.Id))
-	if err != nil {
-		schemas.SendError(c, http.StatusInternalServerError, "Failed to process episode", nil)
-		return err
-	}
+	go func() {
+		if err := h.EpisodeSearchSvc.ProcessSingleEpisode(int(request.Id)); err != nil {
+			h.Logger.Error("failed to process episode", slog.Int64("episode_id", request.Id), slog.String("error", err.Error()))
+		}
+	}()
 
-	schemas.SendSuccess(c, "Process Single Episode", request)
+	schemas.SendSuccess(c, "Process Single Episode", SearchResponse{
+		ToastMessage: "Search started",
+	})
 	return nil
+}
+
+type SearchResponse struct {
+	ToastMessage string `json:"toastMessage"`
 }

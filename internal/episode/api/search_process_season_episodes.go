@@ -4,8 +4,8 @@ import (
 	"log/slog"
 	"strconv"
 
-	"github.com/labstack/echo/v4"
 	"github.com/jusoaresg/gorgon/pkg/schemas"
+	"github.com/labstack/echo/v4"
 )
 
 // @BasePath /api/v1
@@ -26,12 +26,16 @@ func (h *Handler) SearchProcessSeasonEpisodes(c echo.Context) error {
 
 	seasonID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		schemas.SendError(c, 400, "Invalid season ID")
+		schemas.SendError(c, 400, "Invalid season ID", SearchResponse{
+			ToastMessage: "Failed to start season search",
+		})
 		return err
 	}
 
 	h.EpisodeSearchSvc.ProcessSeasonEpisodes(seasonID)
 
-	schemas.SendSuccess(c, "Season search started", nil)
+	schemas.SendSuccess(c, "Season search started", SearchResponse{
+		ToastMessage: "Season search started",
+	})
 	return nil
 }

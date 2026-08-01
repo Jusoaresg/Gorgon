@@ -24,12 +24,16 @@ func (h *Handler) SearchProcessShowWantedEpisodes(c echo.Context) error {
 
 	var request schemas.IdRequest
 	if err := c.Bind(&request); err != nil {
-		schemas.SendError(c, 500, "Failed to bind body")
+		schemas.SendError(c, 500, "Failed to bind body", SearchResponse{
+			ToastMessage: "Failed to start search",
+		})
 		return err
 	}
 
 	h.EpisodeSearchSvc.ProcessShowWantedEpisodes(int(request.Id))
 
-	schemas.SendSuccess(c, "Process Show Wanted Episodes", request)
+	schemas.SendSuccess(c, "Process Show Wanted Episodes", SearchResponse{
+		ToastMessage: "Search started for wanted episodes",
+	})
 	return nil
 }
