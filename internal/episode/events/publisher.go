@@ -13,3 +13,17 @@ func EmitEpisodeTrackingUpdatedEvent(episodeID int64, tracking string) {
 	}
 	handler.SendWebSocketMessage(msg)
 }
+
+func EmitEpisodeSearchFinishedEvent(episodeID int64, season, number int, name, showName, result, message string) {
+	msg := EpisodeSearchFinishedPayload{
+		Type:      string(event.EpisodeSearchFinished),
+		EpisodeID: episodeID,
+		Season:    season,
+		Number:    number,
+		Name:      name,
+		ShowName:  showName,
+		Result:    result,
+		Message:   message,
+	}
+	handler.SendWebSocketMessage(msg)
+}

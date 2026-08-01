@@ -5,9 +5,18 @@ import (
 	"sync"
 
 	"github.com/jmoiron/sqlx"
+	episodeEvents "github.com/jusoaresg/gorgon/internal/episode/events"
 	"github.com/jusoaresg/gorgon/internal/episode/model"
 	episodeRepository "github.com/jusoaresg/gorgon/internal/episode/repository"
+	showModel "github.com/jusoaresg/gorgon/internal/show/model"
 	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
+)
+
+const (
+	SearchResultSnatched  = "snatched"
+	SearchResultNoResults = "noResults"
+	SearchResultNotAired  = "notAired"
+	SearchResultError     = "error"
 )
 
 type EpisodeSearchInterface interface {
@@ -45,6 +54,7 @@ func NewEpisodeSearchService(
 func (s *EpisodeSearchService) ProcessSingleEpisode(episodeID int) error {
 	episode, err := s.EpisodeRepo.GetByID(int64(episodeID))
 	if err != nil {
+		s.emitSearchFinished(model.Episode{}, showModel.Show{}, SearchResultError, err.Error())
 		return err
 	}
 
@@ -54,11 +64,13 @@ func (s *EpisodeSearchService) ProcessSingleEpisode(episodeID int) error {
 			slog.Int64("episode_id", episode.ID),
 			slog.Int64("show_id", episode.ShowID),
 		)
+		s.emitSearchFinished(episode, showModel.Show{}, SearchResultNotAired, "")
 		return nil
 	}
 
 	show, err := s.ShowRepo.GetById(int64(episode.ShowID))
 	if err != nil {
+		s.emitSearchFinished(episode, showModel.Show{}, SearchResultError, err.Error())
 		return err
 	}
 
@@ -73,17 +85,20 @@ func (s *EpisodeSearchService) ProcessSingleEpisode(episodeID int) error {
 
 	responses, err := s.Searcher.SearchEpisodeAliasesById(episode, show, s.db)
 	if err != nil {
+		s.emitSearchFinished(episode, show, SearchResultError, err.Error())
 		return err
 	}
 
 	if len(responses) == 0 {
 		s.logger.Info("No avaible episode found", slog.String("show", show.Name), slog.Int("episode", episode.Number))
+		s.emitSearchFinished(episode, show, SearchResultNoResults, "")
 		return nil
 	}
 
 	responses = FilterRequiredWords(responses)
 	if len(responses) <= 0 {
 		s.logger.Info("No avaible episode found", slog.String("show", show.Name), slog.Int("episode", episode.Number))
+		s.emitSearchFinished(episode, show, SearchResultNoResults, "")
 		return nil
 	}
 
@@ -94,16 +109,23 @@ func (s *EpisodeSearchService) ProcessSingleEpisode(episodeID int) error {
 			slog.Int64("episode_id", episode.ID),
 			slog.Int64("show_id", episode.ShowID),
 		)
+		s.emitSearchFinished(episode, show, SearchResultNoResults, "")
 		return nil
 	}
 
 	s.logger.Debug("Final chosen torrent", slog.String("filename", responses[0].Filename))
 	if err := s.Downloader.DownloadEpisode(episode, responses[0]); err != nil {
+		s.emitSearchFinished(episode, show, SearchResultError, err.Error())
 		return err
 	}
 	s.logger.Info("Added torrent to qbittorrent", slog.String("show", show.Name), slog.Int("episode", episode.Number))
+	s.emitSearchFinished(episode, show, SearchResultSnatched, "")
 
 	return nil
+}
+
+func (s *EpisodeSearchService) emitSearchFinished(episode model.Episode, show showModel.Show, result, message string) {
+	episodeEvents.EmitEpisodeSearchFinishedEvent(episode.ID, episode.Season, episode.Number, episode.Name, show.Name, result, message)
 }
 
 func (s *EpisodeSearchService) ProcessShowWantedEpisodes(showID int) {
