@@ -200,17 +200,17 @@
             btn.disabled = false;
             if (xhr.status === 200) {
                 closeInteractiveSearch(null);
-                location.reload();
+                window.toast('Download started', 'success');
             } else {
                 var msg = 'Failed to start download';
                 try { msg = JSON.parse(xhr.responseText).message || msg; } catch(e) {}
-                alert(msg);
+                window.toast(msg, 'error');
             }
         };
         xhr.onerror = function() {
             btn.classList.remove('loading');
             btn.disabled = false;
-            alert('Network error while starting download');
+            window.toast('Network error while starting download', 'error');
         };
         xhr.send(JSON.stringify({guid: guid, infoHash: infoHash}));
     }
