@@ -12,7 +12,6 @@ import (
 	downloadsRouter "github.com/jusoaresg/gorgon/internal/downloads/web"
 	episodeRouter "github.com/jusoaresg/gorgon/internal/episode/web"
 	showRouter "github.com/jusoaresg/gorgon/internal/show/web"
-	"github.com/jusoaresg/gorgon/pkg/handler"
 	"github.com/jusoaresg/gorgon/views"
 	"github.com/labstack/echo/v4"
 )
@@ -21,8 +20,6 @@ const basePath = "/api/v1/"
 
 func InitializeRoutes(e *echo.Echo, deps *app.Dependencies) {
 	logger := config.GetLogger().WithGroup("routes").With("name", "initializeRoutes")
-
-	handler.InitHandler()
 
 	e.Renderer = views.NewTemplate()
 
