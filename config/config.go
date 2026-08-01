@@ -21,7 +21,7 @@ var (
 	ConfigFolder string = "./configs"
 
 	LogsPath              string = filepath.Join(ConfigFolder, "logs")
-	Port                  string = "8888" // Default = 8080
+	Port                  string = "8181"
 	safeDB                SafeDB
 	logger                *slog.Logger
 	ProwlarrCooldownCache sync.Map
