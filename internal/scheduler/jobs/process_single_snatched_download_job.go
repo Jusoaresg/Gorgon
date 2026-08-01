@@ -27,8 +27,35 @@ func ProcessSingleSnatchedDownload(ep *model.Episode, qbittorrentService *servic
 	}
 
 	var torrentResponse []schema.CheckTorrentResponse
-	qbittorrentService.CheckTorrentsWithHash("completed", ep.TorrentHash, &torrentResponse)
+	if err := qbittorrentService.CheckTorrentsWithHash("completed", ep.TorrentHash, &torrentResponse); err != nil {
+		return err
+	}
+
 	if len(torrentResponse) == 0 {
+		var anyTorrents []schema.CheckTorrentResponse
+		if err := qbittorrentService.CheckTorrentsWithHash("all", ep.TorrentHash, &anyTorrents); err != nil {
+			return err
+		}
+
+		if len(anyTorrents) == 0 {
+			logger.Info(fmt.Sprintf("Episode S%02d E%02d %s no longer in torrent client, resetting to skipped.", ep.Season, ep.Number, ep.Name))
+
+			safeDB.Write.Lock()
+			defer safeDB.Write.Unlock()
+
+			ep.Tracking = model.TrackingSkipped
+			ep.TorrentHash = ""
+
+			if err := episodeRepo.Update(*ep); err != nil {
+				logger.Error("failed to reset episode tracking to skipped", slog.Int64("episode_id", ep.ID), slog.String("error", err.Error()))
+				return err
+			}
+
+			episode.EmitEpisodeTrackingUpdatedEvent(ep.ID, model.TrackingSkipped)
+
+			return nil
+		}
+
 		logger.Info(fmt.Sprintf("Episode S%02d E%02d %s not found between the completed torrents.", ep.Season, ep.Number, ep.Name))
 		return nil
 	}
