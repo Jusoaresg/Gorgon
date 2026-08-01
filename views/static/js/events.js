@@ -51,6 +51,118 @@
         });
     }
 
+    var TOAST_ICONS = {
+        success: '<svg class="toast-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+        error: '<svg class="toast-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path></svg>',
+        info: '<svg class="toast-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
+    };
+
+    var CLOSE_ICON = '<svg class="toast-close" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+
+    function toastContainer() {
+        var container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            document.body.appendChild(container);
+        }
+        container.classList.add('toast-container');
+        return container;
+    }
+
+    function dismissToast(toast) {
+        toast.classList.add('toast-removing');
+        toast.addEventListener('animationend', function () {
+            toast.remove();
+        }, { once: true });
+    }
+
+    function displayToast(message, type) {
+        var toast = document.createElement('div');
+        toast.className = 'toast toast-' + (type || 'info');
+
+        var icon = document.createElement('div');
+        icon.innerHTML = TOAST_ICONS[type] || TOAST_ICONS.info;
+
+        var text = document.createElement('span');
+        text.className = 'toast-message';
+        text.textContent = message;
+
+        var close = document.createElement('button');
+        close.type = 'button';
+        close.className = 'toast-close';
+        close.title = 'Dismiss';
+        close.innerHTML = CLOSE_ICON;
+        close.addEventListener('click', function () {
+            dismissToast(toast);
+        });
+
+        toast.appendChild(icon);
+        toast.appendChild(text);
+        toast.appendChild(close);
+
+        toastContainer().appendChild(toast);
+
+        setTimeout(function () {
+            dismissToast(toast);
+        }, 4000);
+    }
+
+    function showToast(event) {
+        var message;
+        var type = 'info';
+
+        try {
+            var response = JSON.parse(event.detail.xhr.response);
+            var data = response.data;
+            if (Array.isArray(data)) {
+                data = data[0];
+            }
+            message = (data && data.toastMessage) || response.message || null;
+        } catch (e) {
+            message = null;
+        }
+
+        if (!message) {
+            var status = event.detail.xhr.status;
+            type = status >= 200 && status < 300 ? 'success' : 'error';
+            message = type === 'success'
+                ? 'Request successful'
+                : status >= 500
+                    ? 'Something went wrong on the server'
+                    : 'Something went wrong';
+        } else {
+            type = event.detail.xhr.status >= 200 && event.detail.xhr.status < 300 ? 'success' : 'error';
+        }
+
+        displayToast(message, type);
+    }
+
+    function padEpisodeNumber(n) {
+        return n < 10 ? '0' + n : '' + n;
+    }
+
+    function onSearchFinished(message) {
+        var label = 'S' + message.season + 'E' + padEpisodeNumber(message.number);
+        if (message.name) {
+            label += ' ' + message.name;
+        }
+        switch (message.result) {
+            case 'snatched':
+                displayToast(label + ' — Snatched', 'success');
+                break;
+            case 'noResults':
+                displayToast(label + ' — No results found', 'info');
+                break;
+            case 'notAired':
+                displayToast(label + ' — Not aired yet', 'info');
+                break;
+            case 'error':
+                displayToast(label + ' — Search failed', 'error');
+                break;
+        }
+    }
+
     function connect() {
         var socket;
         try {
@@ -70,6 +182,10 @@
             if (message && message.type === 'EpisodeTrackingUpdated') {
                 updateEpisode(message.episodeID, message.tracking);
             }
+
+            if (message && message.type === 'EpisodeSearchFinished') {
+                onSearchFinished(message);
+            }
         };
 
         socket.onclose = function () {
@@ -86,4 +202,7 @@
     } else {
         connect();
     }
+
+    window.showToast = showToast;
+    window.toast = displayToast;
 })();

@@ -8,6 +8,7 @@
     <link href="/static/css/style.css" rel="stylesheet">
     <link href="/static/css/sidebar.css" rel="stylesheet">
     <link href="/static/css/modal.css" rel="stylesheet">
+    <link href="/static/css/toast.css" rel="stylesheet">
 
     {{ range .Styles }}
         <link href="/static/css/{{ . }}" rel="stylesheet">
@@ -28,17 +29,9 @@
         </div>
     </main>
     <script src="/static/js/events.js"></script>
+    <div id="toast-container" class="toast-container"></div>
 </body>
 </html>
-
-<script>
-    function showToast(event){
-        const reponseStr = event.detail.xhr.response
-        const response = JSON.parse(reponseStr)
-        const toastMessage = response.data.toastMessage
-
-        alert(toastMessage)
-    }
-</script>
 {{ end }}
+
 
