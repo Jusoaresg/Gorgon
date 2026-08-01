@@ -9,15 +9,19 @@ import (
 func Render(c echo.Context, view View) error {
 	template := view.Default
 
-	if name := c.QueryParam("view"); name != "" {
-		if t, ok := view.Templates[name]; ok {
-			template = t
+	if c.Request().Header.Get("HX-Request") == "true" {
+		if name := c.QueryParam("view"); name != "" {
+			if t, ok := view.Templates[name]; ok {
+				template = t
+			}
 		}
 	}
 
 	if template != view.Default {
 		return c.Render(http.StatusOK, template, PageData{
-			Data: view.Data,
+			TemplateName: template,
+			Data:         view.Data,
+			Styles:       view.Styles,
 		})
 	}
 
