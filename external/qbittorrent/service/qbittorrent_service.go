@@ -289,9 +289,8 @@ func (q *QBittorrentService) GetContent(hash string) ([]model.EpisodeContent, er
 	var content []model.EpisodeContent
 	for _, f := range files {
 		content = append(content, model.EpisodeContent{
-			Name:    f.Name,
-			Size:    float64(f.Size),
-			Is_Seed: f.Is_Seed,
+			Name: f.Name,
+			Size: float64(f.Size),
 		})
 	}
 
