@@ -26,15 +26,15 @@ var finishedStates = map[string]bool{
 }
 
 type EpisodeInfo struct {
-	EpisodeID   int64  `db:"episode_id"`
-	ShowID      int64  `db:"show_id"`
-	Name        string `db:"name"`
-	Season      int    `db:"season"`
-	Number      int    `db:"number"`
-	Tracking    string `db:"tracking"`
-	ShowName    string `db:"show_name"`
-	ShowImage   string `db:"show_image"`
-	TorrentHash string `db:"torrent_hash"`
+	EpisodeID int64  `db:"episode_id"`
+	ShowID    int64  `db:"show_id"`
+	Name      string `db:"name"`
+	Season    int    `db:"season"`
+	Number    int    `db:"number"`
+	Tracking  string `db:"tracking"`
+	ShowName  string `db:"show_name"`
+	ShowImage string `db:"show_image"`
+	Hash      string `db:"hash"`
 }
 
 type DownloadItem struct {
@@ -102,11 +102,12 @@ func sortDownloads(items []DownloadItem) {
 func (s *DownloadsService) episodesByHash() (map[string]EpisodeInfo, error) {
 	var rows []EpisodeInfo
 	query := `
-		SELECT e.id AS episode_id, e.show_id, e.name, e.season, e.number, e.tracking, e.torrent_hash,
-		       s.name AS show_name, s.image_medium AS show_image
+		SELECT e.id AS episode_id, e.show_id, e.name, e.season, e.number, e.tracking,
+		       s.name AS show_name, s.image_medium AS show_image,
+		       et.hash AS hash
 		FROM episodes e
 		JOIN shows s ON e.show_id = s.id
-		WHERE e.torrent_hash IS NOT NULL AND e.torrent_hash != ''
+		JOIN episode_torrents et ON et.episode_id = e.id
 	`
 	if err := s.db.Select(&rows, query); err != nil {
 		return nil, err
@@ -114,7 +115,7 @@ func (s *DownloadsService) episodesByHash() (map[string]EpisodeInfo, error) {
 
 	episodesByHash := make(map[string]EpisodeInfo, len(rows))
 	for _, row := range rows {
-		episodesByHash[strings.ToLower(row.TorrentHash)] = row
+		episodesByHash[strings.ToLower(row.Hash)] = row
 	}
 
 	return episodesByHash, nil

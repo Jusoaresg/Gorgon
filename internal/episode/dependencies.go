@@ -7,6 +7,7 @@ import (
 	episodeRepository "github.com/jusoaresg/gorgon/internal/episode/repository"
 	"github.com/jusoaresg/gorgon/internal/episode/service"
 	epContentRepository "github.com/jusoaresg/gorgon/internal/episode_content/repository"
+	episodeTorrentRepository "github.com/jusoaresg/gorgon/internal/episode_torrent/repository"
 	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
 	showAliasesRepository "github.com/jusoaresg/gorgon/internal/show_aliases/repository"
 )
@@ -14,6 +15,7 @@ import (
 type Dependencies struct {
 	EpisodeRepo        episodeRepository.EpisodeRepositoryInterface
 	EpisodeContentRepo epContentRepository.EpisodeContentRepository
+	EpisodeTorrentRepo episodeTorrentRepository.EpisodeTorrentRepositoryInterface
 	ShowRepo           showRepository.ShowRepositoryInterface
 	ShowAliasesRepo    showAliasesRepository.ShowAliasesRepositoryInterface
 	EpisodeSearchSvc   *service.EpisodeSearchService
@@ -29,6 +31,7 @@ func NewDependencies(DB *sqlx.DB, logger *slog.Logger) *Dependencies {
 	return &Dependencies{
 		EpisodeRepo:        episodeRepo,
 		EpisodeContentRepo: epContentRepository.NewEpisodeContentRepository(DB),
+		EpisodeTorrentRepo: episodeTorrentRepository.NewEpisodeTorrentRepository(DB),
 		ShowRepo:           showRepo,
 		ShowAliasesRepo:    &showAliasesRepo,
 		EpisodeSearchSvc: service.NewEpisodeSearchService(

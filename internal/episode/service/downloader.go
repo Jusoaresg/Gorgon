@@ -30,7 +30,7 @@ func (d *EpisodeDownloader) DownloadEpisode(ep model.Episode, response schema.Se
 
 	logger.Info("added torrent to torrent client")
 
-	if err := SnatchEpisode(&ep, response.InfoHash); err != nil {
+	if err := SnatchEpisode(&ep, response); err != nil {
 		if err := torrentService.DeleteTorrent(response.InfoHash, true); err != nil {
 			return err
 		}

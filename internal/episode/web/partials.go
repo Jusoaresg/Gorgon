@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"regexp"
 	"strconv"
+	"time"
 
 	"github.com/jusoaresg/gorgon/config"
 	prowlarrSchema "github.com/jusoaresg/gorgon/external/prowlarr/schema"
@@ -14,6 +15,7 @@ import (
 	qbittorrentService "github.com/jusoaresg/gorgon/external/qbittorrent/service"
 	episodeEvents "github.com/jusoaresg/gorgon/internal/episode/events"
 	episodeModel "github.com/jusoaresg/gorgon/internal/episode/model"
+	episodeTorrentModel "github.com/jusoaresg/gorgon/internal/episode_torrent/model"
 	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"github.com/jusoaresg/gorgon/utils"
 	"github.com/labstack/echo/v4"
@@ -219,8 +221,12 @@ func (h *Handler) DownloadEpisodeTorrent(c echo.Context) error {
 	}
 
 	var request struct {
-		Guid     string `json:"guid"`
-		InfoHash string `json:"infoHash"`
+		Guid        string `json:"guid"`
+		InfoHash    string `json:"infoHash"`
+		Title       string `json:"title,omitempty"`
+		Indexer     string `json:"indexer,omitempty"`
+		InfoUrl     string `json:"infoUrl,omitempty"`
+		PublishDate string `json:"publishDate,omitempty"`
 	}
 	if err := c.Bind(&request); err != nil {
 		schemas.SendError(c, 400, "Invalid request")
@@ -250,7 +256,21 @@ func (h *Handler) DownloadEpisodeTorrent(c echo.Context) error {
 	}
 
 	ep.Tracking = episodeModel.TrackingSnatched
-	ep.TorrentHash = request.InfoHash
+
+	episodeTorrent := episodeTorrentModel.EpisodeTorrent{
+		EpisodeId:   ep.ID,
+		Hash:        request.InfoHash,
+		Title:       request.Title,
+		Indexer:     request.Indexer,
+		InfoUrl:     request.InfoUrl,
+		PublishDate: request.PublishDate,
+		CreatedAt:   time.Now().Unix(),
+	}
+	if _, err := h.EpisodeTorrentRepo.Upsert(episodeTorrent); err != nil {
+		logger.Error("error saving episode torrent", slog.String("error", err.Error()))
+		schemas.SendError(c, 500, "Failed to save episode torrent")
+		return nil
+	}
 
 	if err := h.EpisodeRepo.Update(ep); err != nil {
 		logger.Error("error updating episode tracking", slog.String("error", err.Error()))

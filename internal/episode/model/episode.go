@@ -24,8 +24,7 @@ type Episode struct {
 	Season   int    `db:"season"`
 	AirStamp int64  `db:"airstamp"`
 
-	Tracking    string `db:"tracking"`
-	TorrentHash string `db:"torrent_hash"`
+	Tracking string `db:"tracking"`
 }
 
 func (e *Episode) Create(
@@ -70,5 +69,4 @@ func (e *Episode) HasAired() bool {
 
 func (e *Episode) SetNotInstalled() {
 	e.Tracking = TrackingSkipped
-	e.TorrentHash = ""
 }

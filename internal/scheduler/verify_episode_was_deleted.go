@@ -5,6 +5,7 @@ import (
 	"github.com/jusoaresg/gorgon/internal/episode/model"
 	episodeRepositoy "github.com/jusoaresg/gorgon/internal/episode/repository"
 	epContentRepository "github.com/jusoaresg/gorgon/internal/episode_content/repository"
+	episodeTorrentRepository "github.com/jusoaresg/gorgon/internal/episode_torrent/repository"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -21,6 +22,7 @@ func VerifyEpisodeWasDeleted() {
 	}
 
 	episodeRepo := episodeRepositoy.NewEpisodeRepository(db)
+	episodeTorrentRepo := episodeTorrentRepository.NewEpisodeTorrentRepository(db)
 	episodes, err := episodeRepo.ListByTracking(model.TrackingDownloaded)
 	if err != nil {
 		return
@@ -53,6 +55,8 @@ func VerifyEpisodeWasDeleted() {
 				}
 
 				episodeContentRepo.DeleteById(episode_content.ID)
+
+				episodeTorrentRepo.DeleteByEpisodeID(episode.ID)
 
 				logger.Info(
 					"Episode file not found, setting tracking to skipped",

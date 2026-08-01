@@ -45,8 +45,7 @@ func (s *EpisodeRepository) Create(episode model.Episode) (int64, error) {
 		number,
 		season,
 		airstamp,
-		tracking,
-		torrent_hash
+		tracking
 	) 
 	VALUES (
 		:show_id, 
@@ -57,8 +56,7 @@ func (s *EpisodeRepository) Create(episode model.Episode) (int64, error) {
 		:number,
 		:season,
 		:airstamp,
-		:tracking,
-		:torrent_hash
+		:tracking
 	) 
 	`
 	result, err := s.db.NamedExec(query, episode)
@@ -84,8 +82,7 @@ func (s *EpisodeRepository) CreateTx(tx *sqlx.Tx, episode model.Episode) (int64,
 		number,
 		season,
 		airstamp,
-		tracking,
-		torrent_hash
+		tracking
 	) 
 	VALUES (
 		:show_id, 
@@ -96,8 +93,7 @@ func (s *EpisodeRepository) CreateTx(tx *sqlx.Tx, episode model.Episode) (int64,
 		:number,
 		:season,
 		:airstamp,
-		:tracking,
-		:torrent_hash
+		:tracking
 	) 
 	`
 	result, err := tx.NamedExec(query, episode)
@@ -230,8 +226,7 @@ func (s *EpisodeRepository) Update(episode model.Episode) error {
 		number = :number,
 		season = :season,
 		airstamp = :airstamp,
-		tracking = :tracking,
-		torrent_hash = :torrent_hash
+		tracking = :tracking
 	WHERE id = :id
 	`
 	result, err := s.db.NamedExec(query, episode)
@@ -260,8 +255,7 @@ func (s *EpisodeRepository) UpdateTx(tx *sqlx.Tx, episode model.Episode) error {
 		number = :number,
 		season = :season,
 		airstamp = :airstamp,
-		tracking = :tracking,
-		torrent_hash = :torrent_hash
+		tracking = :tracking
 	WHERE id = :id
 	`
 	_, err := tx.NamedExec(query, episode)

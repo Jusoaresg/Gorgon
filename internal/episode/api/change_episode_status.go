@@ -3,9 +3,9 @@ package api
 import (
 	"log/slog"
 
+	"github.com/jusoaresg/gorgon/external/qbittorrent/service"
 	episodeEvents "github.com/jusoaresg/gorgon/internal/episode/events"
 	"github.com/jusoaresg/gorgon/internal/episode/schema"
-	"github.com/jusoaresg/gorgon/external/qbittorrent/service"
 	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"github.com/jusoaresg/gorgon/utils"
 
@@ -47,8 +47,9 @@ func (h *Handler) ChangeEpisodeStatus(c echo.Context) error {
 
 	for _, episode := range episodes {
 
-		if episode.TorrentHash != "" {
-			err := qbittorrentService.DeleteTorrent(episode.TorrentHash, true)
+		episodeTorrent, err := h.EpisodeTorrentRepo.GetByEpisodeID(episode.ID)
+		if err == nil && episodeTorrent.Hash != "" {
+			err := qbittorrentService.DeleteTorrent(episodeTorrent.Hash, true)
 			if err != nil {
 				h.Logger.Error(
 					"Error while deleting torrent",
@@ -56,7 +57,13 @@ func (h *Handler) ChangeEpisodeStatus(c echo.Context) error {
 					slog.Int64("episode_id", episode.ID),
 				)
 			}
-			episode.TorrentHash = ""
+			if err := h.EpisodeTorrentRepo.DeleteByEpisodeID(episode.ID); err != nil {
+				h.Logger.Error(
+					"Error while deleting episode torrent",
+					slog.String("error", err.Error()),
+					slog.Int64("episode_id", episode.ID),
+				)
+			}
 		}
 		episode.Tracking = request.Tracking
 

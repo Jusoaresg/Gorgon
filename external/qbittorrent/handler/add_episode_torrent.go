@@ -9,6 +9,8 @@ import (
 	"github.com/jusoaresg/gorgon/internal/episode/events"
 	"github.com/jusoaresg/gorgon/internal/episode/model"
 	"github.com/jusoaresg/gorgon/internal/episode/repository"
+	episodeTorrentModel "github.com/jusoaresg/gorgon/internal/episode_torrent/model"
+	episodeTorrentRepository "github.com/jusoaresg/gorgon/internal/episode_torrent/repository"
 	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"log/slog"
 
@@ -43,6 +45,7 @@ func addEpisodeTorrentHandler(c echo.Context, db *sqlx.DB) error {
 		return err
 	}
 	epRepo := repository.NewEpisodeRepository(db)
+	episodeTorrentRepo := episodeTorrentRepository.NewEpisodeTorrentRepository(db)
 	ep, err := epRepo.GetByID(request.EpisodeID)
 	if err != nil {
 		logger.Error("Error while fetching episode id", slog.String("error", err.Error()))
@@ -69,7 +72,13 @@ func addEpisodeTorrentHandler(c echo.Context, db *sqlx.DB) error {
 	}
 
 	ep.Tracking = model.TrackingSnatched
-	ep.TorrentHash = request.InfoHash
+
+	episodeTorrent := episodeTorrentModel.FromAddTorrentRequest(ep.ID, request)
+	if _, err := episodeTorrentRepo.Upsert(episodeTorrent); err != nil {
+		logger.Error("Error while saving episode torrent", slog.String("error", err.Error()))
+		schemas.SendError(c, 500, fmt.Sprintf("Error while adding episode torrent: %s", err.Error()))
+		return err
+	}
 
 	if err := epRepo.Update(ep); err != nil {
 		logger.Error("Error while updating episode tracking when adding new torrent", slog.String("error", err.Error()))

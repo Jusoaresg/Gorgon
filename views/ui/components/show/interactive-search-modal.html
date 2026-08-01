@@ -188,9 +188,19 @@
         if (modal) modal.remove();
     }
 
-    function downloadEpisode(btn, episodeId, guid, infoHash) {
+    function downloadEpisode(btn, episodeId) {
         btn.classList.add('loading');
         btn.disabled = true;
+
+        var card = btn.closest('.result-card');
+        var payload = {
+            guid: card.getAttribute('data-guid'),
+            infoHash: card.getAttribute('data-info-hash'),
+            title: card.getAttribute('data-title'),
+            indexer: card.getAttribute('data-indexer'),
+            infoUrl: card.getAttribute('data-info-url'),
+            publishDate: card.getAttribute('data-publish-date')
+        };
 
         var xhr = new XMLHttpRequest();
         xhr.open('POST', '/front/episode/' + episodeId + '/download');
@@ -212,7 +222,7 @@
             btn.disabled = false;
             window.toast('Network error while starting download', 'error');
         };
-        xhr.send(JSON.stringify({guid: guid, infoHash: infoHash}));
+        xhr.send(JSON.stringify(payload));
     }
 
     document.body.addEventListener('htmx:beforeRequest', function(e) {
@@ -268,7 +278,13 @@
     </div>
     {{ if .Results }}
     {{ range .Results }}
-    <div class="result-card">
+    <div class="result-card"
+         data-guid="{{ .Guid }}"
+         data-info-hash="{{ .InfoHash }}"
+         data-title="{{ .Title }}"
+         data-indexer="{{ .Indexer }}"
+         data-info-url="{{ .InfoUrl }}"
+         data-publish-date="{{ .PublishDate }}">
         <div class="result-info">
             <div class="result-title" title="{{ .Title }}">{{ .Title }}</div>
             <div class="result-meta">
@@ -287,7 +303,7 @@
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
             </a>
             <button class="btn btn-sm btn-primary download-btn"
-                    onclick="downloadEpisode(this, {{ $.EpisodeID }}, '{{ .Guid }}', '{{ .InfoHash }}')">
+                    onclick="downloadEpisode(this, {{ $.EpisodeID }})">
                 <span class="btn-spinner"></span>
                 <span class="btn-label">Download</span>
             </button>
@@ -303,7 +319,13 @@
 {{ define "search-results-list" }}
 {{ if .Results }}
     {{ range .Results }}
-    <div class="result-card">
+    <div class="result-card"
+         data-guid="{{ .Guid }}"
+         data-info-hash="{{ .InfoHash }}"
+         data-title="{{ .Title }}"
+         data-indexer="{{ .Indexer }}"
+         data-info-url="{{ .InfoUrl }}"
+         data-publish-date="{{ .PublishDate }}">
         <div class="result-info">
             <div class="result-title" title="{{ .Title }}">{{ .Title }}</div>
             <div class="result-meta">
@@ -319,7 +341,7 @@
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
             </a>
             <button class="btn btn-sm btn-primary download-btn"
-                    onclick="downloadEpisode(this, {{ $.EpisodeID }}, '{{ .Guid }}', '{{ .InfoHash }}')">
+                    onclick="downloadEpisode(this, {{ $.EpisodeID }})">
                 <span class="btn-spinner"></span>
                 <span class="btn-label">Download</span>
             </button>

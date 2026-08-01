@@ -4,13 +4,15 @@ import (
 	"log/slog"
 	"testing"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/jusoaresg/gorgon/external/qbittorrent/schema"
 	episodeModel "github.com/jusoaresg/gorgon/internal/episode/model"
 	episodeRepository "github.com/jusoaresg/gorgon/internal/episode/repository"
+	episodeTorrentModel "github.com/jusoaresg/gorgon/internal/episode_torrent/model"
+	episodeTorrentRepository "github.com/jusoaresg/gorgon/internal/episode_torrent/repository"
 	seasonRepository "github.com/jusoaresg/gorgon/internal/season/repository"
 	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
 	"github.com/jusoaresg/gorgon/testutils"
-	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -25,6 +27,7 @@ func seedShowAndEpisode(db *sqlx.DB, t *testing.T, hash string, tracking string)
 	showRepo := showRepository.NewShowRepository(db)
 	seasonRepo := seasonRepository.NewSeasonRepository(db)
 	episodeRepo := episodeRepository.NewEpisodeRepository(db)
+	episodeTorrentRepo := episodeTorrentRepository.NewEpisodeTorrentRepository(db)
 
 	show := testutils.MakeFakeShow()
 	show.Name = "Breaking Test"
@@ -42,9 +45,14 @@ func seedShowAndEpisode(db *sqlx.DB, t *testing.T, hash string, tracking string)
 	episode.Name = "Pilot"
 	episode.Season = 1
 	episode.Number = 1
-	episode.TorrentHash = hash
 	episode.Tracking = tracking
-	_, err = episodeRepo.Create(episode)
+	episodeID, err := episodeRepo.Create(episode)
+	require.NoError(t, err)
+
+	_, err = episodeTorrentRepo.Upsert(episodeTorrentModel.EpisodeTorrent{
+		EpisodeId: episodeID,
+		Hash:      hash,
+	})
 	require.NoError(t, err)
 }
 
