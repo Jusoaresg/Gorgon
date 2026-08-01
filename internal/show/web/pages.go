@@ -116,20 +116,20 @@ func (h *Handler) AddShowConfigRoute(c echo.Context) error {
 }
 
 func computeWeekStart(weekParam string) time.Time {
-	now := time.Now()
+	now := time.Now().UTC()
 	if weekParam != "" {
 		parsed, err := time.Parse("2006-01-02", weekParam)
 		if err == nil {
-			weekStart := parsed
-			return time.Date(weekStart.Year(), weekStart.Month(), weekStart.Day(), 0, 0, 0, 0, time.UTC)
+			return time.Date(parsed.Year(), parsed.Month(), parsed.Day(), 0, 0, 0, 0, time.UTC)
 		}
 	}
-	weekday := now.Weekday()
-	if weekday == time.Sunday {
-		return time.Date(now.Year(), now.Month(), now.AddDate(0, 0, -6).Day(), 0, 0, 0, 0, time.UTC)
-	}
-	daysSinceMonday := int(weekday) - 1
-	return time.Date(now.Year(), now.Month(), now.AddDate(0, 0, -daysSinceMonday).Day(), 0, 0, 0, 0, time.UTC)
+	return mondayOfWeek(now)
+}
+
+func mondayOfWeek(now time.Time) time.Time {
+	daysSinceMonday := int(now.Weekday()+6) % 7
+	monday := now.AddDate(0, 0, -daysSinceMonday)
+	return time.Date(monday.Year(), monday.Month(), monday.Day(), 0, 0, 0, 0, time.UTC)
 }
 
 func (h *Handler) computeCalendarData(weekParam string) (CalendarData, error) {
@@ -163,7 +163,7 @@ func (h *Handler) computeCalendarData(weekParam string) (CalendarData, error) {
 
 	for _, ep := range episodes {
 		t := time.Unix(ep.AirStamp, 0).UTC()
-		dayIdx := int(t.Sub(weekStart).Hours() / 24)
+		dayIdx := int(t.Sub(weekStart) / (24 * time.Hour))
 		if dayIdx >= 0 && dayIdx < 7 {
 			days[dayIdx].Episodes = append(days[dayIdx].Episodes, ep)
 		}
