@@ -1,34 +1,74 @@
 {{ define "add-show" }}
-<form>
-    <div class="add-show-container">
-        <div class="search-section">
-            <h1>Find Series</h1>
+<div class="add-show-container">
+    <div class="search-section">
+        <h1>Find Series</h1>
+        <p class="search-subtitle">Search TVMaze and add new series to your library</p>
 
-            <div class="search-main">
-                <div class="search-input-wrapper">
-                    <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-muted);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    <input
-                        id="search-input"
-                        name="name"
-                        type="text"
-                        placeholder="Search TVMaze..."
-                    >
-                </div>
-                <button
-                    hx-post="/front/search-show"
-                    hx-include="#search-input"
-                    hx-target="#card-grid"
-                    class="btn btn-search"
-                >Search</button>
+        <form
+            class="search-main"
+            hx-post="/front/search-show"
+            hx-target="#card-grid"
+            hx-swap="innerHTML"
+            hx-indicator=".search-results-wrap"
+        >
+            <div class="search-input-wrapper">
+                <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-muted);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input
+                    id="search-input"
+                    name="name"
+                    type="text"
+                    placeholder="Search TVMaze..."
+                    autofocus
+                >
+            </div>
+            <button type="submit" class="btn btn-search" hx-disabled-elt="this" hx-indicator="this">
+                <span class="btn-spinner"></span>
+                <span class="btn-label">Search</span>
+            </button>
+        </form>
+    </div>
+
+    <div class="search-results-wrap">
+        <div class="search-grid-skeleton">
+            <div class="skeleton-card">
+                <div class="sk-poster"></div>
+                <div class="sk-line"></div>
+                <div class="sk-line short"></div>
+            </div>
+            <div class="skeleton-card">
+                <div class="sk-poster"></div>
+                <div class="sk-line"></div>
+                <div class="sk-line short"></div>
+            </div>
+            <div class="skeleton-card">
+                <div class="sk-poster"></div>
+                <div class="sk-line"></div>
+                <div class="sk-line short"></div>
+            </div>
+            <div class="skeleton-card">
+                <div class="sk-poster"></div>
+                <div class="sk-line"></div>
+                <div class="sk-line short"></div>
+            </div>
+            <div class="skeleton-card">
+                <div class="sk-poster"></div>
+                <div class="sk-line"></div>
+                <div class="sk-line short"></div>
+            </div>
+            <div class="skeleton-card">
+                <div class="sk-poster"></div>
+                <div class="sk-line"></div>
+                <div class="sk-line short"></div>
             </div>
         </div>
 
         <div id="card-grid" class="search-results-grid">
-
-            <!-- Result Cards -->
-            <!-- template add-show-card -->
-
+            <div class="search-empty-state">
+                <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <h3>Find your next series</h3>
+                <p>Search by name to discover shows from TVMaze and add them to your library.</p>
+            </div>
         </div>
     </div>
-</form>
+</div>
 {{ end }}

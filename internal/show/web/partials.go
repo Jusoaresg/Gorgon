@@ -4,8 +4,10 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/jusoaresg/gorgon/config"
+	tvMazeSchema "github.com/jusoaresg/gorgon/external/tvmaze/schema"
 	tvMazeService "github.com/jusoaresg/gorgon/external/tvmaze/service"
 	episodeModel "github.com/jusoaresg/gorgon/internal/episode/model"
 	episodeRepository "github.com/jusoaresg/gorgon/internal/episode/repository"
@@ -26,13 +28,21 @@ func (h *Handler) SearchShowHTMX(c echo.Context) error {
 		return nil
 	}
 
-	shows, err := h.ShowManager.SearchAndEnrich(request.Name)
-	if err != nil {
-		return err
+	shows := []tvMazeSchema.SearchResult{}
+	query := strings.TrimSpace(request.Name)
+	if query != "" {
+		results, err := h.ShowManager.SearchAndEnrich(query)
+		if err != nil {
+			return err
+		}
+		if results != nil {
+			shows = *results
+		}
 	}
 
 	data := map[string]any{
 		"Shows": shows,
+		"Query": query,
 	}
 
 	return c.Render(http.StatusOK, "add-show-card", data)
