@@ -200,7 +200,7 @@ func (a *APIService) Post(endpoint string, requestData any, response any, header
 		slog.String("response_body", string(bodyBytes)),
 	)
 
-	if response != nil {
+	if response != nil && resp.StatusCode >= http.StatusOK && resp.StatusCode < http.StatusMultipleChoices {
 		if err := json.Unmarshal(bodyBytes, &response); err != nil {
 			a.Logger.Error("Error decoding POST response body",
 				slog.String("url", url),

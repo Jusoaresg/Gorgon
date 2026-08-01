@@ -235,6 +235,28 @@ func TestAddTorrent_Failure(t *testing.T) {
 	assert.Contains(t, err.Error(), "failures=1")
 }
 
+func TestAddTorrent_AlreadyExists(t *testing.T) {
+	logger := newTestLogger()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/v2/auth/login":
+			http.SetCookie(w, &http.Cookie{Name: "QBT_SID_9191", Value: "test-sid", Path: "/"})
+			w.WriteHeader(http.StatusNoContent)
+		case "/api/v2/torrents/add":
+			w.WriteHeader(http.StatusConflict)
+			w.Write([]byte("Conflict"))
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+
+	svc := newTestService(server.URL, logger)
+	err := svc.AddTorrent("magnet:?xt=urn:btih:already")
+	require.NoError(t, err)
+}
+
 func TestDeleteTorrent_Success(t *testing.T) {
 	logger := newTestLogger()
 

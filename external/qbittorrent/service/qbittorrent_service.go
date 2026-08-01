@@ -175,9 +175,18 @@ func (q *QBittorrentService) AddTorrent(torrentUrl string) error {
 	}
 
 	var addResp addTorrentResponse
-	_, err := q.APIService.Post("/api/v2/torrents/add", requestBody.Bytes(), &addResp, headers)
+	resp, err := q.APIService.Post("/api/v2/torrents/add", requestBody.Bytes(), &addResp, headers)
 	if err != nil {
 		return err
+	}
+
+	if resp.StatusCode == http.StatusConflict {
+		q.Logger.Info("torrent already exists in torrent client", slog.String("url", torrentUrl))
+		return nil
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to add torrent (status=%d)", resp.StatusCode)
 	}
 
 	if addResp.FailureCount > 0 {
