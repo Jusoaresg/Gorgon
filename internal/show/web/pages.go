@@ -151,7 +151,7 @@ func (h *Handler) computeCalendarData(weekParam string) (CalendarData, error) {
 	}
 
 	days := make([]CalendarDay, 7)
-	for i := 0; i < 7; i++ {
+	for i := range 7 {
 		day := weekStart.AddDate(0, 0, i)
 		days[i] = CalendarDay{
 			Date:        day.Format("2006-01-02"),
