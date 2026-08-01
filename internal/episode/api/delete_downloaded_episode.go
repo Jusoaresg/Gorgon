@@ -90,6 +90,8 @@ func (h *Handler) DeleteDownloadedEpisode(c echo.Context) error {
 	episode.EmitEpisodeTrackingUpdatedEvent(ep.ID, episodeModel.TrackingSkipped)
 
 	h.Logger.Info("Successfully deleted downloaded episode", slog.String("FilePath", filePath))
-	schemas.SendSuccess(c, "Delete Downloaded Episode", episodeContent)
+	schemas.SendSuccess(c, "Delete Downloaded Episode", map[string]any{
+		"toastMessage": "Episode deleted",
+	})
 	return nil
 }

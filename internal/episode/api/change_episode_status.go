@@ -69,6 +69,8 @@ func (h *Handler) ChangeEpisodeStatus(c echo.Context) error {
 	}
 
 	h.Logger.Info("Successfully updated episodes", slog.Any("Episodes", episodes))
-	schemas.SendSuccess(c, "Change episodes tracking", episodes)
+	schemas.SendSuccess(c, "Change episodes tracking", map[string]any{
+		"toastMessage": "Tracking updated",
+	})
 	return nil
 }

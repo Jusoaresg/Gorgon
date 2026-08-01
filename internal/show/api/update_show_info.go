@@ -44,9 +44,9 @@ func (h *Handler) UpdateShowInfo(c echo.Context) error {
 	if err != nil {
 		h.Logger.Error("Failed to update show information", slog.Int("show_id", int(request.Id)))
 		schemas.SendError(c, 500, "Failed to update show info", UpdateShowData{
-			UpdateShow:   *updatedShow,
 			ToastMessage: "Failed to update show info",
 		})
+		return nil
 	}
 
 	h.Logger.Info("Show info updated successfully")
