@@ -40,6 +40,7 @@ func TestRenderDownloadsPage(t *testing.T) {
 				Number:    1,
 				ShowName:  "Breaking Test",
 				ShowImage: "https://example.com/img.jpg",
+				InfoUrl:   "https://example.com/release/1",
 			},
 		},
 		{

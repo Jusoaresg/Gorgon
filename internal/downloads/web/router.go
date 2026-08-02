@@ -12,4 +12,5 @@ func RegisterDownloadsRoutes(e *echo.Echo, deps *downloads.Dependencies) {
 
 	front := e.Group("/front/")
 	front.GET("downloads/items", handler.DownloadsItemsHTMX)
+	front.POST("downloads/remove", handler.RemoveDownload)
 }

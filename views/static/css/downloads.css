@@ -131,6 +131,51 @@
     max-width: 100%;
 }
 
+.download-header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-shrink: 0;
+}
+
+.download-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+}
+
+.download-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: var(--tertiary-bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+    text-decoration: none;
+}
+
+.download-action-btn:hover {
+    border-color: var(--accent-purple);
+    color: var(--accent-purple-light);
+}
+
+.download-action-remove:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.download-action-icon {
+    width: 14px;
+    height: 14px;
+}
+
 .download-state-badge {
     flex-shrink: 0;
     padding: 0.25rem 0.6rem;
@@ -286,5 +331,9 @@
 
     .download-card-header {
         flex-direction: column;
+    }
+
+    .download-header-right {
+        align-self: flex-start;
     }
 }

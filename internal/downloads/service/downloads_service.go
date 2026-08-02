@@ -35,6 +35,9 @@ type EpisodeInfo struct {
 	ShowName  string `db:"show_name"`
 	ShowImage string `db:"show_image"`
 	Hash      string `db:"hash"`
+	Title     string `db:"title"`
+	Indexer   string `db:"indexer"`
+	InfoUrl   string `db:"info_url"`
 }
 
 type DownloadItem struct {
@@ -104,7 +107,7 @@ func (s *DownloadsService) episodesByHash() (map[string]EpisodeInfo, error) {
 	query := `
 		SELECT e.id AS episode_id, e.show_id, e.name, e.season, e.number, e.tracking,
 		       s.name AS show_name, s.image_medium AS show_image,
-		       et.hash AS hash
+		       et.hash AS hash, et.title AS title, et.indexer AS indexer, et.info_url AS info_url
 		FROM episodes e
 		JOIN shows s ON e.show_id = s.id
 		JOIN episode_torrents et ON et.episode_id = e.id
