@@ -129,7 +129,8 @@
         {{ range $season := $seasons }}
             {{ render "show-season-container" (dict 
             "Season" $season
-            "Episodes" $.Data.Episodes) }}
+            "Episodes" $.Data.Episodes
+            "Torrents" $.Data.Torrents) }}
         {{ end }}
     </div>
 </div>

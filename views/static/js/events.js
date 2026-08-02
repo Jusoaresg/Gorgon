@@ -26,7 +26,7 @@
         }
     }
 
-    function updateEpisode(episodeId, tracking) {
+    function updateEpisode(episodeId, tracking, infoUrl) {
         var targets = document.querySelectorAll('[data-episode-id="' + episodeId + '"]');
         targets.forEach(function (target) {
             if (target.classList.contains('episode-card')) {
@@ -41,6 +41,33 @@
                 var deleteBtn = target.querySelector('.btn-delete');
                 if (deleteBtn) {
                     deleteBtn.style.display = tracking === 'downloaded' ? 'flex' : 'none';
+                }
+
+                var searchActions = target.querySelectorAll('.js-search-actions');
+                searchActions.forEach(function (btn) {
+                    btn.style.display = tracking === 'downloaded' ? 'none' : 'flex';
+                });
+
+                var shouldShowRelease = (tracking === 'downloaded' || tracking === 'snatched') && infoUrl;
+                var releaseLink = target.querySelector('.js-release-link');
+                if (shouldShowRelease) {
+                    if (!releaseLink) {
+                        var actionButtons = target.querySelector('.action-buttons');
+                        if (actionButtons) {
+                            releaseLink = document.createElement('a');
+                            releaseLink.className = 'btn-icon-sm btn-release js-release-link';
+                            releaseLink.target = '_blank';
+                            releaseLink.title = 'View Release';
+                            releaseLink.innerHTML = RELEASE_ICON;
+                            actionButtons.appendChild(releaseLink);
+                        }
+                    }
+                    if (releaseLink) {
+                        releaseLink.href = infoUrl;
+                        releaseLink.style.display = 'flex';
+                    }
+                } else if (releaseLink) {
+                    releaseLink.style.display = 'none';
                 }
             }
 
@@ -58,6 +85,8 @@
     };
 
     var CLOSE_ICON = '<svg class="toast-close" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+
+    var RELEASE_ICON = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>';
 
     function toastContainer() {
         var container = document.getElementById('toast-container');
@@ -180,7 +209,7 @@
             }
 
             if (message && message.type === 'EpisodeTrackingUpdated') {
-                updateEpisode(message.episodeID, message.tracking);
+                updateEpisode(message.episodeID, message.tracking, message.infoUrl);
             }
 
             if (message && message.type === 'EpisodeSearchFinished') {

@@ -86,7 +86,7 @@ func addEpisodeTorrentHandler(c echo.Context, db *sqlx.DB) error {
 		return err
 	}
 
-	episode.EmitEpisodeTrackingUpdatedEvent(ep.ID, ep.Tracking)
+	episode.EmitEpisodeTrackingUpdatedEvent(ep.ID, ep.Tracking, episodeTorrent.InfoUrl)
 
 	schemas.SendSuccess(c, "AddNewTorrent", request)
 	return nil

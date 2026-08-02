@@ -496,6 +496,18 @@ a.meta-item:hover {
     color: var(--danger);
 }
 
+.btn-icon-sm.btn-release {
+    background-color: rgba(139, 92, 246, 0.12);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    color: var(--accent-purple-light);
+}
+
+.btn-icon-sm.btn-release:hover {
+    background-color: rgba(139, 92, 246, 0.2);
+    border-color: var(--accent-purple);
+    color: var(--accent-purple-light);
+}
+
 @media (max-width: 1024px) {
     .hero-content {
         flex-direction: column;

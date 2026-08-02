@@ -5,11 +5,12 @@ import (
 	"github.com/jusoaresg/gorgon/pkg/handler"
 )
 
-func EmitEpisodeTrackingUpdatedEvent(episodeID int64, tracking string) {
+func EmitEpisodeTrackingUpdatedEvent(episodeID int64, tracking, infoUrl string) {
 	msg := EpisodeTrackingUpdatedPayload{
 		Type:      string(event.EpisodeTrackingUpdated),
 		EpisodeID: episodeID,
 		Tracking:  tracking,
+		InfoUrl:   infoUrl,
 	}
 	handler.SendWebSocketMessage(msg)
 }

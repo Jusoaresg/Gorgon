@@ -132,6 +132,26 @@ func (s *EpisodeTorrentRepository) GetByHash(hash string) (model.EpisodeTorrent,
 	return t, nil
 }
 
+func (s *EpisodeTorrentRepository) ListByEpisodeIDs(episodeIDs []int64) ([]model.EpisodeTorrent, error) {
+	if len(episodeIDs) == 0 {
+		return []model.EpisodeTorrent{}, nil
+	}
+
+	query, args, err := sqlx.In("SELECT * FROM episode_torrents WHERE episode_id IN (?)", episodeIDs)
+	if err != nil {
+		return []model.EpisodeTorrent{}, err
+	}
+
+	query = s.db.Rebind(query)
+
+	var torrents []model.EpisodeTorrent
+	if err := s.db.Select(&torrents, query, args...); err != nil {
+		return []model.EpisodeTorrent{}, err
+	}
+
+	return torrents, nil
+}
+
 func (s *EpisodeTorrentRepository) DeleteByEpisodeID(episodeID int64) error {
 	if _, err := s.db.Exec("DELETE FROM episode_torrents WHERE episode_id = ?", episodeID); err != nil {
 		return err
@@ -167,6 +187,7 @@ type EpisodeTorrentRepositoryInterface interface {
 	UpsertTx(tx *sqlx.Tx, t model.EpisodeTorrent) (int64, error)
 	GetByEpisodeID(episodeID int64) (model.EpisodeTorrent, error)
 	GetByHash(hash string) (model.EpisodeTorrent, error)
+	ListByEpisodeIDs(episodeIDs []int64) ([]model.EpisodeTorrent, error)
 	DeleteByEpisodeID(episodeID int64) error
 	DeleteByEpisodeIDs(episodeIDs ...int64) error
 }

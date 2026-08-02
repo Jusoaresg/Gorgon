@@ -87,7 +87,7 @@ func (h *Handler) DeleteDownloadedEpisode(c echo.Context) error {
 		h.Logger.Error("Failed to set episode to not intalled", slog.String("error", err.Error()))
 	}
 
-	episode.EmitEpisodeTrackingUpdatedEvent(ep.ID, episodeModel.TrackingSkipped)
+	episode.EmitEpisodeTrackingUpdatedEvent(ep.ID, episodeModel.TrackingSkipped, "")
 
 	h.Logger.Info("Successfully deleted downloaded episode", slog.String("FilePath", filePath))
 	schemas.SendSuccess(c, "Delete Downloaded Episode", map[string]any{

@@ -278,7 +278,7 @@ func (h *Handler) DownloadEpisodeTorrent(c echo.Context) error {
 		return nil
 	}
 
-	episodeEvents.EmitEpisodeTrackingUpdatedEvent(ep.ID, ep.Tracking)
+	episodeEvents.EmitEpisodeTrackingUpdatedEvent(ep.ID, ep.Tracking, episodeTorrent.InfoUrl)
 
 	logger.Info("torrent added and episode snatched",
 		slog.Int64("episode_id", ep.ID),

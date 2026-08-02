@@ -72,7 +72,7 @@ func (h *Handler) ChangeEpisodeStatus(c echo.Context) error {
 			return err
 		}
 
-		episodeEvents.EmitEpisodeTrackingUpdatedEvent(episode.ID, episode.Tracking)
+		episodeEvents.EmitEpisodeTrackingUpdatedEvent(episode.ID, episode.Tracking, "")
 	}
 
 	h.Logger.Info("Successfully updated episodes", slog.Any("Episodes", episodes))

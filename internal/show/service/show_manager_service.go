@@ -8,6 +8,7 @@ import (
 	"github.com/jusoaresg/gorgon/internal/episode/model"
 	episodeModel "github.com/jusoaresg/gorgon/internal/episode/model"
 	episodeRepository "github.com/jusoaresg/gorgon/internal/episode/repository"
+	episodeTorrentRepository "github.com/jusoaresg/gorgon/internal/episode_torrent/repository"
 	seasonModel "github.com/jusoaresg/gorgon/internal/season/model"
 	seasonRepository "github.com/jusoaresg/gorgon/internal/season/repository"
 	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
@@ -41,6 +42,7 @@ func NewShowManagerService(logger *slog.Logger, db *sqlx.DB) *ShowManagerService
 			showRepo,
 			&showAliasRepo,
 			episodeRepo,
+			episodeTorrentRepository.NewEpisodeTorrentRepository(db),
 			seasonRepo,
 		),
 		ShowRepo:      showRepo,

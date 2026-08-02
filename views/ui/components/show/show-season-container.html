@@ -2,6 +2,7 @@
 
 {{ $season := .Season }}
 {{ $episodes := .Episodes }}
+{{ $torrents := .Torrents }}
 <div class="season-container js-season" data-season="{{ $season.Number }}">
             <div class="season-header" onclick="toggleSeason(this)">
                 <div class="season-info">
@@ -24,6 +25,7 @@
                 <div class="episodes-list">
                     {{ range $episodes }}
                         {{ if eq .Season $season.Number }}
+                        {{ $torrent := index $torrents .ID }}
                         <div class="episode-card {{ .Tracking }} js-episode" data-episode-id="{{ .ID }}">
                             <div class="episode-header" onclick="toggleEpisode(this)">
                                 <div class="episode-main-info">
@@ -51,28 +53,28 @@
                                     </span>
                                     
                                     <div class="action-buttons">
-                                            <button 
-                                                class="btn-icon-sm btn-delete" 
-                                                title="Delete Episode" 
-                                                onclick="event.stopPropagation()"
-                                                {{ if ne .Tracking "downloaded" }}style="display: none;"{{ end }}
-
-                                                hx-trigger="click"
-                                                hx-delete="/api/v1/database/show/episode/{{ .ID }}"
-                                                hx-swap="none"
-                                                hx-on::after-request="showToast(event)"
-                                            >
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
-                                                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
-                                                    <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
-                                                </svg>
-                                            </button>
-
                                         <button 
-                                            class="btn-icon-sm" 
+                                            class="btn-icon-sm btn-delete" 
+                                            title="Delete Episode" 
+                                            onclick="event.stopPropagation()"
+                                            style="{{ if eq .Tracking "downloaded" }}display: flex{{ else }}display: none{{ end }}"
+
+                                            hx-trigger="click"
+                                            hx-delete="/api/v1/database/show/episode/{{ .ID }}"
+                                            hx-swap="none"
+                                            hx-on::after-request="showToast(event)"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                                                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                                            </svg>
+                                        </button>
+                                        <button 
+                                            class="btn-icon-sm js-search-actions" 
                                             title="Automatic Search" 
                                             id="automatic-search-{{ .ID }}"
                                             onclick="event.stopPropagation()"
+                                            style="{{ if eq .Tracking "downloaded" }}display: none{{ else }}display: flex{{ end }}"
 
                                             hx-trigger="click"
                                             hx-post="/api/v1/database/show/episode/search"
@@ -83,13 +85,19 @@
                                         >
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                                         </button>
-                                        <button class="btn-icon-sm" title="Interactive Search" 
+                                        <button class="btn-icon-sm js-search-actions" title="Interactive Search" 
                                                 onclick="event.stopPropagation()"
+                                                style="{{ if eq .Tracking "downloaded" }}display: none{{ else }}display: flex{{ end }}"
                                                 hx-get="/front/episode/{{ .ID }}/interactive-search"
                                                 hx-target="body"
                                                 hx-swap="beforeend">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                                         </button>
+                                        {{ if $torrent.InfoUrl }}
+                                        <a class="btn-icon-sm btn-release js-release-link" href="{{ $torrent.InfoUrl }}" target="_blank" title="View Release">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                                        </a>
+                                        {{ end }}
                                     </div>
                                 </div>
                             </div>

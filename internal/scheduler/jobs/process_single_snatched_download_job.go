@@ -113,7 +113,7 @@ func ProcessSingleSnatchedDownload(ep *model.Episode, qbittorrentService *servic
 			return err
 		}
 
-		episode.EmitEpisodeTrackingUpdatedEvent(ep.ID, model.TrackingDownloaded)
+		episode.EmitEpisodeTrackingUpdatedEvent(ep.ID, model.TrackingDownloaded, episodeTorrent.InfoUrl)
 
 		return nil
 	}
@@ -135,7 +135,7 @@ func resetToSkipped(ep *model.Episode, episodeRepo *episodeRepository.EpisodeRep
 		return err
 	}
 
-	episode.EmitEpisodeTrackingUpdatedEvent(ep.ID, model.TrackingSkipped)
+	episode.EmitEpisodeTrackingUpdatedEvent(ep.ID, model.TrackingSkipped, "")
 
 	return nil
 }

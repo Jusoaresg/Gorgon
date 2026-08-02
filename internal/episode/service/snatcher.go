@@ -42,7 +42,7 @@ func SnatchEpisode(episode *model.Episode, response prowlarrSchema.SearchRespons
 		return err
 	}
 
-	episodeEvents.EmitEpisodeTrackingUpdatedEvent(episode.ID, model.TrackingSnatched)
+	episodeEvents.EmitEpisodeTrackingUpdatedEvent(episode.ID, model.TrackingSnatched, episodeTorrent.InfoUrl)
 
 	return nil
 }

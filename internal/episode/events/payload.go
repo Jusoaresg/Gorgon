@@ -4,6 +4,7 @@ type EpisodeTrackingUpdatedPayload struct {
 	Type      string `json:"type"`
 	EpisodeID int64  `json:"episodeID"`
 	Tracking  string `json:"tracking"`
+	InfoUrl   string `json:"infoUrl"`
 }
 
 type EpisodeSearchFinishedPayload struct {
