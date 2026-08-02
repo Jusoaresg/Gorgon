@@ -49,7 +49,7 @@ func (h *Handler) SearchShowHTMX(c echo.Context) error {
 }
 
 func (h *Handler) AddShowHTMX(c echo.Context) error {
-	id, err := strconv.ParseInt(c.FormValue("id"), 10, 64)
+	id, err := strconv.Atoi(c.FormValue("id"))
 	if err != nil {
 		return err
 	}
@@ -57,7 +57,7 @@ func (h *Handler) AddShowHTMX(c echo.Context) error {
 	trackingType := c.FormValue("monitor")
 
 	request := showSchema.AddShowToListRequest{
-		Id:           int(id),
+		Id:           id,
 		TrackingType: trackingType,
 	}
 
