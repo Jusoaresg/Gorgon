@@ -5,6 +5,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	episodeModel "github.com/jusoaresg/gorgon/internal/episode/model"
+	filterProfileModel "github.com/jusoaresg/gorgon/internal/filter_profile/model"
 	seasonModel "github.com/jusoaresg/gorgon/internal/season/model"
 	showModel "github.com/jusoaresg/gorgon/internal/show/model"
 	showAliasModel "github.com/jusoaresg/gorgon/internal/show_aliases/model"
@@ -31,6 +32,11 @@ type AggregatedShow struct {
 	Seasons     []seasonModel.Season
 	Episodes    []episodeModel.Episode
 	Torrents    map[int64]episodeTorrentModel.EpisodeTorrent
+
+	FilterProfiles []filterProfileModel.FilterProfile
+	FilterProfileID *int64
+	UseAliases      bool
+	OnlyLatin       bool
 }
 
 func NewShowAggregatorService(

@@ -137,6 +137,19 @@
         }, 4000);
     }
 
+    function toNullProfileParams(event) {
+        var params = event.detail.parameters;
+        if (!params) return;
+        if ('default_filter_profile_id' in params && params['default_filter_profile_id'] === '') {
+            params['default_filter_profile_id'] = null;
+        }
+        if ('filter_profile_id' in params && params['filter_profile_id'] === '') {
+            params['filter_profile_id'] = null;
+        }
+    }
+
+    document.body.addEventListener('htmx:configRequest', toNullProfileParams);
+
     function showToast(event) {
         var message;
         var type = 'info';

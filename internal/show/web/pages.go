@@ -3,7 +3,9 @@ package web
 import (
 	"bufio"
 	"compress/gzip"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -15,7 +17,13 @@ import (
 	"time"
 
 	"github.com/jusoaresg/gorgon/config"
+	filterProfileModel "github.com/jusoaresg/gorgon/internal/filter_profile/model"
+	filterProfileRepository "github.com/jusoaresg/gorgon/internal/filter_profile/repository"
+	filterSettingsModel "github.com/jusoaresg/gorgon/internal/filter_settings/model"
+	filterSettingsRepository "github.com/jusoaresg/gorgon/internal/filter_settings/repository"
 	"github.com/jusoaresg/gorgon/internal/show/service"
+	showSettingsModel "github.com/jusoaresg/gorgon/internal/show_settings/model"
+	showSettingsRepository "github.com/jusoaresg/gorgon/internal/show_settings/repository"
 	"github.com/jusoaresg/gorgon/views"
 	"github.com/labstack/echo/v4"
 )
@@ -79,6 +87,37 @@ func (h *Handler) ShowRoute(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+
+	profileRepo := filterProfileRepository.NewFilterProfileRepository(h.DB)
+	profiles, err := profileRepo.List()
+	if err != nil {
+		return err
+	}
+
+	settingsRepo := filterSettingsRepository.NewFilterSettingsRepository(h.DB)
+	global, err := settingsRepo.Get()
+	if err != nil {
+		return err
+	}
+
+	showSettingsRepo := showSettingsRepository.NewShowSettingsRepository(h.DB)
+	stored, err := showSettingsRepo.GetByShowID(showId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			stored = showSettingsModel.ShowSettings{
+				FilterProfileID: global.DefaultFilterProfileID,
+				UseAliases:      global.UseAliases,
+				OnlyLatin:       global.OnlyLatin,
+			}
+		} else {
+			return err
+		}
+	}
+
+	show.FilterProfiles = profiles
+	show.FilterProfileID = stored.FilterProfileID
+	show.UseAliases = stored.UseAliases
+	show.OnlyLatin = stored.OnlyLatin
 
 	return views.Render(c, views.View{
 		Layout:  "layout",
@@ -214,18 +253,25 @@ const (
 	GorgonSettings SettingType = iota
 	ProwlarrSettings
 	TorrentSettings
+	FilterSettings
 )
 
 var SettingTypes = map[string]SettingType{
 	"gorgon":   GorgonSettings,
 	"prowlarr": ProwlarrSettings,
 	"torrent":  TorrentSettings,
+	"filter":   FilterSettings,
 }
 
 type SettingsData struct {
 	Type       SettingType
 	TypeString string
 	Settings   any
+}
+
+type FilterSettingsData struct {
+	FilterSettings filterSettingsModel.FilterSettings
+	Profiles       []filterProfileModel.FilterProfile
 }
 
 func (h *Handler) SettingsRoute(c echo.Context) error {
@@ -249,14 +295,35 @@ func (h *Handler) SettingsTypeRoute(c echo.Context) error {
 		settingsType = "gorgon"
 	}
 
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		return views.Render(c, views.View{
-			Layout:  "layout",
-			Default: "settings",
-			Data:    nil,
-			Styles:  []string{"settings.css"},
-		})
+	var settings any
+	if settingType == FilterSettings {
+		settingsRepo := filterSettingsRepository.NewFilterSettingsRepository(h.DB)
+		filterSettings, err := settingsRepo.Get()
+		if err != nil {
+			return err
+		}
+
+		profileRepo := filterProfileRepository.NewFilterProfileRepository(h.DB)
+		profiles, err := profileRepo.List()
+		if err != nil {
+			return err
+		}
+
+		settings = FilterSettingsData{
+			FilterSettings: filterSettings,
+			Profiles:       profiles,
+		}
+	} else {
+		cfg, err := config.LoadConfig()
+		if err != nil {
+			return views.Render(c, views.View{
+				Layout:  "layout",
+				Default: "settings",
+				Data:    nil,
+				Styles:  []string{"settings.css"},
+			})
+		}
+		settings = cfg
 	}
 
 	return views.Render(c, views.View{
@@ -265,7 +332,7 @@ func (h *Handler) SettingsTypeRoute(c echo.Context) error {
 		Data: SettingsData{
 			Type:       settingType,
 			TypeString: strings.Join([]string{settingsType, "Settings"}, ""),
-			Settings:   cfg,
+			Settings:   settings,
 		},
 		Styles: []string{"settings.css"},
 	})

@@ -1,0 +1,219 @@
+{{ define "filterSettings" }}
+<div class="settings-content">
+    <!-- Global Settings Section -->
+    <section id="filters-global" class="settings-section">
+        <div class="section-header">
+            <div class="section-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+            </div>
+            <div>
+                <h3>Filtering</h3>
+                <p>Global search and release filtering settings</p>
+            </div>
+        </div>
+        <div class="section-body">
+            <form
+                hx-patch="/api/v1/database/filter-settings"
+                hx-ext="json-enc-custom"
+                hx-swap="none"
+                hx-on::after-request="showToast(event)"
+            >
+                <div class="form-group">
+                    <label>Default Filter Profile</label>
+                    <select name="default_filter_profile_id">
+                        <option value="">No default profile</option>
+                        {{ range .Profiles }}
+                        <option value="{{ .ID }}" {{ if and $.FilterSettings.DefaultFilterProfileID (eq (derefInt64 $.FilterSettings.DefaultFilterProfileID) .ID) }}selected{{ end }}>{{ .Name }}</option>
+                        {{ end }}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="use_aliases" value="true" {{ if .FilterSettings.UseAliases }}checked{{ end }}>
+                        Use aliases when searching
+                    </label>
+                    <small>Search for releases using the show aliases too</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="only_latin" value="true" {{ if .FilterSettings.OnlyLatin }}checked{{ end }}>
+                        Ignore non-latin aliases
+                    </label>
+                    <small>Skip aliases with non-latin characters when searching</small>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-primary" type="submit">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Profiles Section -->
+    <section id="filter-profiles" class="settings-section">
+        <div class="section-header">
+            <div class="section-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+            </div>
+            <div>
+                <h3>Filter Profiles</h3>
+                <p>Saved search patterns and release gates</p>
+            </div>
+        </div>
+        <div class="section-body">
+            {{ if .Profiles }}
+            <div class="profile-list">
+                {{ range .Profiles }}
+                <div class="profile-item">
+                    <span class="profile-name">{{ .Name }}</span>
+                    <div class="profile-actions">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="editProfile({{ .ID }})">Edit</button>
+                        <button
+                            class="btn-text-danger"
+                            hx-delete="/api/v1/database/filter-profile/{{ .ID }}"
+                            hx-swap="none"
+                            hx-confirm="Delete profile '{{ .Name }}'?"
+                            hx-on::after-request="showToast(event); if (event.detail.successful) this.closest('.profile-item').remove()"
+                        >Delete</button>
+                    </div>
+                </div>
+                {{ end }}
+            </div>
+            {{ else }}
+            <p class="text-secondary">No filter profiles yet. Create one below.</p>
+            {{ end }}
+
+            <form id="profile-form" class="profile-form">
+                <h4>New / Edit Profile</h4>
+                <div class="form-group">
+                    <label>Profile Name</label>
+                    <input type="text" name="name" placeholder="e.g. HD 1080p Multisub">
+                </div>
+
+                <div class="form-group">
+                    <label>Patterns</label>
+                    <div id="pattern-rows"></div>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="addPatternRow('', '', null)">+ Add Pattern</button>
+                    <small>Kinds: search (query template), required, rejected, preferred (with score).</small>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-primary" type="submit">Save Profile</button>
+                </div>
+            </form>
+        </div>
+    </section>
+</div>
+
+<script>
+    function addPatternRow(kind, pattern, score) {
+        var container = document.getElementById('pattern-rows');
+        if (!container) return;
+
+        var row = document.createElement('div');
+        row.className = 'pattern-row';
+
+        var kindSelect = document.createElement('select');
+        kindSelect.className = 'pattern-kind';
+        ['search', 'required', 'rejected', 'preferred'].forEach(function (k) {
+            var opt = document.createElement('option');
+            opt.value = k;
+            opt.textContent = k.charAt(0).toUpperCase() + k.slice(1);
+            if (k === kind) opt.selected = true;
+            kindSelect.appendChild(opt);
+        });
+
+        var valueInput = document.createElement('input');
+        valueInput.type = 'text';
+        valueInput.className = 'pattern-value';
+        valueInput.placeholder = 'pattern...';
+        valueInput.value = pattern || '';
+
+        var scoreInput = document.createElement('input');
+        scoreInput.type = 'number';
+        scoreInput.className = 'pattern-score';
+        scoreInput.placeholder = 'score';
+        scoreInput.min = '0';
+        if (score !== null && score !== undefined) scoreInput.value = score;
+
+        var removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'btn-text-danger';
+        removeBtn.textContent = '\u00d7';
+        removeBtn.addEventListener('click', function () { row.remove(); });
+
+        row.appendChild(kindSelect);
+        row.appendChild(valueInput);
+        row.appendChild(scoreInput);
+        row.appendChild(removeBtn);
+        container.appendChild(row);
+    }
+
+    window.addPatternRow = addPatternRow;
+
+    function editProfile(id) {
+        fetch('/api/v1/database/filter-profile/' + id)
+            .then(function (resp) { return resp.json(); })
+            .then(function (res) {
+                var data = res.data;
+                var form = document.getElementById('profile-form');
+                form.dataset.editingId = id;
+                form.querySelector('[name=name]').value = data.name || '';
+                var rows = document.getElementById('pattern-rows');
+                rows.innerHTML = '';
+                (data.patterns || []).forEach(function (p) {
+                    addPatternRow(p.kind, p.pattern, p.score);
+                });
+                form.scrollIntoView({ behavior: 'smooth' });
+            });
+    }
+
+    window.editProfile = editProfile;
+
+    document.addEventListener('submit', function (event) {
+        var form = event.target;
+        if (form.id !== 'profile-form') return;
+        event.preventDefault();
+
+        var name = form.querySelector('[name=name]').value.trim();
+        if (!name) {
+            window.toast('Profile name is required', 'error');
+            return;
+        }
+
+        var patterns = [];
+        document.querySelectorAll('#pattern-rows .pattern-row').forEach(function (row) {
+            var value = row.querySelector('.pattern-value').value.trim();
+            if (!value) return;
+            patterns.push({
+                kind: row.querySelector('.pattern-kind').value,
+                pattern: value,
+                score: parseInt(row.querySelector('.pattern-score').value || '0', 10)
+            });
+        });
+
+        var editingId = form.dataset.editingId;
+        var url = editingId ? '/api/v1/database/filter-profile/' + editingId : '/api/v1/database/filter-profile';
+        var method = editingId ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name, patterns: patterns })
+        })
+            .then(function (resp) {
+                return resp.json().then(function (body) { return { ok: resp.ok, body: body }; });
+            })
+            .then(function (result) {
+                if (result.ok) {
+                    window.toast('Profile saved', 'success');
+                    window.location.reload();
+                } else {
+                    window.toast((result.body && result.body.message) || 'Failed to save profile', 'error');
+                }
+            });
+    });
+</script>
+{{ end }}

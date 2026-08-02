@@ -48,6 +48,12 @@ func NewTemplate() *Template {
 			}
 			return *f
 		},
+		"derefInt64": func(i *int64) int64 {
+			if i == nil {
+				return 0
+			}
+			return *i
+		},
 		"countDownloaded": func(episodes []episodeModel.Episode) int {
 			count := 0
 			for _, ep := range episodes {

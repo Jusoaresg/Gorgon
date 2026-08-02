@@ -6,6 +6,9 @@ import (
 
 	"github.com/jusoaresg/gorgon/external/qbittorrent/schema"
 	"github.com/jusoaresg/gorgon/internal/downloads/service"
+	filterProfileModel "github.com/jusoaresg/gorgon/internal/filter_profile/model"
+	filterSettingsModel "github.com/jusoaresg/gorgon/internal/filter_settings/model"
+	showService "github.com/jusoaresg/gorgon/internal/show/service"
 )
 
 type renderData struct {
@@ -114,6 +117,78 @@ func TestRenderDownloadsEmpty(t *testing.T) {
 
 	if !bytes.Contains(buf.Bytes(), []byte("No active downloads")) {
 		t.Errorf("expected empty state, got:\n%s", buf.String())
+	}
+}
+
+func TestRenderFilterSettings(t *testing.T) {
+	tmpl := NewTemplate()
+
+	profileID := int64(1)
+	data := struct {
+		FilterSettings filterSettingsModel.FilterSettings
+		Profiles       []filterProfileModel.FilterProfile
+	}{
+		FilterSettings: filterSettingsModel.FilterSettings{
+			DefaultFilterProfileID: &profileID,
+			UseAliases:             true,
+			OnlyLatin:              true,
+		},
+		Profiles: []filterProfileModel.FilterProfile{
+			{ID: 1, Name: "HD"},
+			{ID: 2, Name: "SD"},
+		},
+	}
+
+	var buf bytes.Buffer
+	if err := tmpl.templates.ExecuteTemplate(&buf, "filterSettings", data); err != nil {
+		t.Fatalf("failed to render filterSettings: %v", err)
+	}
+
+	for _, want := range []string{
+		"Default Filter Profile",
+		"HD",
+		"SD",
+		"Save Profile",
+		"only_latin",
+		"json-enc-custom",
+	} {
+		if !bytes.Contains(buf.Bytes(), []byte(want)) {
+			t.Errorf("rendered output missing %q", want)
+		}
+	}
+}
+
+func TestRenderShowFilteringSection(t *testing.T) {
+	tmpl := NewTemplate()
+
+	profileID := int64(1)
+	show := showService.AggregatedShow{}
+	show.Show.ID = 42
+	show.Show.Name = "Dragon Ball"
+	show.Show.ImageOriginal = "https://example.com/img.jpg"
+	show.Show.Status = "running"
+	show.FilterProfileID = &profileID
+	show.UseAliases = true
+	show.OnlyLatin = true
+	show.FilterProfiles = []filterProfileModel.FilterProfile{
+		{ID: 1, Name: "HD"},
+	}
+
+	var buf bytes.Buffer
+	if err := tmpl.templates.ExecuteTemplate(&buf, "show", PageData{Data: show}); err != nil {
+		t.Fatalf("failed to render show: %v", err)
+	}
+
+	for _, want := range []string{
+		"Filtering",
+		"/api/v1/database/show-settings/42",
+		"Custom Aliases",
+		"filter_profile_id",
+		"Dragon Ball",
+	} {
+		if !bytes.Contains(buf.Bytes(), []byte(want)) {
+			t.Errorf("rendered output missing %q", want)
+		}
 	}
 }
 

@@ -151,6 +151,81 @@
     line-height: 1;
 }
 
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    cursor: pointer;
+}
+
+.checkbox-label input {
+    width: auto;
+    accent-color: var(--accent-purple);
+}
+
+.profile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.profile-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--tertiary-bg);
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.profile-name {
+    font-weight: 600;
+}
+
+.profile-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.profile-actions .btn-text-danger {
+    font-size: 0.9rem;
+}
+
+.profile-form {
+    border-top: 1px solid var(--border-color);
+    padding-top: 1.5rem;
+}
+
+.profile-form h4 {
+    margin-bottom: 1rem;
+}
+
+.pattern-row {
+    display: grid;
+    grid-template-columns: 110px 1fr 80px 32px;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    align-items: center;
+}
+
+.pattern-row select,
+.pattern-row input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.pattern-row .btn-text-danger {
+    font-size: 1.25rem;
+}
+
+.btn-sm {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+}
+
 @media (max-width: 900px) {
     .settings-grid {
         grid-template-columns: 1fr;
@@ -164,5 +239,9 @@
 
     .nav-item {
         white-space: nowrap;
+    }
+
+    .pattern-row {
+        grid-template-columns: 1fr 1fr;
     }
 }
