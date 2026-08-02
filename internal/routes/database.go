@@ -6,6 +6,10 @@ import (
 	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/internal/episode"
 	episodeApi "github.com/jusoaresg/gorgon/internal/episode/api"
+	"github.com/jusoaresg/gorgon/internal/filter_profile"
+	filterProfileApi "github.com/jusoaresg/gorgon/internal/filter_profile/api"
+	"github.com/jusoaresg/gorgon/internal/filter_settings"
+	filterSettingsApi "github.com/jusoaresg/gorgon/internal/filter_settings/api"
 	"github.com/jusoaresg/gorgon/internal/indexer"
 	indexerApi "github.com/jusoaresg/gorgon/internal/indexer/api"
 	"github.com/jusoaresg/gorgon/internal/season"
@@ -14,11 +18,13 @@ import (
 	showApi "github.com/jusoaresg/gorgon/internal/show/api"
 	"github.com/jusoaresg/gorgon/internal/show_aliases"
 	showAliasesApi "github.com/jusoaresg/gorgon/internal/show_aliases/api"
+	"github.com/jusoaresg/gorgon/internal/show_settings"
+	showSettingsApi "github.com/jusoaresg/gorgon/internal/show_settings/api"
 
 	"github.com/labstack/echo/v4"
 )
 
-func SetupDatabaseRouter(v1 *echo.Group, deps *show.Dependencies, episodeDeps *episode.Dependencies, seasonDeps *season.Dependencies, indexerDeps *indexer.Dependencies, showAliasesDeps *show_aliases.Dependencies) {
+func SetupDatabaseRouter(v1 *echo.Group, deps *show.Dependencies, episodeDeps *episode.Dependencies, seasonDeps *season.Dependencies, indexerDeps *indexer.Dependencies, showAliasesDeps *show_aliases.Dependencies, filterProfileDeps *filter_profile.Dependencies, showSettingsDeps *show_settings.Dependencies, filterSettingsDeps *filter_settings.Dependencies) {
 	logger := config.GetLogger()
 
 	showHandler := showApi.NewHandler(deps)
@@ -26,6 +32,9 @@ func SetupDatabaseRouter(v1 *echo.Group, deps *show.Dependencies, episodeDeps *e
 	seasonHandler := seasonApi.NewHandler(seasonDeps)
 	indexerHandler := indexerApi.NewHandler(indexerDeps)
 	showAliasesHandler := showAliasesApi.NewHandler(showAliasesDeps)
+	filterProfileHandler := filterProfileApi.NewHandler(filterProfileDeps)
+	showSettingsHandler := showSettingsApi.NewHandler(showSettingsDeps)
+	filterSettingsHandler := filterSettingsApi.NewHandler(filterSettingsDeps)
 
 	listGroup := v1.Group("database/")
 	{
@@ -75,11 +84,53 @@ func SetupDatabaseRouter(v1 *echo.Group, deps *show.Dependencies, episodeDeps *e
 				aliasGroup.GET("/:id", showAliasesHandler.GetShowAliases)
 			}
 
+			showGroup.POST("/:id/alias", showAliasesHandler.AddShowAlias)
+			logger.Info("POST route added to /api/v1/database/show/:id/alias")
+
+			showGroup.DELETE("/:id/alias/:aliasId", showAliasesHandler.DeleteShowAlias)
+			logger.Info("DELETE route added to /api/v1/database/show/:id/alias/:aliasId")
+
 			seasonsGroup := showGroup.Group("/season")
 			{
 				seasonsGroup.GET("/:id", seasonHandler.GetShowSeasons)
 				logger.Info("GET route added to /api/v1/database/show/season/:id")
 			}
+		}
+
+		filterProfileGroup := listGroup.Group("filter-profile")
+		{
+			filterProfileGroup.POST("", filterProfileHandler.CreateFilterProfile)
+			logger.Info("POST route added to /api/v1/database/filter-profile")
+
+			filterProfileGroup.GET("", filterProfileHandler.ListFilterProfiles)
+			logger.Info("GET route added to /api/v1/database/filter-profile")
+
+			filterProfileGroup.GET("/:id", filterProfileHandler.GetFilterProfile)
+			logger.Info("GET route added to /api/v1/database/filter-profile/:id")
+
+			filterProfileGroup.PUT("/:id", filterProfileHandler.UpdateFilterProfile)
+			logger.Info("PUT route added to /api/v1/database/filter-profile/:id")
+
+			filterProfileGroup.DELETE("/:id", filterProfileHandler.DeleteFilterProfile)
+			logger.Info("DELETE route added to /api/v1/database/filter-profile/:id")
+		}
+
+		showSettingsGroup := listGroup.Group("show-settings")
+		{
+			showSettingsGroup.GET("/:id", showSettingsHandler.GetShowSettings)
+			logger.Info("GET route added to /api/v1/database/show-settings/:id")
+
+			showSettingsGroup.PUT("/:id", showSettingsHandler.UpdateShowSettings)
+			logger.Info("PUT route added to /api/v1/database/show-settings/:id")
+		}
+
+		filterSettingsGroup := listGroup.Group("filter-settings")
+		{
+			filterSettingsGroup.GET("", filterSettingsHandler.GetFilterSettings)
+			logger.Info("GET route added to /api/v1/database/filter-settings")
+
+			filterSettingsGroup.PATCH("", filterSettingsHandler.UpdateFilterSettings)
+			logger.Info("PATCH route added to /api/v1/database/filter-settings")
 		}
 
 		indexerGroup := listGroup.Group("indexer")

@@ -46,7 +46,7 @@ func InitializeRoutes(e *echo.Echo, deps *app.Dependencies) {
 	SetupTvMazeRouter(v1)
 	logger.Debug("TvMaze route initialized successfully")
 
-	SetupDatabaseRouter(v1, deps.Show, deps.Episode, deps.Season, deps.Indexer, deps.ShowAliases)
+	SetupDatabaseRouter(v1, deps.Show, deps.Episode, deps.Season, deps.Indexer, deps.ShowAliases, deps.FilterProfile, deps.ShowSettings, deps.FilterSettings)
 	logger.Debug("Database route initialized successfully")
 
 	SetupProwlarrRouter(v1)
