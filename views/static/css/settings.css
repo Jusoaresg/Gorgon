@@ -151,16 +151,55 @@
     line-height: 1;
 }
 
-.checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    cursor: pointer;
+.help-box {
+    background-color: var(--tertiary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
 }
 
-.checkbox-label input {
-    width: auto;
-    accent-color: var(--accent-purple);
+.help-box summary {
+    cursor: pointer;
+    color: var(--text-primary);
+    font-weight: 600;
+    outline: none;
+}
+
+.help-box p {
+    margin: 0.5rem 0;
+}
+
+.help-box code {
+    background-color: var(--primary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.1rem 0.35rem;
+    color: var(--accent-purple);
+    font-size: 0.8rem;
+}
+
+.help-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.5rem 0;
+}
+
+.help-table td {
+    padding: 0.3rem 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+}
+
+.help-table td:first-child {
+    white-space: nowrap;
+    width: 1%;
+}
+
+.help-table tr:last-child td {
+    border-bottom: none;
 }
 
 .profile-list {

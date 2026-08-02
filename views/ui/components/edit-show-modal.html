@@ -1,10 +1,13 @@
 {{ define "edit-show-modal" }}
 <div id="modal-container" class="modal-overlay">
     <div class="modal-content">
-        
+
         <!-- Header -->
         <div class="modal-header">
-            <h3 class="modal-title">Edit Series</h3>
+            <div>
+                <h3 class="modal-title">Edit Series</h3>
+                <span class="modal-subtitle">{{ .Show.Name }}</span>
+            </div>
             <button class="btn-close-modal" onclick="document.getElementById('modal-container').remove()">
                 <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
@@ -12,39 +15,93 @@
 
         <!-- Body -->
         <div class="modal-body">
-            <form id="edit-show-form">
-                
-                <!-- Path (Static) -->
-                <!-- <div class="modal-form-group"> -->
-                <!--     <label>Path</label> -->
-                <!--     <input type="text" class="modal-input-static" value="/data/media/tv/The Last of Us" readonly> -->
-                <!-- </div> -->
+            <form
+                id="edit-show-form"
+                hx-put="/api/v1/database/show-settings/{{ .Show.ID }}"
+                hx-ext="json-enc-custom"
+                hx-swap="none"
+                hx-on::after-request="showToast(event); if (event.detail.successful) document.getElementById('modal-container').remove()"
+            >
+                <div class="modal-form-group">
+                    <label>Filter Profile</label>
+                    <select class="modal-select" name="filter_profile_id">
+                        <option value="">Default profile</option>
+                        {{ range .Profiles }}
+                        <option value="{{ .ID }}" {{ if and $.Settings.FilterProfileID (eq (derefInt64 $.Settings.FilterProfileID) .ID) }}selected{{ end }}>{{ .Name }}</option>
+                        {{ end }}
+                    </select>
+                </div>
 
-                <!-- Quality Profile -->
-                <!-- <div class="modal-form-group"> -->
-                <!--     <label>Quality Profile</label> -->
-                <!--     <select class="modal-select"> -->
-                <!--         <option value="hd-1080p" selected>HD - 1080p</option> -->
-                <!--         <option value="sd">SD - 480p</option> -->
-                <!--         <option value="ultra">Ultra HD - 4k</option> -->
-                <!--     </select> -->
-                <!-- </div> -->
+                <div class="modal-form-group">
+                    <label class="toggle">
+                        <input type="checkbox" name="use_aliases" value="true" {{ if .Settings.UseAliases }}checked{{ end }}>
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">
+                            <span>Use aliases when searching</span>
+                            <small>Search for releases using the show aliases too</small>
+                        </span>
+                    </label>
+                </div>
 
+                <div class="modal-form-group">
+                    <label class="toggle">
+                        <input type="checkbox" name="only_latin" value="true" {{ if .Settings.OnlyLatin }}checked{{ end }}>
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">
+                            <span>Ignore non-latin aliases</span>
+                            <small>Skip aliases with non-latin characters when searching</small>
+                        </span>
+                    </label>
+                </div>
             </form>
+
+            <div class="modal-alias-manager">
+                <h4>Custom Aliases</h4>
+                {{ if .Aliases }}
+                <ul class="alias-manage-list">
+                    {{ range $alias := .Aliases }}
+                    <li class="alias-manage-item">
+                        <span>{{ $alias.Alias }}</span>
+                        {{ if eq $alias.Source "user" }}
+                        <button
+                            class="btn-text-danger"
+                            hx-delete="/api/v1/database/show/{{ $.Show.ID }}/alias/{{ $alias.ID }}"
+                            hx-swap="none"
+                            hx-confirm="Delete alias '{{ $alias.Alias }}'?"
+                            hx-on::after-request="showToast(event); if (event.detail.successful) this.closest('.alias-manage-item').remove()"
+                        >Delete</button>
+                        {{ else }}
+                        <span class="alias-source">synced</span>
+                        {{ end }}
+                    </li>
+                    {{ end }}
+                </ul>
+                {{ else }}
+                <p class="text-secondary">No aliases yet.</p>
+                {{ end }}
+
+                <form
+                    class="alias-add-form"
+                    hx-post="/api/v1/database/show/{{ .Show.ID }}/alias"
+                    hx-ext="json-enc-custom"
+                    hx-swap="none"
+                    hx-on::after-request="showToast(event); if (event.detail.successful) { this.querySelector('input').value=''; window.location.reload(); }"
+                >
+                    <input type="text" name="alias" placeholder="Add a custom alias">
+                    <button class="btn btn-outline btn-sm" type="submit">Add</button>
+                </form>
+            </div>
         </div>
 
         <!-- Footer -->
         <div class="modal-footer">
-            <!-- Left: Danger Zone (Delete) -->
-            <button class="btn btn-danger" onclick="alert('Delete triggered!')" hx-delete="/api/v1/database/show/{{ . }}">
+            <button class="btn btn-danger" hx-delete="/api/v1/database/show/{{ .Show.ID }}">
                 Delete Series
             </button>
-
-            <!-- Right: Save Actions -->
-            <!-- <div class="footer-actions-right"> -->
-            <!--     <button class="btn btn-outline" type="button" onclick="document.getElementById('modal-container').remove()">Cancel</button> -->
-            <!--     <button class="btn btn-primary" type="submit" form="edit-show-form">Save Changes</button> -->
-            <!-- </div> -->
+            <div class="footer-actions-right">
+                <button class="btn btn-outline" type="button" onclick="document.getElementById('modal-container').remove()">Cancel</button>
+                <button class="btn btn-primary" type="submit" form="edit-show-form">Save Changes</button>
+            </div>
         </div>
     </div>
 </div>

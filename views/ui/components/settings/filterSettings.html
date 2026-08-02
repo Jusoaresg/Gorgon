@@ -29,19 +29,25 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="checkbox-label">
+                    <label class="toggle">
                         <input type="checkbox" name="use_aliases" value="true" {{ if .FilterSettings.UseAliases }}checked{{ end }}>
-                        Use aliases when searching
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">
+                            <span>Use aliases when searching</span>
+                            <small>Search for releases using the show aliases too</small>
+                        </span>
                     </label>
-                    <small>Search for releases using the show aliases too</small>
                 </div>
 
                 <div class="form-group">
-                    <label class="checkbox-label">
+                    <label class="toggle">
                         <input type="checkbox" name="only_latin" value="true" {{ if .FilterSettings.OnlyLatin }}checked{{ end }}>
-                        Ignore non-latin aliases
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">
+                            <span>Ignore non-latin aliases</span>
+                            <small>Skip aliases with non-latin characters when searching</small>
+                        </span>
                     </label>
-                    <small>Skip aliases with non-latin characters when searching</small>
                 </div>
 
                 <div class="form-actions">
@@ -63,6 +69,22 @@
             </div>
         </div>
         <div class="section-body">
+            <details class="help-box">
+                <summary>Placeholder reference</summary>
+                <p>Patterns can use placeholders that are replaced with the show's data. A number placeholder can include a zero-pad width, e.g. <code>{season:00}</code>.</p>
+                <table class="help-table">
+                    <tr><td><code>{alias}</code></td><td>Show name or alias used for the search</td></tr>
+                    <tr><td><code>{show}</code></td><td>Canonical show name</td></tr>
+                    <tr><td><code>{season}</code></td><td>Season number</td></tr>
+                    <tr><td><code>{episode}</code></td><td>Episode number</td></tr>
+                    <tr><td><code>{season:00}</code></td><td>Season number zero-padded, e.g. <code>01</code></td></tr>
+                    <tr><td><code>{episode:00}</code></td><td>Episode number zero-padded, e.g. <code>05</code></td></tr>
+                    <tr><td><code>{absolute}</code></td><td>Reserved, not implemented yet</td></tr>
+                </table>
+                <p>Example: <code>{alias} S{season:00}E{episode:00}</code> becomes <code>dbz S01E04</code>.</p>
+                <p><code>search</code> patterns build the Prowlarr query; <code>required</code>, <code>rejected</code> and <code>preferred</code> patterns are matched against the release filename.</p>
+            </details>
+
             {{ if .Profiles }}
             <div class="profile-list">
                 {{ range .Profiles }}

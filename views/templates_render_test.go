@@ -8,7 +8,9 @@ import (
 	"github.com/jusoaresg/gorgon/internal/downloads/service"
 	filterProfileModel "github.com/jusoaresg/gorgon/internal/filter_profile/model"
 	filterSettingsModel "github.com/jusoaresg/gorgon/internal/filter_settings/model"
-	showService "github.com/jusoaresg/gorgon/internal/show/service"
+	showModel "github.com/jusoaresg/gorgon/internal/show/model"
+	showAliasModel "github.com/jusoaresg/gorgon/internal/show_aliases/model"
+	showSettingsModel "github.com/jusoaresg/gorgon/internal/show_settings/model"
 )
 
 type renderData struct {
@@ -151,6 +153,9 @@ func TestRenderFilterSettings(t *testing.T) {
 		"Save Profile",
 		"only_latin",
 		"json-enc-custom",
+		"Placeholder reference",
+		"{season:00}",
+		"{absolute}",
 	} {
 		if !bytes.Contains(buf.Bytes(), []byte(want)) {
 			t.Errorf("rendered output missing %q", want)
@@ -158,33 +163,54 @@ func TestRenderFilterSettings(t *testing.T) {
 	}
 }
 
-func TestRenderShowFilteringSection(t *testing.T) {
+func TestRenderEditShowModal(t *testing.T) {
 	tmpl := NewTemplate()
 
 	profileID := int64(1)
-	show := showService.AggregatedShow{}
-	show.Show.ID = 42
-	show.Show.Name = "Dragon Ball"
-	show.Show.ImageOriginal = "https://example.com/img.jpg"
-	show.Show.Status = "running"
-	show.FilterProfileID = &profileID
-	show.UseAliases = true
-	show.OnlyLatin = true
-	show.FilterProfiles = []filterProfileModel.FilterProfile{
-		{ID: 1, Name: "HD"},
+	data := struct {
+		Show     showModel.Show
+		Profiles []filterProfileModel.FilterProfile
+		Settings showSettingsModel.ShowSettings
+		Aliases  []showAliasModel.ShowAlias
+	}{
+		Show: showModel.Show{
+			ID:   42,
+			Name: "Dragon Ball",
+		},
+		Profiles: []filterProfileModel.FilterProfile{
+			{ID: 1, Name: "HD"},
+			{ID: 2, Name: "SD"},
+		},
+		Settings: showSettingsModel.ShowSettings{
+			FilterProfileID: &profileID,
+			UseAliases:      true,
+			OnlyLatin:       true,
+		},
+		Aliases: []showAliasModel.ShowAlias{
+			{ID: 1, Alias: "DBZ", Source: "user"},
+			{ID: 2, Alias: "ドラゴンボール", Source: "tvmaze"},
+		},
 	}
 
 	var buf bytes.Buffer
-	if err := tmpl.templates.ExecuteTemplate(&buf, "show", PageData{Data: show}); err != nil {
-		t.Fatalf("failed to render show: %v", err)
+	if err := tmpl.templates.ExecuteTemplate(&buf, "edit-show-modal", data); err != nil {
+		t.Fatalf("failed to render edit-show-modal: %v", err)
 	}
 
 	for _, want := range []string{
-		"Filtering",
-		"/api/v1/database/show-settings/42",
-		"Custom Aliases",
-		"filter_profile_id",
+		"Edit Series",
 		"Dragon Ball",
+		"/api/v1/database/show-settings/42",
+		"filter_profile_id",
+		"use_aliases",
+		"only_latin",
+		"DBZ",
+		"Delete",
+		"ドラゴンボール",
+		"synced",
+		"Custom Aliases",
+		"Delete Series",
+		"Save Changes",
 	} {
 		if !bytes.Contains(buf.Bytes(), []byte(want)) {
 			t.Errorf("rendered output missing %q", want)

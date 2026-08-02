@@ -210,6 +210,125 @@
     box-shadow: 0 0 0 1px var(--text-muted);
 }
 
+.modal-alias-manager {
+    border-top: 1px solid var(--border-color);
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+}
+
+.modal-alias-manager h4 {
+    margin-bottom: 0.5rem;
+}
+
+.alias-manage-list {
+    list-style: none;
+    margin: 0 0 1rem;
+    padding: 0;
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+.alias-manage-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background-color: var(--tertiary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+}
+
+.alias-manage-item .btn-text-danger {
+    background: none;
+    border: none;
+    color: var(--danger);
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.alias-source {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.alias-add-form {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.alias-add-form input {
+    flex: 1;
+}
+
+.toggle {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggle input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: relative;
+    flex-shrink: 0;
+    width: 40px;
+    height: 22px;
+    margin-top: 1px;
+    background-color: var(--tertiary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.toggle-slider::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background-color: var(--text-secondary);
+    border-radius: 50%;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.toggle input:checked+.toggle-slider {
+    background-color: var(--accent-purple);
+    border-color: var(--accent-purple);
+}
+
+.toggle input:checked+.toggle-slider::after {
+    transform: translateX(18px);
+    background-color: white;
+}
+
+.toggle input:focus-visible+.toggle-slider {
+    outline: 2px solid var(--accent-purple);
+    outline-offset: 2px;
+}
+
+.toggle-label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+.toggle-label small {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;

@@ -3,9 +3,7 @@ package web
 import (
 	"bufio"
 	"compress/gzip"
-	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -22,8 +20,6 @@ import (
 	filterSettingsModel "github.com/jusoaresg/gorgon/internal/filter_settings/model"
 	filterSettingsRepository "github.com/jusoaresg/gorgon/internal/filter_settings/repository"
 	"github.com/jusoaresg/gorgon/internal/show/service"
-	showSettingsModel "github.com/jusoaresg/gorgon/internal/show_settings/model"
-	showSettingsRepository "github.com/jusoaresg/gorgon/internal/show_settings/repository"
 	"github.com/jusoaresg/gorgon/views"
 	"github.com/labstack/echo/v4"
 )
@@ -87,37 +83,6 @@ func (h *Handler) ShowRoute(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-
-	profileRepo := filterProfileRepository.NewFilterProfileRepository(h.DB)
-	profiles, err := profileRepo.List()
-	if err != nil {
-		return err
-	}
-
-	settingsRepo := filterSettingsRepository.NewFilterSettingsRepository(h.DB)
-	global, err := settingsRepo.Get()
-	if err != nil {
-		return err
-	}
-
-	showSettingsRepo := showSettingsRepository.NewShowSettingsRepository(h.DB)
-	stored, err := showSettingsRepo.GetByShowID(showId)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			stored = showSettingsModel.ShowSettings{
-				FilterProfileID: global.DefaultFilterProfileID,
-				UseAliases:      global.UseAliases,
-				OnlyLatin:       global.OnlyLatin,
-			}
-		} else {
-			return err
-		}
-	}
-
-	show.FilterProfiles = profiles
-	show.FilterProfileID = stored.FilterProfileID
-	show.UseAliases = stored.UseAliases
-	show.OnlyLatin = stored.OnlyLatin
 
 	return views.Render(c, views.View{
 		Layout:  "layout",

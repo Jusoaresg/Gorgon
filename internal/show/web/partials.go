@@ -1,6 +1,8 @@
 package web
 
 import (
+	"database/sql"
+	"errors"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -11,11 +13,18 @@ import (
 	tvMazeService "github.com/jusoaresg/gorgon/external/tvmaze/service"
 	episodeModel "github.com/jusoaresg/gorgon/internal/episode/model"
 	episodeRepository "github.com/jusoaresg/gorgon/internal/episode/repository"
+	filterProfileModel "github.com/jusoaresg/gorgon/internal/filter_profile/model"
+	filterProfileRepository "github.com/jusoaresg/gorgon/internal/filter_profile/repository"
+	filterSettingsRepository "github.com/jusoaresg/gorgon/internal/filter_settings/repository"
 	seasonModel "github.com/jusoaresg/gorgon/internal/season/model"
 	seasonRepository "github.com/jusoaresg/gorgon/internal/season/repository"
 	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
 	showSchema "github.com/jusoaresg/gorgon/internal/show/schema"
 	showManager "github.com/jusoaresg/gorgon/internal/show/service"
+	showAliasModel "github.com/jusoaresg/gorgon/internal/show_aliases/model"
+	showModel "github.com/jusoaresg/gorgon/internal/show/model"
+	showSettingsModel "github.com/jusoaresg/gorgon/internal/show_settings/model"
+	showSettingsRepository "github.com/jusoaresg/gorgon/internal/show_settings/repository"
 	"github.com/jusoaresg/gorgon/pkg/schemas"
 	"github.com/jusoaresg/gorgon/pkg/schemas/dtos"
 	"github.com/jusoaresg/gorgon/pkg/services"
@@ -166,9 +175,58 @@ func (h *Handler) AddShowHTMX(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+type editShowModalData struct {
+	Show     showModel.Show
+	Profiles []filterProfileModel.FilterProfile
+	Settings showSettingsModel.ShowSettings
+	Aliases  []showAliasModel.ShowAlias
+}
+
 func (h *Handler) EditShowModalHTMX(c echo.Context) error {
-	id := c.Param("id")
-	return c.Render(http.StatusOK, "edit-show-modal", id)
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		return err
+	}
+
+	show, err := h.AggregatorService.GetShowWithRelationsById(id)
+	if err != nil {
+		return err
+	}
+
+	profileRepo := filterProfileRepository.NewFilterProfileRepository(h.DB)
+	profiles, err := profileRepo.List()
+	if err != nil {
+		return err
+	}
+
+	settingsRepo := filterSettingsRepository.NewFilterSettingsRepository(h.DB)
+	global, err := settingsRepo.Get()
+	if err != nil {
+		return err
+	}
+
+	showSettingsRepo := showSettingsRepository.NewShowSettingsRepository(h.DB)
+	stored, err := showSettingsRepo.GetByShowID(id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			stored = showSettingsModel.ShowSettings{
+				FilterProfileID: global.DefaultFilterProfileID,
+				UseAliases:      global.UseAliases,
+				OnlyLatin:       global.OnlyLatin,
+			}
+		} else {
+			return err
+		}
+	}
+
+	data := editShowModalData{
+		Show:     show.Show,
+		Profiles: profiles,
+		Settings: stored,
+		Aliases:  show.ShowAliases,
+	}
+
+	return c.Render(http.StatusOK, "edit-show-modal", data)
 }
 
 type seasonModal struct {
