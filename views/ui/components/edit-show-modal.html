@@ -1,6 +1,6 @@
 {{ define "edit-show-modal" }}
 <div id="modal-container" class="modal-overlay">
-    <div class="modal-content">
+    <div class="modal-content modal-lg">
 
         <!-- Header -->
         <div class="modal-header">
@@ -14,80 +14,107 @@
         </div>
 
         <!-- Body -->
-        <div class="modal-body">
-            <form
-                id="edit-show-form"
-                hx-put="/api/v1/database/show-settings/{{ .Show.ID }}"
-                hx-ext="json-enc-custom"
-                parse-types="true"
-                empty-as-null="true"
-                hx-swap="none"
-                hx-on::after-request="showToast(event); if (event.detail.successful) document.getElementById('modal-container').remove()"
-            >
-                <div class="modal-form-group">
-                    <label>Filter Profile</label>
-                    <select class="modal-select" name="filter_profile_id">
-                        <option value="">Default profile</option>
-                        {{ range .Profiles }}
-                        <option value="{{ .ID }}" {{ if and $.Settings.FilterProfileID (eq (derefInt64 $.Settings.FilterProfileID) .ID) }}selected{{ end }}>{{ .Name }}</option>
-                        {{ end }}
-                    </select>
-                </div>
-
-                <div class="modal-form-group">
-                    <label class="checkbox">
-                        <input type="checkbox" name="use_aliases" value="true" {{ if .Settings.UseAliases }}checked{{ end }}>
-                        <span class="checkbox-box"></span>
-                        <span class="checkbox-title">Use aliases when searching</span>
-                        <small>Search for releases using the show aliases too</small>
-                    </label>
-                </div>
-
-                <div class="modal-form-group">
-                    <label class="checkbox">
-                        <input type="checkbox" name="only_latin" value="true" {{ if .Settings.OnlyLatin }}checked{{ end }}>
-                        <span class="checkbox-box"></span>
-                        <span class="checkbox-title">Ignore non-latin aliases</span>
-                        <small>Skip aliases with non-latin characters when searching</small>
-                    </label>
-                </div>
-            </form>
-
-            <div class="modal-alias-manager">
-                <h4>Custom Aliases</h4>
-                {{ if .Aliases }}
-                <ul class="alias-manage-list">
-                    {{ range $alias := .Aliases }}
-                    <li class="alias-manage-item">
-                        <span>{{ $alias.Alias }}</span>
-                        {{ if eq $alias.Source "user" }}
-                        <button
-                            class="btn-text-danger"
-                            hx-delete="/api/v1/database/show/{{ $.Show.ID }}/alias/{{ $alias.ID }}"
-                            hx-swap="none"
-                            hx-confirm="Delete alias '{{ $alias.Alias }}'?"
-                            hx-on::after-request="showToast(event); if (event.detail.successful) this.closest('.alias-manage-item').remove()"
-                        >Delete</button>
-                        {{ else }}
-                        <span class="alias-source">synced</span>
-                        {{ end }}
-                    </li>
-                    {{ end }}
-                </ul>
-                {{ else }}
-                <p class="text-secondary">No aliases yet.</p>
-                {{ end }}
-
+        <div class="modal-body modal-lg-body">
+            <div class="modal-layout">
+                <aside class="modal-sidebar">
+                    <nav class="modal-sections">
+                        <button type="button" class="modal-section-item active" data-section="filters">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                            Filters
+                        </button>
+                    </nav>
+                </aside>
+                <div class="modal-main">
                 <form
-                    class="alias-add-form"
-                    hx-post="/api/v1/database/show/{{ .Show.ID }}/alias"
-                    hx-ext="json-enc-custom"
-                    hx-swap="none"
-                    hx-on::after-request="showToast(event); handleAliasAdded(event)"
+                    id="edit-show-form"
+                    data-show-id="{{ .Show.ID }}"
                 >
-                    <input type="text" name="alias" placeholder="Add a custom alias">
-                    <button class="btn btn-outline btn-sm" type="submit">Add</button>
+                    <div class="modal-form-group">
+                        <label>Filter Profile</label>
+                        <select class="modal-select" name="filter_profile_id">
+                            <option value="">Default profile</option>
+                            {{ range .Profiles }}
+                            <option value="{{ .ID }}" {{ if and $.Settings.FilterProfileID (eq (derefInt64 $.Settings.FilterProfileID) .ID) }}selected{{ end }}>{{ .Name }}</option>
+                            {{ end }}
+                        </select>
+                        <small class="modal-input-help">The profile holds the shared gates and search patterns used by default.</small>
+                    </div>
+
+                    <div class="modal-form-group">
+                        <label class="checkbox">
+                            <input type="checkbox" name="use_aliases" value="true" {{ if .Settings.UseAliases }}checked{{ end }}>
+                            <span class="checkbox-box"></span>
+                            <span class="checkbox-title">Use aliases when searching</span>
+                            <small>Search for releases using the show aliases too</small>
+                        </label>
+                    </div>
+
+                    <div class="modal-form-group">
+                        <label class="checkbox">
+                            <input type="checkbox" name="only_latin" value="true" {{ if .Settings.OnlyLatin }}checked{{ end }}>
+                            <span class="checkbox-box"></span>
+                            <span class="checkbox-title">Ignore non-latin aliases</span>
+                            <small>Skip aliases with non-latin characters when searching</small>
+                        </label>
+                    </div>
+
+                    <div class="modal-form-group">
+                        <label>Search Patterns</label>
+                        <div class="pattern-item-default">
+                            <span class="pattern-tag">default</span>
+                            <code>{alias} S{season:00}E{episode:00}</code>
+                            <small>Fallback when nothing overrides it</small>
+                        </div>
+                        <div id="show-search-pattern-rows">
+                            {{ range .SearchPatterns }}
+                            <div class="search-pattern-row">
+                                <input type="text" class="search-pattern-value" placeholder="{alias} S{season:00}E{episode:00}..." value="{{ . }}">
+                                <button type="button" class="btn-text-danger" onclick="this.closest('.search-pattern-row').remove()">&times;</button>
+                            </div>
+                            {{ end }}
+                        </div>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="addShowSearchPatternRow()">+ Add Search Pattern</button>
+                        <small class="modal-input-help">Search queries specific to this show. Combined with the profile's search patterns; each becomes a Prowlarr query.</small>
+                    </div>
                 </form>
+
+                <div class="modal-alias-manager">
+                    <h4>Custom Aliases</h4>
+                    {{ if .Aliases }}
+                    <ul class="alias-manage-list">
+                        {{ range $alias := .Aliases }}
+                        <li class="alias-manage-item">
+                            <span>{{ $alias.Alias }}</span>
+                            {{ if eq $alias.Source "user" }}
+                            <button
+                                class="btn-text-danger"
+                                hx-delete="/api/v1/database/show/{{ $.Show.ID }}/alias/{{ $alias.ID }}"
+                                hx-swap="none"
+                                hx-confirm="Delete alias '{{ $alias.Alias }}'?"
+                                hx-on::after-request="showToast(event); if (event.detail.successful) this.closest('.alias-manage-item').remove()"
+                            >Delete</button>
+                            {{ else }}
+                            <span class="alias-source">synced</span>
+                            {{ end }}
+                        </li>
+                        {{ end }}
+                    </ul>
+                    {{ else }}
+                    <p class="text-secondary">No aliases yet.</p>
+                    {{ end }}
+
+                    <form
+                        class="alias-add-form"
+                        hx-post="/api/v1/database/show/{{ .Show.ID }}/alias"
+                        hx-ext="json-enc-custom"
+                        hx-swap="none"
+                        hx-on::after-request="showToast(event); handleAliasAdded(event)"
+                    >
+                        <input type="text" name="alias" placeholder="Add a custom alias">
+                        <button class="btn btn-outline btn-sm" type="submit">Add</button>
+                    </form>
+                </div>
+                </div>
             </div>
         </div>
 

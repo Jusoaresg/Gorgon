@@ -171,10 +171,11 @@ func TestRenderEditShowModal(t *testing.T) {
 
 	profileID := int64(1)
 	data := struct {
-		Show     showModel.Show
-		Profiles []filterProfileModel.FilterProfile
-		Settings showSettingsModel.ShowSettings
-		Aliases  []showAliasModel.ShowAlias
+		Show           showModel.Show
+		Profiles       []filterProfileModel.FilterProfile
+		Settings       showSettingsModel.ShowSettings
+		SearchPatterns []string
+		Aliases        []showAliasModel.ShowAlias
 	}{
 		Show: showModel.Show{
 			ID:   42,
@@ -188,6 +189,10 @@ func TestRenderEditShowModal(t *testing.T) {
 			FilterProfileID: &profileID,
 			UseAliases:      true,
 			OnlyLatin:       true,
+		},
+		SearchPatterns: []string{
+			"{alias} 4k",
+			"{alias} 1080p",
 		},
 		Aliases: []showAliasModel.ShowAlias{
 			{ID: 1, Alias: "DBZ", Source: "user"},
@@ -203,12 +208,18 @@ func TestRenderEditShowModal(t *testing.T) {
 	for _, want := range []string{
 		"Edit Series",
 		"Dragon Ball",
-		"/api/v1/database/show-settings/42",
+		"modal-content modal-lg",
+		"modal-layout",
+		"modal-sidebar",
+		"modal-section-item",
+		"data-section=\"filters\"",
+		"data-show-id=\"42\"",
 		"filter_profile_id",
 		"use_aliases",
 		"only_latin",
-		"parse-types",
-		"empty-as-null",
+		"Search Patterns",
+		"show-search-pattern-rows",
+		"addShowSearchPatternRow",
 		"checkbox-box",
 		"handleAliasAdded",
 		"DBZ",
@@ -218,6 +229,9 @@ func TestRenderEditShowModal(t *testing.T) {
 		"Custom Aliases",
 		"Delete Series",
 		"Save Changes",
+		"{alias} S{season:00}E{episode:00}",
+		"{alias} 4k",
+		"{alias} 1080p",
 	} {
 		if !bytes.Contains(buf.Bytes(), []byte(want)) {
 			t.Errorf("rendered output missing %q", want)

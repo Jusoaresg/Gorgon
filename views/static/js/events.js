@@ -273,6 +273,80 @@
         };
     }
 
+    function addShowSearchPatternRow(pattern) {
+        var container = document.getElementById('show-search-pattern-rows');
+        if (!container) return;
+
+        var row = document.createElement('div');
+        row.className = 'search-pattern-row';
+
+        var valueInput = document.createElement('input');
+        valueInput.type = 'text';
+        valueInput.className = 'search-pattern-value';
+        valueInput.placeholder = '{alias} S{season:00}E{episode:00}...';
+        valueInput.value = pattern || '';
+
+        var removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'btn-text-danger';
+        removeBtn.textContent = '\u00d7';
+        removeBtn.addEventListener('click', function () { row.remove(); });
+
+        row.appendChild(valueInput);
+        row.appendChild(removeBtn);
+        container.appendChild(row);
+    }
+
+    function collectShowSearchPatterns() {
+        var patterns = [];
+        document.querySelectorAll('#show-search-pattern-rows .search-pattern-row').forEach(function (row) {
+            var value = row.querySelector('.search-pattern-value').value.trim();
+            if (value) patterns.push(value);
+        });
+        return patterns;
+    }
+
+    function saveShowSettings(form) {
+        var showId = form.dataset.showId;
+        if (!showId) return;
+
+        var payload = {
+            filter_profile_id: form.querySelector('[name=filter_profile_id]').value || null,
+            use_aliases: form.querySelector('[name=use_aliases]').checked,
+            only_latin: form.querySelector('[name=only_latin]').checked,
+            search_patterns: collectShowSearchPatterns()
+        };
+
+        fetch('/api/v1/database/show-settings/' + showId, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+            .then(function (resp) {
+                return resp.json().then(function (body) { return { ok: resp.ok, body: body }; });
+            })
+            .then(function (result) {
+                if (result.ok) {
+                    displayToast((result.body && result.body.message) || 'Settings saved', 'success');
+                    var container = form.closest('#modal-container');
+                    if (container) container.remove();
+                } else {
+                    displayToast((result.body && result.body.message) || 'Failed to save settings', 'error');
+                }
+            })
+            .catch(function () {
+                displayToast('Failed to save settings', 'error');
+            });
+    }
+
+    document.addEventListener('submit', function (event) {
+        var form = event.target;
+        if (form && form.id === 'edit-show-form') {
+            event.preventDefault();
+            saveShowSettings(form);
+        }
+    });
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', connect);
     } else {
@@ -282,4 +356,5 @@
     window.showToast = showToast;
     window.toast = displayToast;
     window.handleAliasAdded = handleAliasAdded;
+    window.addShowSearchPatternRow = addShowSearchPatternRow;
 })();
