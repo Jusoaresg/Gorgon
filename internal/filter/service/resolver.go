@@ -12,6 +12,7 @@ import (
 	filterSettingsRepository "github.com/jusoaresg/gorgon/internal/filter_settings/repository"
 	showModel "github.com/jusoaresg/gorgon/internal/show/model"
 	showAliasRepository "github.com/jusoaresg/gorgon/internal/show_aliases/repository"
+	showSearchPatternsRepository "github.com/jusoaresg/gorgon/internal/show_search_patterns/repository"
 	showSettingsRepository "github.com/jusoaresg/gorgon/internal/show_settings/repository"
 	"github.com/jusoaresg/gorgon/utils"
 )
@@ -20,11 +21,13 @@ var latinRegex = regexp.MustCompile(`^[a-zA-Z0-9\s\-_!?',.:]+$`)
 
 // EffectiveSettings is the resolved filtering configuration for a show,
 // merging per-show settings over the global defaults. A show_settings row
-// fully overrides the global toggles and, when present, the profile.
+// fully overrides the global toggles and, when present, the profile. The
+// per-show search patterns are combined with the profile's search patterns.
 type EffectiveSettings struct {
 	FilterProfileID *int64
 	UseAliases      bool
 	OnlyLatin       bool
+	SearchPatterns  []string
 }
 
 func ResolveSettings(db *sqlx.DB, showID int64) (EffectiveSettings, error) {
@@ -44,33 +47,55 @@ func ResolveSettings(db *sqlx.DB, showID int64) (EffectiveSettings, error) {
 	showSettingsRepo := showSettingsRepository.NewShowSettingsRepository(db)
 	showSettings, err := showSettingsRepo.GetByShowID(showID)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return settings, nil
+		if !errors.Is(err, sql.ErrNoRows) {
+			return EffectiveSettings{}, err
 		}
-		return EffectiveSettings{}, err
+	} else {
+		if showSettings.FilterProfileID != nil {
+			settings.FilterProfileID = showSettings.FilterProfileID
+		}
+		settings.UseAliases = showSettings.UseAliases
+		settings.OnlyLatin = showSettings.OnlyLatin
 	}
 
-	if showSettings.FilterProfileID != nil {
-		settings.FilterProfileID = showSettings.FilterProfileID
+	searchPatternsRepo := showSearchPatternsRepository.NewShowSearchPatternsRepository(db)
+	searchPatterns, err := searchPatternsRepo.GetByShowID(showID)
+	if err != nil {
+		return EffectiveSettings{}, err
 	}
-	settings.UseAliases = showSettings.UseAliases
-	settings.OnlyLatin = showSettings.OnlyLatin
+	settings.SearchPatterns = searchPatterns
 
 	return settings, nil
 }
 
 func ResolveProfile(db *sqlx.DB, settings EffectiveSettings) (*filter.Profile, error) {
-	if settings.FilterProfileID == nil {
+	profile := &filter.Profile{}
+
+	if settings.FilterProfileID != nil {
+		profileRepo := filterProfileRepository.NewFilterProfileRepository(db)
+		profileModel, patterns, err := profileRepo.GetByID(*settings.FilterProfileID)
+		if err != nil {
+			return nil, err
+		}
+		base := ToProfile(profileModel, patterns)
+		profile.ID = base.ID
+		profile.Name = base.Name
+		profile.Search = base.Search
+		profile.Required = base.Required
+		profile.Rejected = base.Rejected
+		profile.Preferred = base.Preferred
+	}
+
+	profile.Search = append(profile.Search, settings.SearchPatterns...)
+
+	if len(profile.Search) == 0 &&
+		len(profile.Required) == 0 &&
+		len(profile.Rejected) == 0 &&
+		len(profile.Preferred) == 0 {
 		return nil, nil
 	}
 
-	profileRepo := filterProfileRepository.NewFilterProfileRepository(db)
-	profileModel, patterns, err := profileRepo.GetByID(*settings.FilterProfileID)
-	if err != nil {
-		return nil, err
-	}
-
-	return ToProfile(profileModel, patterns), nil
+	return profile, nil
 }
 
 func ToProfile(p filterProfileModel.FilterProfile, patterns []filterProfileModel.FilterPattern) *filter.Profile {

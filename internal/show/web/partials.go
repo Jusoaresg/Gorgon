@@ -23,6 +23,7 @@ import (
 	showManager "github.com/jusoaresg/gorgon/internal/show/service"
 	showAliasModel "github.com/jusoaresg/gorgon/internal/show_aliases/model"
 	showModel "github.com/jusoaresg/gorgon/internal/show/model"
+	showSearchPatternsRepository "github.com/jusoaresg/gorgon/internal/show_search_patterns/repository"
 	showSettingsModel "github.com/jusoaresg/gorgon/internal/show_settings/model"
 	showSettingsRepository "github.com/jusoaresg/gorgon/internal/show_settings/repository"
 	"github.com/jusoaresg/gorgon/pkg/schemas"
@@ -176,10 +177,11 @@ func (h *Handler) AddShowHTMX(c echo.Context) error {
 }
 
 type editShowModalData struct {
-	Show     showModel.Show
-	Profiles []filterProfileModel.FilterProfile
-	Settings showSettingsModel.ShowSettings
-	Aliases  []showAliasModel.ShowAlias
+	Show           showModel.Show
+	Profiles       []filterProfileModel.FilterProfile
+	Settings       showSettingsModel.ShowSettings
+	SearchPatterns []string
+	Aliases        []showAliasModel.ShowAlias
 }
 
 func (h *Handler) EditShowModalHTMX(c echo.Context) error {
@@ -219,11 +221,18 @@ func (h *Handler) EditShowModalHTMX(c echo.Context) error {
 		}
 	}
 
+	searchPatternsRepo := showSearchPatternsRepository.NewShowSearchPatternsRepository(h.DB)
+	searchPatterns, err := searchPatternsRepo.GetByShowID(id)
+	if err != nil {
+		return err
+	}
+
 	data := editShowModalData{
-		Show:     show.Show,
-		Profiles: profiles,
-		Settings: stored,
-		Aliases:  show.ShowAliases,
+		Show:           show.Show,
+		Profiles:       profiles,
+		Settings:       stored,
+		SearchPatterns: searchPatterns,
+		Aliases:        show.ShowAliases,
 	}
 
 	return c.Render(http.StatusOK, "edit-show-modal", data)

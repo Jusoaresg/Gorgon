@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"strconv"
+	"strings"
 
 	showSettingsModel "github.com/jusoaresg/gorgon/internal/show_settings/model"
 	"github.com/jusoaresg/gorgon/internal/show_settings/schema"
@@ -66,7 +67,25 @@ func (h *Handler) UpdateShowSettings(c echo.Context) error {
 		return err
 	}
 
+	err = h.ShowSearchPatternsRepo.Replace(id, cleanSearchPatterns(request.SearchPatterns))
+	if err != nil {
+		h.Logger.Error("Error while updating show search patterns", slog.String("error", err.Error()))
+		schemas.SendError(c, 500, "Error while updating show search patterns")
+		return err
+	}
+
 	h.Logger.Info("Successfully updated show settings", slog.Int64("show_id", id))
 	schemas.SendSuccess(c, "Update Show Settings", map[string]int64{"show_id": id})
 	return nil
+}
+
+func cleanSearchPatterns(patterns []string) []string {
+	cleaned := make([]string, 0, len(patterns))
+	for _, pattern := range patterns {
+		trimmed := strings.TrimSpace(pattern)
+		if trimmed != "" {
+			cleaned = append(cleaned, trimmed)
+		}
+	}
+	return cleaned
 }

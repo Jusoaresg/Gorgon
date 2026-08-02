@@ -40,6 +40,7 @@ func (h *Handler) GetShowSettings(c echo.Context) error {
 				FilterProfileID: nil,
 				UseAliases:      true,
 				OnlyLatin:       true,
+				SearchPatterns:  []string{},
 			})
 			return nil
 		}
@@ -48,7 +49,14 @@ func (h *Handler) GetShowSettings(c echo.Context) error {
 		return err
 	}
 
+	searchPatterns, err := h.ShowSearchPatternsRepo.GetByShowID(id)
+	if err != nil {
+		h.Logger.Error("Error while fetching show search patterns", slog.String("error", err.Error()))
+		schemas.SendError(c, 500, "Error while fetching show search patterns")
+		return err
+	}
+
 	h.Logger.Info("Successfully fetched show settings", slog.Int64("show_id", id))
-	schemas.SendSuccess(c, "Get Show Settings", schema.ToShowSettingsDto(settings))
+	schemas.SendSuccess(c, "Get Show Settings", schema.ToShowSettingsDto(settings, searchPatterns))
 	return nil
 }

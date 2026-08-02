@@ -139,6 +139,40 @@ Multi-architecture images are provided for `linux/amd64` and `linux/arm64`. The 
 
 ---
 
+## 🎛️ Filtering
+
+Gorgon filters search results and release candidates with **profiles** and **per-show search patterns**.
+
+### Filter Profiles
+
+Profiles are reusable collections of **gates** and a search pattern, configured in **Settings → Filtering** and shared across shows:
+
+- `search` — the query template(s) used on Prowlarr
+- `required` — words the release filename must contain
+- `rejected` — words that disqualify a release
+- `preferred` — words that add score (with an extra point weight)
+
+A default profile can be set globally and applied to every show.
+
+### Per-show search patterns
+
+Each show (via the **Edit Series** modal) can list its own **search patterns**, for when a specific show needs a particular query style. These are **combined** with the selected profile's search patterns — each one becomes a Prowlarr query. The default `{alias} S{season:00}E{episode:00}` is used as fallback when neither the profile nor the show define any search pattern.
+
+### Placeholders
+
+Patterns may use placeholders that are replaced with the show's data:
+
+| Placeholder | Meaning |
+| --- | --- |
+| `{alias}` | Show name or alias used for the search |
+| `{show}` | Canonical show name |
+| `{season}` | Season number |
+| `{episode}` | Episode number |
+| `{season:00}` | Season number zero-padded |
+| `{episode:00}` | Episode number zero-padded |
+
+---
+
 ## 🚧 Status
 
 **Currently under active development.**  

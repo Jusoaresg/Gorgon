@@ -11,6 +11,7 @@ import (
 	showAliasRepository "github.com/jusoaresg/gorgon/internal/show_aliases/repository"
 	showModel "github.com/jusoaresg/gorgon/internal/show/model"
 	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
+	showSearchPatternsRepository "github.com/jusoaresg/gorgon/internal/show_search_patterns/repository"
 	showSettingsModel "github.com/jusoaresg/gorgon/internal/show_settings/model"
 	showSettingsRepository "github.com/jusoaresg/gorgon/internal/show_settings/repository"
 	"github.com/jusoaresg/gorgon/testutils"
@@ -106,6 +107,64 @@ func TestResolveProfile_NilWhenNoProfile(t *testing.T) {
 	profile, err := ResolveProfile(testutils.GetTestDB(), EffectiveSettings{})
 	require.NoError(t, err)
 	assert.Nil(t, profile)
+}
+
+func TestResolveProfile_CombinesShowSearchPatterns(t *testing.T) {
+	db := testutils.GetTestDB()
+	repo := filterProfileRepository.NewFilterProfileRepository(db)
+
+	id, err := repo.Create(filterProfileModel.FilterProfile{Name: "HD"}, []filterProfileModel.FilterPattern{
+		{Kind: filterProfileModel.KindSearch, Pattern: "{alias} 1080p"},
+		{Kind: filterProfileModel.KindRequired, Pattern: "multisub"},
+	})
+	require.NoError(t, err)
+
+	profile, err := ResolveProfile(db, EffectiveSettings{
+		FilterProfileID: &id,
+		SearchPatterns:  []string{"{alias} 4k", "{alias} UHD"},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, profile)
+	assert.Equal(t, []string{"{alias} 1080p", "{alias} 4k", "{alias} UHD"}, profile.Search)
+	assert.Equal(t, []string{"multisub"}, profile.Required)
+}
+
+func TestResolveProfile_ShowSearchPatternsWithoutProfile(t *testing.T) {
+	db := testutils.GetTestDB()
+
+	profile, err := ResolveProfile(db, EffectiveSettings{
+		SearchPatterns: []string{"{alias} 4k"},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, profile)
+	assert.Equal(t, []string{"{alias} 4k"}, profile.Search)
+}
+
+func TestResolveProfile_ProfileSearchUsedWhenNoShowPatterns(t *testing.T) {
+	db := testutils.GetTestDB()
+	repo := filterProfileRepository.NewFilterProfileRepository(db)
+
+	id, err := repo.Create(filterProfileModel.FilterProfile{Name: "HD"}, []filterProfileModel.FilterPattern{
+		{Kind: filterProfileModel.KindSearch, Pattern: "{alias} 1080p"},
+	})
+	require.NoError(t, err)
+
+	profile, err := ResolveProfile(db, EffectiveSettings{FilterProfileID: &id})
+	require.NoError(t, err)
+	require.NotNil(t, profile)
+	assert.Equal(t, []string{"{alias} 1080p"}, profile.Search)
+}
+
+func TestResolveSettings_LoadsShowSearchPatterns(t *testing.T) {
+	db := testutils.GetTestDB()
+	show := createResolverShow(t, db)
+
+	patternsRepo := showSearchPatternsRepository.NewShowSearchPatternsRepository(db)
+	require.NoError(t, patternsRepo.Replace(show.ID, []string{"{alias} 4k", "{alias} UHD"}))
+
+	settings, err := ResolveSettings(db, show.ID)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"{alias} 4k", "{alias} UHD"}, settings.SearchPatterns)
 }
 
 func TestResolveProfile_MapsPatterns(t *testing.T) {
