@@ -6,21 +6,6 @@ import (
 	"github.com/jusoaresg/gorgon/external/prowlarr/schema"
 )
 
-func getPreferredWordsScore(t schema.SearchResponse) int {
-	preferredWord := make(map[string]int)
-	preferredWord["multisubs"] = 50
-
-	filename := strings.ToLower(t.Filename)
-
-	score := 0
-	for word, points := range preferredWord {
-		if strings.Contains(filename, word) {
-			score += points
-		}
-	}
-	return score
-}
-
 func getQualityScore(t schema.SearchResponse) int {
 	possibleQuality := make(map[string]int)
 	possibleQuality["2560"] = 20
@@ -36,9 +21,7 @@ func getQualityScore(t schema.SearchResponse) int {
 	return 0
 }
 
-func ScoreEpisode(t schema.SearchResponse) int {
-	score := getPreferredWordsScore(t) + getQualityScore(t)
-
+func getHealthScore(t schema.SearchResponse) int {
 	health := t.Seeders - t.Leechers
 	if t.Seeders == 0 {
 		health = -50
@@ -47,7 +30,9 @@ func ScoreEpisode(t schema.SearchResponse) int {
 	} else if health < 0 {
 		health = 0
 	}
+	return health
+}
 
-	//TODO: Better detection for the filesize
-	return score + health
+func baseScore(t schema.SearchResponse) int {
+	return getQualityScore(t) + getHealthScore(t)
 }

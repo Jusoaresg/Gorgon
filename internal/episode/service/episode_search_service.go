@@ -8,6 +8,7 @@ import (
 	episodeEvents "github.com/jusoaresg/gorgon/internal/episode/events"
 	"github.com/jusoaresg/gorgon/internal/episode/model"
 	episodeRepository "github.com/jusoaresg/gorgon/internal/episode/repository"
+	filterService "github.com/jusoaresg/gorgon/internal/filter/service"
 	showModel "github.com/jusoaresg/gorgon/internal/show/model"
 	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
 )
@@ -83,7 +84,25 @@ func (s *EpisodeSearchService) ProcessSingleEpisode(episodeID int) error {
 		slog.String("tracking", string(episode.Tracking)),
 	)
 
-	responses, err := s.Searcher.SearchEpisodeAliasesById(episode, show, s.db)
+	settings, err := filterService.ResolveSettings(s.db, show.ID)
+	if err != nil {
+		s.emitSearchFinished(episode, show, SearchResultError, err.Error())
+		return err
+	}
+
+	profile, err := filterService.ResolveProfile(s.db, settings)
+	if err != nil {
+		s.emitSearchFinished(episode, show, SearchResultError, err.Error())
+		return err
+	}
+
+	ctx, err := filterService.BuildContext(s.db, show, episode.Season, episode.Number, settings)
+	if err != nil {
+		s.emitSearchFinished(episode, show, SearchResultError, err.Error())
+		return err
+	}
+
+	responses, err := s.Searcher.SearchEpisodeAliasesById(episode, show, s.db, profile, ctx)
 	if err != nil {
 		s.emitSearchFinished(episode, show, SearchResultError, err.Error())
 		return err
@@ -95,17 +114,10 @@ func (s *EpisodeSearchService) ProcessSingleEpisode(episodeID int) error {
 		return nil
 	}
 
-	responses = FilterRequiredWords(responses)
-	if len(responses) <= 0 {
-		s.logger.Info("No avaible episode found", slog.String("show", show.Name), slog.Int("episode", episode.Number))
-		s.emitSearchFinished(episode, show, SearchResultNoResults, "")
-		return nil
-	}
-
-	responses = FilterByEpisodeScore(responses)
+	responses = FilterAndScoreResponses(responses, profile, ctx)
 	if len(responses) <= 0 {
 		s.logger.Info(
-			"No available episodes found after filtering by episode score",
+			"No available episodes found after filtering",
 			slog.Int64("episode_id", episode.ID),
 			slog.Int64("show_id", episode.ShowID),
 		)
