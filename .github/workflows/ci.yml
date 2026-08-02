@@ -4,7 +4,14 @@ on:
   push:
   pull_request:
 
-jobs: 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
   build:
     name: Build and Test
     runs-on: ubuntu-latest
@@ -34,5 +41,9 @@ jobs:
       - name: Build for local validation
         run: make build
 
-      - name: Cross build for releases 
+      - name: Cross build for releases
         run: make cross-build
+
+      - name: Scan Go vulnerabilities (govulncheck)
+        run: |
+          go run golang.org/x/vuln/cmd/govulncheck@latest ./...
