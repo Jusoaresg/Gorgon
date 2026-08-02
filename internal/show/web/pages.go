@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -291,6 +292,21 @@ type LogsData struct {
 	Level       string
 }
 
+var logFileNamePattern = regexp.MustCompile(`^gorgon-[A-Za-z0-9._-]+\.log(?:\.gz)?$`)
+
+func isValidLogFileName(name string) bool {
+	if name == "" {
+		return false
+	}
+	if filepath.IsAbs(name) {
+		return false
+	}
+	if strings.Contains(name, "/") || strings.Contains(name, "\\") || strings.Contains(name, "..") {
+		return false
+	}
+	return logFileNamePattern.MatchString(name)
+}
+
 func (h *Handler) LogsRoute(c echo.Context) error {
 	logsPath := config.LogsPath
 
@@ -298,8 +314,13 @@ func (h *Handler) LogsRoute(c echo.Context) error {
 	levelFilter := c.QueryParam("level")
 	selectedFile := c.QueryParam("file")
 
-	if selectedFile == "" {
-		selectedFile = fmt.Sprintf("gorgon-%s.log", time.Now().In(time.FixedZone("BRT", -3*60*60)).Format("2006-01-02"))
+	defaultFile := fmt.Sprintf("gorgon-%s.log", time.Now().In(time.FixedZone("BRT", -3*60*60)).Format("2006-01-02"))
+	if selectedFile == "" || !isValidLogFileName(selectedFile) {
+		selectedFile = defaultFile
+	}
+
+	if !isValidLogFileName(selectedFile) {
+		return c.String(400, "invalid log file")
 	}
 
 	entries := readLogFile(filepath.Join(logsPath, selectedFile))
