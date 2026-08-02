@@ -262,7 +262,7 @@
     flex: 1;
 }
 
-.toggle {
+.checkbox {
     display: flex;
     align-items: flex-start;
     gap: 0.75rem;
@@ -270,53 +270,53 @@
     user-select: none;
 }
 
-.toggle input {
+.checkbox input {
     position: absolute;
     opacity: 0;
     width: 0;
     height: 0;
 }
 
-.toggle-slider {
-    position: relative;
+.checkbox-box {
     flex-shrink: 0;
-    width: 40px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     margin-top: 1px;
     background-color: var(--tertiary-bg);
     border: 1px solid var(--border-color);
-    border-radius: 999px;
-    transition: background-color 0.2s, border-color 0.2s;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s, border-color 0.15s;
 }
 
-.toggle-slider::after {
+.checkbox-box::after {
     content: "";
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 16px;
-    height: 16px;
-    background-color: var(--text-secondary);
-    border-radius: 50%;
-    transition: transform 0.2s, background-color 0.2s;
+    width: 10px;
+    height: 6px;
+    margin-top: -2px;
+    border-left: 2px solid white;
+    border-bottom: 2px solid white;
+    transform: rotate(-45deg) scale(0);
+    transition: transform 0.15s;
 }
 
-.toggle input:checked+.toggle-slider {
+.checkbox input:checked+.checkbox-box {
     background-color: var(--accent-purple);
     border-color: var(--accent-purple);
 }
 
-.toggle input:checked+.toggle-slider::after {
-    transform: translateX(18px);
-    background-color: white;
+.checkbox input:checked+.checkbox-box::after {
+    transform: rotate(-45deg) scale(1);
 }
 
-.toggle input:focus-visible+.toggle-slider {
+.checkbox input:focus-visible+.checkbox-box {
     outline: 2px solid var(--accent-purple);
     outline-offset: 2px;
 }
 
-.toggle-label {
+.checkbox-label {
     display: flex;
     flex-direction: column;
     gap: 0.1rem;
@@ -324,7 +324,7 @@
     color: var(--text-primary);
 }
 
-.toggle-label small {
+.checkbox-label small {
     color: var(--text-secondary);
     font-size: 0.8rem;
 }

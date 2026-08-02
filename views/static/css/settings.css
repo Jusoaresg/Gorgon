@@ -155,10 +155,11 @@
     background-color: var(--tertiary-bg);
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    padding: 0.75rem 1rem;
-    margin-bottom: 1.5rem;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.75rem;
     color: var(--text-secondary);
     font-size: 0.85rem;
+    line-height: 1.6;
 }
 
 .help-box summary {
@@ -168,27 +169,38 @@
     outline: none;
 }
 
+.help-box[open] summary {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
 .help-box p {
-    margin: 0.5rem 0;
+    margin: 0.75rem 0;
+}
+
+.help-box p:first-of-type {
+    margin-top: 0.25rem;
 }
 
 .help-box code {
     background-color: var(--primary-bg);
     border: 1px solid var(--border-color);
     border-radius: 4px;
-    padding: 0.1rem 0.35rem;
+    padding: 0.15rem 0.45rem;
     color: var(--accent-purple);
     font-size: 0.8rem;
+    white-space: nowrap;
 }
 
 .help-table {
     width: 100%;
     border-collapse: collapse;
-    margin: 0.5rem 0;
+    margin: 0.75rem 0;
 }
 
 .help-table td {
-    padding: 0.3rem 0.5rem;
+    padding: 0.5rem 0.75rem;
     border-bottom: 1px solid var(--border-color);
     vertical-align: top;
 }

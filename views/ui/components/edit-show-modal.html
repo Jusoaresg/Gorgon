@@ -19,6 +19,8 @@
                 id="edit-show-form"
                 hx-put="/api/v1/database/show-settings/{{ .Show.ID }}"
                 hx-ext="json-enc-custom"
+                parse-types="true"
+                empty-as-null="true"
                 hx-swap="none"
                 hx-on::after-request="showToast(event); if (event.detail.successful) document.getElementById('modal-container').remove()"
             >
@@ -33,10 +35,10 @@
                 </div>
 
                 <div class="modal-form-group">
-                    <label class="toggle">
+                    <label class="checkbox">
                         <input type="checkbox" name="use_aliases" value="true" {{ if .Settings.UseAliases }}checked{{ end }}>
-                        <span class="toggle-slider"></span>
-                        <span class="toggle-label">
+                        <span class="checkbox-box"></span>
+                        <span class="checkbox-label">
                             <span>Use aliases when searching</span>
                             <small>Search for releases using the show aliases too</small>
                         </span>
@@ -44,10 +46,10 @@
                 </div>
 
                 <div class="modal-form-group">
-                    <label class="toggle">
+                    <label class="checkbox">
                         <input type="checkbox" name="only_latin" value="true" {{ if .Settings.OnlyLatin }}checked{{ end }}>
-                        <span class="toggle-slider"></span>
-                        <span class="toggle-label">
+                        <span class="checkbox-box"></span>
+                        <span class="checkbox-label">
                             <span>Ignore non-latin aliases</span>
                             <small>Skip aliases with non-latin characters when searching</small>
                         </span>
@@ -85,7 +87,7 @@
                     hx-post="/api/v1/database/show/{{ .Show.ID }}/alias"
                     hx-ext="json-enc-custom"
                     hx-swap="none"
-                    hx-on::after-request="showToast(event); if (event.detail.successful) { this.querySelector('input').value=''; window.location.reload(); }"
+                    hx-on::after-request="showToast(event); handleAliasAdded(event)"
                 >
                     <input type="text" name="alias" placeholder="Add a custom alias">
                     <button class="btn btn-outline btn-sm" type="submit">Add</button>

@@ -15,6 +15,8 @@
             <form
                 hx-patch="/api/v1/database/filter-settings"
                 hx-ext="json-enc-custom"
+                parse-types="true"
+                empty-as-null="true"
                 hx-swap="none"
                 hx-on::after-request="showToast(event)"
             >
@@ -29,10 +31,10 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="toggle">
+                    <label class="checkbox">
                         <input type="checkbox" name="use_aliases" value="true" {{ if .FilterSettings.UseAliases }}checked{{ end }}>
-                        <span class="toggle-slider"></span>
-                        <span class="toggle-label">
+                        <span class="checkbox-box"></span>
+                        <span class="checkbox-label">
                             <span>Use aliases when searching</span>
                             <small>Search for releases using the show aliases too</small>
                         </span>
@@ -40,10 +42,10 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="toggle">
+                    <label class="checkbox">
                         <input type="checkbox" name="only_latin" value="true" {{ if .FilterSettings.OnlyLatin }}checked{{ end }}>
-                        <span class="toggle-slider"></span>
-                        <span class="toggle-label">
+                        <span class="checkbox-box"></span>
+                        <span class="checkbox-label">
                             <span>Ignore non-latin aliases</span>
                             <small>Skip aliases with non-latin characters when searching</small>
                         </span>

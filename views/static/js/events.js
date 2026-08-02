@@ -137,18 +137,52 @@
         }, 4000);
     }
 
-    function toNullProfileParams(event) {
-        var params = event.detail.parameters;
-        if (!params) return;
-        if ('default_filter_profile_id' in params && params['default_filter_profile_id'] === '') {
-            params['default_filter_profile_id'] = null;
-        }
-        if ('filter_profile_id' in params && params['filter_profile_id'] === '') {
-            params['filter_profile_id'] = null;
-        }
-    }
+    function handleAliasAdded(event) {
+        if (!event.detail.successful) return;
 
-    document.body.addEventListener('htmx:configRequest', toNullProfileParams);
+        var form = event.detail.elt;
+        var input = form.querySelector('input[name="alias"]');
+        var alias = (input && input.value || '').trim();
+
+        var data = {};
+        try {
+            data = JSON.parse(event.detail.xhr.response).data || {};
+        } catch (e) {}
+
+        var aliasId = data.id;
+        if (!alias || !aliasId) return;
+
+        var manager = form.closest('.modal-alias-manager');
+        var list = manager.querySelector('.alias-manage-list');
+        if (!list) {
+            var empty = manager.querySelector('.text-secondary');
+            if (empty) empty.remove();
+            list = document.createElement('ul');
+            list.className = 'alias-manage-list';
+            manager.insertBefore(list, form);
+        }
+
+        var li = document.createElement('li');
+        li.className = 'alias-manage-item';
+
+        var name = document.createElement('span');
+        name.textContent = alias;
+
+        var del = document.createElement('button');
+        del.className = 'btn-text-danger';
+        del.textContent = 'Delete';
+        del.setAttribute('hx-delete', form.getAttribute('hx-post').replace(/\/alias$/, '/alias/' + aliasId));
+        del.setAttribute('hx-swap', 'none');
+        del.setAttribute('hx-confirm', 'Delete alias \'' + alias + '\'?');
+        del.setAttribute('hx-on::after-request', 'showToast(event); if (event.detail.successful) this.closest(\'.alias-manage-item\').remove()');
+
+        li.appendChild(name);
+        li.appendChild(del);
+        list.appendChild(li);
+        htmx.process(li);
+
+        if (input) input.value = '';
+    }
 
     function showToast(event) {
         var message;
@@ -247,4 +281,5 @@
 
     window.showToast = showToast;
     window.toast = displayToast;
+    window.handleAliasAdded = handleAliasAdded;
 })();

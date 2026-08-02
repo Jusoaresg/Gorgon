@@ -141,6 +141,37 @@ textarea:focus {
 	min-height: 100vh;
 }
 
+/* Scrollbar */
+* {
+	scrollbar-width: thin;
+	scrollbar-color: var(--border-color) transparent;
+}
+
+::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background-color: var(--border-color);
+	border-radius: 5px;
+	border: 2px solid transparent;
+	background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background-color: var(--text-muted);
+	background-clip: padding-box;
+}
+
+::-webkit-scrollbar-corner {
+	background: transparent;
+}
+
 @media (max-width: 768px) {
 	.main-content {
 		margin-left: 0;
