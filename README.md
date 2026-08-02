@@ -55,7 +55,7 @@ You can run Gorgon and its dependencies (Prowlarr, qBittorrent) using Docker Com
     services:
       gorgon:
         container_name: gorgon
-        image: jusoares/gorgon:v0.1.0
+        image: ghcr.io/jusoaresg/gorgon:latest
         ports:
           - "8080:8080"
         volumes:
@@ -114,6 +114,15 @@ This will build the Gorgon image, pull the required dependencies, and start all 
 - **Prowlarr** will be available at `http://localhost:9696`
 - **qBittorrent** will be available at `http://localhost:9191`
 
+### 🐳 Images
+
+Pre-built images are published automatically to the [GitHub Container Registry](https://github.com/Jusoaresg/gorgon/pkgs/container/gorgon) when pushing to `main` or creating a release:
+
+- `ghcr.io/jusoaresg/gorgon:latest` — built from `main`
+- `ghcr.io/jusoaresg/gorgon:vX.Y.Z` (and `vX.Y`) — built from version tags / releases
+
+Multi-architecture images are provided for `linux/amd64` and `linux/arm64`. The container listens on port `8080` by default (override with the `GORGON_PORT` env var).
+
 ### ⚙️ Initial Setup
 
 -   **Prowlarr**:
@@ -170,6 +179,10 @@ Here are the next steps planned for Gorgon, focusing on expanding features, impr
   - [X] Create a `Dockerfile` for the Gorgon application.
   - [x] Set up a `docker-compose.yml` file for a complete, one-command deployment with Prowlarr and a torrent client.
   - [X] Implement a CI pipeline for automated testing and builds.
+  - [X] Automatically publish Docker images to GHCR on `main` and releases (multi-arch).
+  - [X] Automate GitHub Releases with binaries via GoReleaser.
+  - [X] Dependabot for Go and GitHub Actions dependency updates.
+  - [X] Security scanning with CodeQL and `govulncheck`.
 
 ## 📜 Disclaimer
 

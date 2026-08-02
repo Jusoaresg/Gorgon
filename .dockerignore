@@ -3,8 +3,12 @@
 .dockerignore
 Dockerfile
 README.md
+.github
+.air.toml
+Makefile
 assets/downloads
 assets/config
 downloads
 configs
+docs/swagger.yaml
 tmp

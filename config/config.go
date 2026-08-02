@@ -34,6 +34,10 @@ func Init() error {
 		BaseDir = baseDirEnv
 	}
 
+	if portEnv := os.Getenv("GORGON_PORT"); portEnv != "" {
+		Port = portEnv
+	}
+
 	if InDocker {
 		ConfigFolder = "/configs"
 		LogsPath = filepath.Join(ConfigFolder, "logs")

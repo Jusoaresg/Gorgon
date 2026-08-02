@@ -7,13 +7,23 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix netgo -o /app/main .
 
 # Stage 2: Create the final image
-FROM alpine:latest
+FROM alpine:3.22
 WORKDIR /app
-COPY --from=builder /app/main .
 
 ENV IN_DOCKER=true
+ENV GORGON_PORT=8080
 
-RUN mkdir -p /downloads /shows /config
+RUN adduser -D -u 1000 -h /app gorgon \
+    && mkdir -p /downloads /shows /configs \
+    && chown -R gorgon:gorgon /app /downloads /shows /configs
+
+COPY --from=builder /app/main /app/main
+
+USER gorgon
 
 EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD wget -qO- http://localhost:${GORGON_PORT}/ >/dev/null || exit 1
+
 CMD ["/app/main"]
