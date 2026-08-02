@@ -38,10 +38,8 @@
                     <label class="checkbox">
                         <input type="checkbox" name="use_aliases" value="true" {{ if .Settings.UseAliases }}checked{{ end }}>
                         <span class="checkbox-box"></span>
-                        <span class="checkbox-label">
-                            <span>Use aliases when searching</span>
-                            <small>Search for releases using the show aliases too</small>
-                        </span>
+                        <span class="checkbox-title">Use aliases when searching</span>
+                        <small>Search for releases using the show aliases too</small>
                     </label>
                 </div>
 
@@ -49,10 +47,8 @@
                     <label class="checkbox">
                         <input type="checkbox" name="only_latin" value="true" {{ if .Settings.OnlyLatin }}checked{{ end }}>
                         <span class="checkbox-box"></span>
-                        <span class="checkbox-label">
-                            <span>Ignore non-latin aliases</span>
-                            <small>Skip aliases with non-latin characters when searching</small>
-                        </span>
+                        <span class="checkbox-title">Ignore non-latin aliases</span>
+                        <small>Skip aliases with non-latin characters when searching</small>
                     </label>
                 </div>
             </form>
