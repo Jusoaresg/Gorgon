@@ -21,7 +21,7 @@ import (
 )
 
 // @title           Gongon
-// @version         0.1
+// @version         0.2
 // @description     Show Download Manager API
 // @BasePath /api/v1
 
