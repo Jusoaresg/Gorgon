@@ -22,6 +22,20 @@ func TestFilterSettingsRepository_GetReturnsDefaultsWhenEmpty(t *testing.T) {
 	assert.Nil(t, got.DefaultFilterProfileID)
 }
 
+func TestFilterSettingsRepository_GetFallsBackToDefaultsForMissingKeys(t *testing.T) {
+	db := testutils.GetTestDB()
+	repo := NewFilterSettingsRepository(db)
+
+	_, err := db.Exec(`INSERT INTO app_settings (key, value) VALUES ('filters', '{"default_filter_profile_id":null}')`)
+	assert.NoError(t, err)
+
+	got, err := repo.Get()
+	assert.NoError(t, err)
+	assert.True(t, got.UseAliases)
+	assert.True(t, got.OnlyLatin)
+	assert.Nil(t, got.DefaultFilterProfileID)
+}
+
 func TestFilterSettingsRepository_SaveAndGet(t *testing.T) {
 	repo := getFilterSettingsRepo()
 

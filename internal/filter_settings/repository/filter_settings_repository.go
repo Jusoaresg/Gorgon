@@ -31,11 +31,25 @@ func (s *FilterSettingsRepository) Get() (model.FilterSettings, error) {
 		return model.DefaultFilterSettings(), nil
 	}
 
-	var settings model.FilterSettings
-	if err := json.Unmarshal([]byte(value), &settings); err != nil {
+	var stored struct {
+		DefaultFilterProfileID *int64 `json:"default_filter_profile_id"`
+		UseAliases             *bool  `json:"use_aliases"`
+		OnlyLatin              *bool  `json:"only_latin"`
+	}
+	if err := json.Unmarshal([]byte(value), &stored); err != nil {
 		return model.DefaultFilterSettings(), nil
 	}
 
+	settings := model.DefaultFilterSettings()
+	if stored.DefaultFilterProfileID != nil {
+		settings.DefaultFilterProfileID = stored.DefaultFilterProfileID
+	}
+	if stored.UseAliases != nil {
+		settings.UseAliases = *stored.UseAliases
+	}
+	if stored.OnlyLatin != nil {
+		settings.OnlyLatin = *stored.OnlyLatin
+	}
 	return settings, nil
 }
 
