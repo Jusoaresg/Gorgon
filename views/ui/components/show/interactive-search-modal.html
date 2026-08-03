@@ -1,0 +1,357 @@
+{{ define "interactive-search-modal" }}
+<div id="modal-container" class="modal-overlay" onclick="closeInteractiveSearch(event)">
+    <div class="modal-content modal-lg" onclick="event.stopPropagation()">
+        
+        <div class="modal-header">
+            <div>
+                <h3 class="modal-title">Interactive Search</h3>
+                <span class="modal-subtitle">{{ .EpisodeName }} (S{{ .Season }}E{{ .Number }})</span>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button class="btn btn-sm btn-outline" 
+                        id="search-again-btn"
+                        hx-get="/front/episode/{{ .EpisodeID }}/search-results"
+                        hx-target="#search-results-container"
+                        hx-swap="innerHTML">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    Search Again
+                </button>
+                <button class="btn-close-modal" onclick="closeInteractiveSearch(null)">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="modal-body search-modal-body">
+            <div id="search-spinner" style="display: none; text-align: center; padding: 24px;">
+                <div style="display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="spin"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    Searching indexers...
+                </div>
+            </div>
+            <div id="search-results-container"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .modal-lg { max-width: 800px; width: 90vw; }
+    .search-modal-body { max-height: 60vh; overflow-y: auto; }
+    .search-modal-body::-webkit-scrollbar { width: 6px; }
+    .search-modal-body::-webkit-scrollbar-track { background: transparent; }
+    .search-modal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    .search-modal-body::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+    .spin { animation: spin 1s linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .alias-loading {
+        display: flex;
+        align-items: center;
+        padding: 14px 18px;
+        color: var(--text-muted);
+        font-size: 13px;
+        background: var(--secondary-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        margin-bottom: 8px;
+    }
+    .alias-results-group {
+        margin-bottom: 14px;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        overflow: hidden;
+        background: var(--secondary-bg);
+        border-left: 3px solid var(--accent-purple);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .alias-results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 16px;
+        background: var(--tertiary-bg);
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--accent-purple-light);
+        border-bottom: 1px solid var(--border-color);
+    }
+    .alias-results-header .alias-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .alias-results-header .alias-label svg {
+        opacity: 0.7;
+    }
+    .alias-results-count {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 10px;
+        background: var(--accent-purple);
+        color: #fff;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 500;
+    }
+    .alias-results-group .result-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 16px 10px 18px;
+        border: none;
+        border-radius: 0;
+        margin-bottom: 0;
+        border-bottom: 1px solid var(--border-color);
+        transition: background 0.12s;
+        background: transparent;
+    }
+    .alias-results-group .result-card:hover {
+        background: var(--tertiary-bg);
+    }
+    .alias-results-group .result-card:last-child {
+        border-bottom: none;
+    }
+    .alias-results-group .result-card .result-info { flex: 1; min-width: 0; }
+    .alias-results-group .result-card .result-title {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .alias-results-group .result-card .result-meta {
+        display: flex;
+        gap: 10px;
+        margin-top: 5px;
+        font-size: 12px;
+        color: var(--text-muted);
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    .result-meta .indexer-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 1px 7px;
+        background: var(--tertiary-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        font-size: 11px;
+        color: var(--text-secondary);
+    }
+    .result-meta .seeders {
+        color: var(--success);
+        font-weight: 500;
+    }
+    .result-meta .leechers {
+        color: var(--danger);
+        font-weight: 500;
+    }
+    .result-meta .size {
+        color: var(--text-secondary);
+    }
+    .result-meta .age {
+        color: var(--text-muted);
+    }
+    .result-actions {
+        display: flex;
+        gap: 5px;
+        margin-left: 12px;
+        flex-shrink: 0;
+    }
+    .alias-results-group .no-results {
+        padding: 20px;
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 13px;
+    }
+    .download-btn { position: relative; }
+    .download-btn .btn-spinner {
+        display: none;
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+        margin-right: 6px;
+    }
+    .download-btn.loading .btn-spinner { display: inline-block; }
+    .download-btn.loading .btn-label { display: none; }
+</style>
+
+<script>
+    function closeInteractiveSearch(e) {
+        if (e && e.stopPropagation) e.stopPropagation();
+        var modal = document.getElementById('modal-container');
+        if (modal) modal.remove();
+    }
+
+    function downloadEpisode(btn, episodeId) {
+        btn.classList.add('loading');
+        btn.disabled = true;
+
+        var card = btn.closest('.result-card');
+        var payload = {
+            guid: card.getAttribute('data-guid'),
+            infoHash: card.getAttribute('data-info-hash'),
+            title: card.getAttribute('data-title'),
+            indexer: card.getAttribute('data-indexer'),
+            infoUrl: card.getAttribute('data-info-url'),
+            publishDate: card.getAttribute('data-publish-date')
+        };
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/front/episode/' + episodeId + '/download');
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onload = function() {
+            btn.classList.remove('loading');
+            btn.disabled = false;
+            if (xhr.status === 200) {
+                closeInteractiveSearch(null);
+                window.toast('Download started', 'success');
+            } else {
+                var msg = 'Failed to start download';
+                try { msg = JSON.parse(xhr.responseText).message || msg; } catch(e) {}
+                window.toast(msg, 'error');
+            }
+        };
+        xhr.onerror = function() {
+            btn.classList.remove('loading');
+            btn.disabled = false;
+            window.toast('Network error while starting download', 'error');
+        };
+        xhr.send(JSON.stringify(payload));
+    }
+
+    document.body.addEventListener('htmx:beforeRequest', function(e) {
+        var target = e.detail.target || e.detail.elt;
+        if (target && target.id === 'search-results-container') {
+            document.getElementById('search-spinner').style.display = '';
+        }
+    });
+
+    document.body.addEventListener('htmx:afterSwap', function(e) {
+        if (e.detail.target && e.detail.target.id === 'search-results-container') {
+            document.getElementById('search-spinner').style.display = 'none';
+        }
+    });
+</script>
+
+{{ if .AutoSearch }}
+<script>
+    (function() {
+        var btn = document.getElementById('search-again-btn');
+        if (btn) htmx.trigger(btn, 'click');
+    })();
+</script>
+{{ end }}
+{{ end }}
+
+{{ define "search-results-progress" }}
+<div id="aliases-search-container">
+{{ range $i, $t := .Titles }}
+<div id="alias-search-{{$i}}"
+     hx-get="/front/episode/{{$.EpisodeID}}/search-alias?t={{$t.Encoded}}&s={{$.Season}}&n={{$.Number}}"
+     hx-trigger="load{{$t.Delay}}"
+     hx-swap="outerHTML">
+    <div class="alias-loading">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="spin" style="vertical-align: middle; margin-right: 8px;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        <span>Searching "{{$t.Name}}"{{if $t.Delay}} (low priority){{end}}...</span>
+    </div>
+</div>
+{{ end }}
+</div>
+{{ end }}
+
+{{ define "search-alias-results" }}
+<div class="alias-results-group">
+    <div class="alias-results-header">
+        <span class="alias-label">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+            {{ .Alias }}
+        </span>
+        <span class="alias-results-count">{{ len .Results }}</span>
+    </div>
+    {{ if .Results }}
+    {{ range .Results }}
+    <div class="result-card"
+         data-guid="{{ .Guid }}"
+         data-info-hash="{{ .InfoHash }}"
+         data-title="{{ .Title }}"
+         data-indexer="{{ .Indexer }}"
+         data-info-url="{{ .InfoUrl }}"
+         data-publish-date="{{ .PublishDate }}">
+        <div class="result-info">
+            <div class="result-title" title="{{ .Title }}">{{ .Title }}</div>
+            <div class="result-meta">
+                <span class="indexer-badge">
+                    <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path></svg>
+                    {{ .Indexer }}
+                </span>
+                <span class="size">{{ .FormatSize }}</span>
+                <span class="seeders">&#9650; {{ .Seeders }}</span>
+                <span class="leechers">&#9660; {{ .Leechers }}</span>
+                <span class="age">{{ .FormatAge }}</span>
+            </div>
+        </div>
+        <div class="result-actions">
+            <a href="{{ .InfoUrl }}" target="_blank" class="btn btn-sm btn-outline" title="Open in Prowlarr">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+            </a>
+            <button class="btn btn-sm btn-primary download-btn"
+                    onclick="downloadEpisode(this, {{ $.EpisodeID }})">
+                <span class="btn-spinner"></span>
+                <span class="btn-label">Download</span>
+            </button>
+        </div>
+    </div>
+    {{ end }}
+    {{ else }}
+    <div class="no-results">No results for this title</div>
+    {{ end }}
+</div>
+{{ end }}
+
+{{ define "search-results-list" }}
+{{ if .Results }}
+    {{ range .Results }}
+    <div class="result-card"
+         data-guid="{{ .Guid }}"
+         data-info-hash="{{ .InfoHash }}"
+         data-title="{{ .Title }}"
+         data-indexer="{{ .Indexer }}"
+         data-info-url="{{ .InfoUrl }}"
+         data-publish-date="{{ .PublishDate }}">
+        <div class="result-info">
+            <div class="result-title" title="{{ .Title }}">{{ .Title }}</div>
+            <div class="result-meta">
+                <span>{{ .Indexer }}</span>
+                <span>{{ .FormatSize }}</span>
+                <span class="seeders">&#9650; {{ .Seeders }}</span>
+                <span class="leechers">&#9660; {{ .Leechers }}</span>
+                <span>{{ .FormatAge }}</span>
+            </div>
+        </div>
+        <div class="result-actions">
+            <a href="{{ .InfoUrl }}" target="_blank" class="btn btn-sm btn-outline" title="Open in Prowlarr">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+            </a>
+            <button class="btn btn-sm btn-primary download-btn"
+                    onclick="downloadEpisode(this, {{ $.EpisodeID }})">
+                <span class="btn-spinner"></span>
+                <span class="btn-label">Download</span>
+            </button>
+        </div>
+    </div>
+    {{ end }}
+{{ else }}
+    <div class="no-results">
+        <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin: 0 auto 12px; opacity: 0.3;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        <p>No results found</p>
+    </div>
+{{ end }}
+{{ end }}

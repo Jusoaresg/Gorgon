@@ -1,0 +1,110 @@
+{{ define "add-show-config" }}
+{{ $show := .Data }}
+
+<div class="config-container-hybrid">
+    
+    <!-- HEADER: Compact Backdrop -->
+    <div class="compact-hero">
+        <div class="hero-backdrop" style="background-image: url('{{ $show.Image.Original }}');"></div>
+        <div class="hero-overlay"></div>
+    </div>
+
+    <!-- MAIN CONTENT: Overlapping Layout -->
+    <div class="main-layout">
+        
+        <!-- Left: Big Poster -->
+        <div class="poster-column">
+            <div class="main-poster-wrapper">
+                <img src="{{ $show.Image.Original }}" alt="Poster" class="main-poster-img">
+                <div class="poster-status">{{ $show.Status }}</div>
+            </div>
+            
+            <div class="side-info">
+                <div class="info-item">
+                    <span class="label">Network</span>
+                    <span class="val">HBO</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Year</span>
+                    <span class="val">{{ $show.Premiered }}</span>
+                </div>
+
+                <div class="info-item">
+                    <span class="label">Language</span>
+                    <span class="val">{{ $show.Language }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Content & Form -->
+        <div class="details-column">
+            <header class="details-header">
+                <h1 class="show-title">{{ $show.Name }}</h1>
+                <div class="show-summary">
+                    {{ safeHtml $show.Summary }}
+                </div>
+            </header>
+
+            <form id="add-show-form" class="config-form" hx-post="/front/add-show">
+                <!-- Hidden input for the show ID -->
+                <input type="hidden" name="id" value="{{ $show.TvMazeID }}">
+
+                <div class="form-sections-row">
+                    <!-- Monitoring Card -->
+                    <div class="mini-card">
+                        <h3>Monitoring</h3>
+                        <div class="radio-stack">
+                            <label class="radio-item">
+                                <input type="radio" name="monitor" value="future" checked>
+                                <span class="radio-box">
+                                    <span class="t">Future Episodes</span>
+                                    <span class="d">Only new ones</span>
+                                </span>
+                            </label>
+                            <label class="radio-item">
+                                <input type="radio" name="monitor" value="all">
+                                <span class="radio-box">
+                                    <span class="t">All</span>
+                                    <span class="d">History + Future</span>
+                                </span>
+                            </label>
+                            <label class="radio-item">
+                                <input type="radio" name="monitor" value="none">
+                                <span class="radio-box">
+                                    <span class="t">None</span>
+                                    <span class="d">Just add to library</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Path Card -->
+                    <div class="mini-card">
+                        <h3>Destination</h3>
+                        <div class="select-wrapper">
+                            <select name="root_folder" class="clean-select">
+                                <option value="/data/media/tv">/data/media/tv</option>
+                                <option value="/data/media/anime">/data/media/anime</option>
+                            </select>
+                            <span class="storage-info">1.2 TB Free</span>
+                        </div>
+                        
+                        <div class="quality-tag">
+                            Profile: <strong>HD 1080p</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Footer -->
+                <div class="action-footer">
+                    <a href="/add-show" class="btn-cancel">Cancel</a>
+                    <button type="submit" class="btn-add-main">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Add Series
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{{ end }}

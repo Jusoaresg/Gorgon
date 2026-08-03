@@ -12,28 +12,10 @@ import (
 	"github.com/jusoaresg/gorgon/pkg/services"
 )
 
-func processEpisodesWorker(episodesChan <-chan model.Episode) {
+func processEpisodesWorker(episodesChan <-chan model.Episode, prowlarrService *prowlarr.ProwlarrSearchService, qbittorrentService *qbittorrent.QBittorrentService) {
 	logger := config.GetLogger().WithGroup("worker").With("name", "processEpisodeWorker")
 
-	var prowlarrService *prowlarr.ProwlarrSearchService
-	var qbittorrentService *qbittorrent.QBittorrentService
-	var err error
-
 	for {
-		prowlarrService, err = prowlarr.NewProwlarrSearchService(logger)
-		if err != nil {
-			logger.Error("Error initializing prowlarr service", slog.String("error", err.Error()))
-			time.Sleep(30 * time.Second)
-			continue
-		}
-
-		qbittorrentService, err = qbittorrent.NewQBittorrentService(logger)
-		if err != nil {
-			logger.Error("Error initializing qbittorrent service", slog.String("error", err.Error()))
-			time.Sleep(30 * time.Second)
-			continue
-		}
-
 		errs := services.CheckAllConnections(prowlarrService, qbittorrentService)
 		if len(errs) > 0 {
 			logger.Error("Failed to connect to one or more services", slog.Any("errors", errs))

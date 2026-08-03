@@ -1,24 +1,25 @@
 package workers
 
 import (
-	"github.com/jusoaresg/gorgon/config"
-	"github.com/jusoaresg/gorgon/internal/episode/model"
-	"github.com/jusoaresg/gorgon/internal/episode/repository"
 	"log/slog"
 	"sync"
 	"time"
+
+	"github.com/jusoaresg/gorgon/config"
+	qbittorrent "github.com/jusoaresg/gorgon/external/qbittorrent/service"
+	"github.com/jusoaresg/gorgon/internal/episode/model"
+	"github.com/jusoaresg/gorgon/internal/episode/repository"
 )
 
-func VerifySnatchedDownloadsWorker(workerCount int) {
-	episodeChan := make(chan model.Episode, 50)
+func VerifySnatchedDownloadsWorker(workerCount int, qbittorrentService *qbittorrent.QBittorrentService) {
+	episodeChan := make(chan model.Episode, 100)
 	var wg sync.WaitGroup
 
 	for range workerCount {
-		wg.Add(1)
-		go func() {
+		wg.Go(func() {
 			defer wg.Done()
-			processSnatchedDownloadsWorker(episodeChan)
-		}()
+			processSnatchedDownloadsWorker(episodeChan, qbittorrentService)
+		})
 	}
 
 	ticker := time.NewTicker(time.Second * 30)

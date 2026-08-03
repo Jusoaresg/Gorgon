@@ -21,7 +21,7 @@ func NewAPIService(url string, logger *slog.Logger) (a *APIService) {
 	return &APIService{
 		Url: url,
 		Client: &http.Client{
-			Timeout: 10 * time.Second,
+			Timeout: 60 * time.Second,
 		},
 		Logger: logger.WithGroup("apiService"),
 	}
@@ -100,10 +100,35 @@ func (a *APIService) GetWithHeaders(endpoint string, response any, headers map[s
 	}
 
 	if err := json.Unmarshal(body, &response); err != nil {
-		return fmt.Errorf("Error while decoding response body: %w", err)
+		if strResp, ok := response.(*string); ok {
+			*strResp = string(body)
+			return nil
+		}
+
+		return fmt.Errorf("Error while decoding response body: %w. Raw body: %s", err, string(body))
 	}
 
 	return nil
+}
+
+func (a *APIService) GetWithHeadersRaw(endpoint string, headers map[string]string) (*http.Response, error) {
+	url := fmt.Sprintf("%s%s", a.Url, endpoint)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error while creating GET request: %w", err)
+	}
+
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+
+	resp, err := a.Client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("Error while making GET request: %w", err)
+	}
+
+	return resp, nil
 }
 
 func (a *APIService) Post(endpoint string, requestData any, response any, headersInfo ...map[string]string) (*http.Response, error) {
@@ -175,7 +200,7 @@ func (a *APIService) Post(endpoint string, requestData any, response any, header
 		slog.String("response_body", string(bodyBytes)),
 	)
 
-	if response != nil {
+	if response != nil && resp.StatusCode >= http.StatusOK && resp.StatusCode < http.StatusMultipleChoices {
 		if err := json.Unmarshal(bodyBytes, &response); err != nil {
 			a.Logger.Error("Error decoding POST response body",
 				slog.String("url", url),

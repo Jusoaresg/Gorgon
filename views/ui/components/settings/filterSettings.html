@@ -1,0 +1,278 @@
+{{ define "filterSettings" }}
+<div class="settings-content">
+    <section id="filter-defaults" class="settings-section">
+        <div class="section-header">
+            <div class="section-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M7 4v4m5-2v4m5-2v4"></path></svg>
+            </div>
+            <div>
+                <h3>Defaults</h3>
+                <p>Global search behavior for every show</p>
+            </div>
+        </div>
+        <div class="section-body">
+            <form
+                id="filters-global-form"
+                hx-patch="/api/v1/database/filter-settings"
+                hx-ext="json-enc-custom"
+                parse-types="true"
+                empty-as-null="true"
+                hx-swap="none"
+                hx-on::after-request="showToast(event)"
+            >
+                <div class="form-group">
+                    <label class="checkbox">
+                        <input type="checkbox" name="use_aliases" value="true" {{ if .FilterSettings.UseAliases }}checked{{ end }}>
+                        <span class="checkbox-box"></span>
+                        <span class="checkbox-title">Use aliases when searching</span>
+                        <small>Search for releases using the show aliases too</small>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox">
+                        <input type="checkbox" name="only_latin" value="true" {{ if .FilterSettings.OnlyLatin }}checked{{ end }}>
+                        <span class="checkbox-box"></span>
+                        <span class="checkbox-title">Ignore non-latin aliases</span>
+                        <small>Skip aliases with non-latin characters when searching</small>
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-primary" type="submit">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <section id="filter-profiles" class="settings-section">
+        <div class="section-header">
+            <div class="section-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+            </div>
+            <div>
+                <h3>Filter Profiles</h3>
+                <p>Gates and search patterns shared across shows</p>
+            </div>
+        </div>
+        <div class="section-body">
+            <div class="form-group">
+                <label>Default Filter Profile</label>
+                <form
+                    id="filters-default-profile-form"
+                    class="default-profile-form"
+                    hx-patch="/api/v1/database/filter-settings"
+                    hx-trigger="change"
+                    hx-ext="json-enc-custom"
+                    hx-swap="none"
+                    hx-on::after-request="showToast(event)"
+                >
+                    <select name="default_filter_profile_id">
+                        <option value="">No default profile</option>
+                        {{ range .Profiles }}
+                        <option value="{{ .ID }}" {{ if and $.FilterSettings.DefaultFilterProfileID (eq (derefInt64 $.FilterSettings.DefaultFilterProfileID) .ID) }}selected{{ end }}>{{ .Name }}</option>
+                        {{ end }}
+                    </select>
+                </form>
+                <small class="text-secondary">Applied to every show without its own profile. Saves automatically.</small>
+            </div>
+
+            {{ if .Profiles }}
+            <div class="profile-list">
+                {{ range .Profiles }}
+                <div class="profile-item">
+                    <span class="profile-name">{{ .Name }}</span>
+                    <div class="profile-actions">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="editProfile({{ .ID }})">Edit</button>
+                        <button
+                            class="btn-icon-sm btn-delete"
+                            title="Delete profile"
+                            hx-delete="/api/v1/database/filter-profile/{{ .ID }}"
+                            hx-swap="none"
+                            hx-confirm="Delete profile '{{ .Name }}'?"
+                            hx-on::after-request="showToast(event); if (event.detail.successful) this.closest('.profile-item').remove()"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/></svg>
+                        </button>
+                    </div>
+                </div>
+                {{ end }}
+            </div>
+            {{ else }}
+            <p class="text-secondary empty-state">No filter profiles yet. Create one below.</p>
+            {{ end }}
+
+            <details class="help-box">
+                <summary>Placeholder reference</summary>
+                <p>Patterns can use placeholders that are replaced with the show's data. A number placeholder can include a zero-pad width, e.g. <code>{season:00}</code>.</p>
+                <table class="help-table">
+                    <tr><td><code>{alias}</code></td><td>Show name or alias used for the search</td></tr>
+                    <tr><td><code>{show}</code></td><td>Canonical show name</td></tr>
+                    <tr><td><code>{season}</code></td><td>Season number</td></tr>
+                    <tr><td><code>{episode}</code></td><td>Episode number</td></tr>
+                    <tr><td><code>{season:00}</code></td><td>Season number zero-padded, e.g. <code>01</code></td></tr>
+                    <tr><td><code>{episode:00}</code></td><td>Episode number zero-padded, e.g. <code>05</code></td></tr>
+                    <tr><td><code>{absolute}</code></td><td>Reserved, not implemented yet</td></tr>
+                </table>
+                <p>Example: <code>{alias} S{season:00}E{episode:00}</code> becomes <code>dbz S01E04</code>.</p>
+                <p><code>search</code> patterns build the Prowlarr query; <code>required</code>, <code>rejected</code> and <code>preferred</code> patterns are matched against the release filename. <code>preferred</code> patterns have a <em>score</em> that weighs how strongly they are wanted; the other kinds ignore the score.</p>
+                <p>The default <code>{alias} S{season:00}E{episode:00}</code> is always searched first; your patterns and each show's are deduplicated and searched after it.</p>
+            </details>
+
+            <form id="profile-form" class="profile-form">
+                <h4 id="profile-form-title">New Profile</h4>
+                <div class="form-group">
+                    <label>Profile Name</label>
+                    <input type="text" name="name" placeholder="e.g. HD 1080p Multisub">
+                </div>
+
+                <div class="form-group">
+                    <label>Patterns</label>
+                    <div id="pattern-rows"></div>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="addPatternRow('', '', null)">+ Add Pattern</button>
+                    <small>Kinds: search (query template), required, rejected, preferred. Score applies to preferred only.</small>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" id="profile-cancel-btn" onclick="resetProfileForm()" style="display: none;">Cancel</button>
+                    <button class="btn btn-primary" type="submit">Save Profile</button>
+                </div>
+            </form>
+        </div>
+    </section>
+</div>
+
+<script>
+    var TRASH_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/></svg>';
+
+    function addPatternRow(kind, pattern, score) {
+        var container = document.getElementById('pattern-rows');
+        if (!container) return;
+
+        var row = document.createElement('div');
+        row.className = 'pattern-row no-score';
+
+        var kindSelect = document.createElement('select');
+        kindSelect.className = 'pattern-kind';
+        ['search', 'required', 'rejected', 'preferred'].forEach(function (k) {
+            var opt = document.createElement('option');
+            opt.value = k;
+            opt.textContent = k.charAt(0).toUpperCase() + k.slice(1);
+            if (k === kind) opt.selected = true;
+            kindSelect.appendChild(opt);
+        });
+
+        var valueInput = document.createElement('input');
+        valueInput.type = 'text';
+        valueInput.className = 'pattern-value';
+        valueInput.placeholder = 'pattern...';
+        valueInput.value = pattern || '';
+
+        var scoreInput = document.createElement('input');
+        scoreInput.type = 'number';
+        scoreInput.className = 'pattern-score';
+        scoreInput.placeholder = 'score';
+        scoreInput.min = '0';
+        if (score !== null && score !== undefined) scoreInput.value = score;
+
+        var removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'btn-icon-sm btn-delete';
+        removeBtn.title = 'Remove pattern';
+        removeBtn.innerHTML = TRASH_SVG;
+        removeBtn.addEventListener('click', function () { row.remove(); });
+
+        function syncKind() {
+            var isPreferred = kindSelect.value === 'preferred';
+            row.classList.toggle('preferred', isPreferred);
+            row.classList.toggle('no-score', !isPreferred);
+        }
+        kindSelect.addEventListener('change', syncKind);
+        syncKind();
+
+        row.appendChild(kindSelect);
+        row.appendChild(valueInput);
+        row.appendChild(scoreInput);
+        row.appendChild(removeBtn);
+        container.appendChild(row);
+    }
+
+    window.addPatternRow = addPatternRow;
+
+    function editProfile(id) {
+        fetch('/api/v1/database/filter-profile/' + id)
+            .then(function (resp) { return resp.json(); })
+            .then(function (res) {
+                var data = res.data;
+                var form = document.getElementById('profile-form');
+                form.dataset.editingId = id;
+                form.querySelector('[name=name]').value = data.name || '';
+                var rows = document.getElementById('pattern-rows');
+                rows.innerHTML = '';
+                (data.patterns || []).forEach(function (p) {
+                    addPatternRow(p.kind, p.pattern, p.score);
+                });
+                document.getElementById('profile-form-title').textContent = 'Edit: ' + (data.name || '');
+                document.getElementById('profile-cancel-btn').style.display = '';
+                form.scrollIntoView({ behavior: 'smooth' });
+            });
+    }
+
+    window.editProfile = editProfile;
+
+    function resetProfileForm() {
+        var form = document.getElementById('profile-form');
+        delete form.dataset.editingId;
+        form.querySelector('[name=name]').value = '';
+        document.getElementById('pattern-rows').innerHTML = '';
+        document.getElementById('profile-form-title').textContent = 'New Profile';
+        document.getElementById('profile-cancel-btn').style.display = 'none';
+    }
+
+    window.resetProfileForm = resetProfileForm;
+
+    document.addEventListener('submit', function (event) {
+        var form = event.target;
+        if (form.id !== 'profile-form') return;
+        event.preventDefault();
+
+        var name = form.querySelector('[name=name]').value.trim();
+        if (!name) {
+            window.toast('Profile name is required', 'error');
+            return;
+        }
+
+        var patterns = [];
+        document.querySelectorAll('#pattern-rows .pattern-row').forEach(function (row) {
+            var value = row.querySelector('.pattern-value').value.trim();
+            if (!value) return;
+            patterns.push({
+                kind: row.querySelector('.pattern-kind').value,
+                pattern: value,
+                score: parseInt(row.querySelector('.pattern-score').value || '0', 10)
+            });
+        });
+
+        var editingId = form.dataset.editingId;
+        var url = editingId ? '/api/v1/database/filter-profile/' + editingId : '/api/v1/database/filter-profile';
+        var method = editingId ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name, patterns: patterns })
+        })
+            .then(function (resp) {
+                return resp.json().then(function (body) { return { ok: resp.ok, body: body }; });
+            })
+            .then(function (result) {
+                if (result.ok) {
+                    window.toast('Profile saved', 'success');
+                    window.location.reload();
+                } else {
+                    window.toast((result.body && result.body.message) || 'Failed to save profile', 'error');
+                }
+            });
+    });
+</script>
+{{ end }}

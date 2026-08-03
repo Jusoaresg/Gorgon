@@ -1,7 +1,6 @@
 package workers
 
 import (
-	"fmt"
 	"log/slog"
 	"strings"
 
@@ -10,7 +9,8 @@ import (
 	"github.com/jusoaresg/gorgon/external/prowlarr/schema"
 	"github.com/jusoaresg/gorgon/internal/episode/model"
 	episodeService "github.com/jusoaresg/gorgon/internal/episode/service"
-	showService "github.com/jusoaresg/gorgon/internal/show/service"
+	filter "github.com/jusoaresg/gorgon/internal/filter"
+	filterService "github.com/jusoaresg/gorgon/internal/filter/service"
 	"github.com/jusoaresg/gorgon/utils"
 
 	seasonRepository "github.com/jusoaresg/gorgon/internal/season/repository"
@@ -39,21 +39,30 @@ func (rss *RssReleaseProcessor) RssProcessRelease(ep model.Episode, responses []
 		return err
 	}
 
-	aliases, err := showService.GetNormalizedTitleAlias(show)
+	settings, err := filterService.ResolveSettings(rss.db, show.ID)
 	if err != nil {
-		logger.Error(
-			"error normalizing show aliases",
-			slog.String("error", err.Error()),
-			slog.Int64("show_id", ep.ShowID),
-			slog.Int64("episode_id", ep.ID),
-		)
 		return err
 	}
 
-	termKeys := make([]string, 0, len(aliases))
-	for _, alias := range aliases {
-		term := fmt.Sprintf("%s S%02dE%02d", alias, ep.Season, ep.Number)
-		termKeys = append(termKeys, strings.ToLower(term))
+	profile, err := filterService.ResolveProfile(rss.db, settings)
+	if err != nil {
+		return err
+	}
+
+	ctx, err := filterService.BuildContext(rss.db, show, ep.Season, ep.Number, settings)
+	if err != nil {
+		return err
+	}
+
+	termKeys := make([]string, 0)
+	for _, pattern := range filterService.SearchPatterns(profile) {
+		for _, name := range ctx.AllNames() {
+			query, err := filter.ExpandQuery(pattern, ctx, name)
+			if err != nil {
+				continue
+			}
+			termKeys = append(termKeys, strings.ToLower(query))
+		}
 	}
 
 	var processedResponses []schema.SearchResponse
@@ -73,20 +82,20 @@ func (rss *RssReleaseProcessor) RssProcessRelease(ep model.Episode, responses []
 		}
 	}
 
-	processedResponses = episodeService.FilterRequiredWords(processedResponses)
-	processedResponses = episodeService.FilterByEpisodeScore(processedResponses)
+	processedResponses = episodeService.FilterAndScoreResponses(processedResponses, profile, ctx)
 	if len(processedResponses) == 0 {
-		logger.Info("no matching releases after filtering")
+		logger.Debug("No matching releases after filtering")
 		return nil
 	}
 
 	logger.Info(
-		"downloading episode",
+		"Downloading episode",
 		slog.String("title", processedResponses[0].Title),
 		slog.Int64("show_id", ep.ShowID),
 		slog.Int64("episode_id", ep.ID),
 	)
-	episodeService.DownloadEpisode(ep, processedResponses[0])
+	episodeDownloader := episodeService.EpisodeDownloader{}
+	episodeDownloader.DownloadEpisode(ep, processedResponses[0])
 
 	return nil
 }

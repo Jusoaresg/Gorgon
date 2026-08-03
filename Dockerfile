@@ -1,28 +1,29 @@
-# Stage 1: Build the frontend
-FROM node:20-alpine AS frontend
-WORKDIR /app/assets/front
-COPY assets/front/package.json assets/front/package-lock.json ./
-RUN npm ci
-COPY assets/front/. .
-RUN npm run build
-
-# Stage 2: Build the backend
-FROM golang:1.24.3-alpine AS builder
+# Stage 1: Build the backend
+FROM golang:1.25-alpine AS builder
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-COPY --from=frontend /app/assets/front/build ./assets/front/build
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix netgo -o /app/main .
 
-# Stage 3: Create the final image
-FROM alpine:latest
+# Stage 2: Create the final image
+FROM alpine:3.22
 WORKDIR /app
-COPY --from=builder /app/main .
 
 ENV IN_DOCKER=true
+ENV GORGON_PORT=8080
 
-RUN mkdir -p /downloads /shows /config
+RUN adduser -D -u 1000 -h /app gorgon \
+    && mkdir -p /downloads /shows /configs \
+    && chown -R gorgon:gorgon /app /downloads /shows /configs
+
+COPY --from=builder /app/main /app/main
+
+USER gorgon
 
 EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD wget -qO- http://localhost:${GORGON_PORT}/ >/dev/null || exit 1
+
 CMD ["/app/main"]

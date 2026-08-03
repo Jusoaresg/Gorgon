@@ -1,0 +1,363 @@
+(function () {
+    'use strict';
+
+    var WS_URL = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/api/v1/ws';
+
+    var TRACKING_CLASSES = ['wanted', 'missing', 'skipped', 'snatched', 'downloaded'];
+
+    var TRACKING_LABELS = {
+        wanted: 'Wanted',
+        missing: 'Missing',
+        skipped: 'Skipped',
+        snatched: 'Snatched',
+        downloaded: 'Downloaded'
+    };
+
+    function removeTrackingClasses(el) {
+        TRACKING_CLASSES.forEach(function (cls) {
+            el.classList.remove(cls);
+        });
+    }
+
+    function applyTracking(el, tracking) {
+        removeTrackingClasses(el);
+        if (TRACKING_CLASSES.indexOf(tracking) !== -1) {
+            el.classList.add(tracking);
+        }
+    }
+
+    function updateEpisode(episodeId, tracking, infoUrl) {
+        var targets = document.querySelectorAll('[data-episode-id="' + episodeId + '"]');
+        targets.forEach(function (target) {
+            if (target.classList.contains('episode-card')) {
+                applyTracking(target, tracking);
+
+                var badge = target.querySelector('.status-badge');
+                if (badge) {
+                    applyTracking(badge, tracking);
+                    badge.textContent = tracking;
+                }
+
+                var deleteBtn = target.querySelector('.btn-delete');
+                if (deleteBtn) {
+                    deleteBtn.style.display = tracking === 'downloaded' ? 'flex' : 'none';
+                }
+
+                var searchActions = target.querySelectorAll('.js-search-actions');
+                searchActions.forEach(function (btn) {
+                    btn.style.display = tracking === 'downloaded' ? 'none' : 'flex';
+                });
+
+                var shouldShowRelease = (tracking === 'downloaded' || tracking === 'snatched') && infoUrl;
+                var releaseLink = target.querySelector('.js-release-link');
+                if (shouldShowRelease) {
+                    if (!releaseLink) {
+                        var actionButtons = target.querySelector('.action-buttons');
+                        if (actionButtons) {
+                            releaseLink = document.createElement('a');
+                            releaseLink.className = 'btn-icon-sm btn-release js-release-link';
+                            releaseLink.target = '_blank';
+                            releaseLink.title = 'View Release';
+                            releaseLink.innerHTML = RELEASE_ICON;
+                            actionButtons.appendChild(releaseLink);
+                        }
+                    }
+                    if (releaseLink) {
+                        releaseLink.href = infoUrl;
+                        releaseLink.style.display = 'flex';
+                    }
+                } else if (releaseLink) {
+                    releaseLink.style.display = 'none';
+                }
+            }
+
+            if (target.classList.contains('cal-card-track')) {
+                applyTracking(target, tracking);
+                target.textContent = TRACKING_LABELS[tracking] || tracking || 'Unknown';
+            }
+        });
+    }
+
+    var TOAST_ICONS = {
+        success: '<svg class="toast-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+        error: '<svg class="toast-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path></svg>',
+        info: '<svg class="toast-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
+    };
+
+    var CLOSE_ICON = '<svg class="toast-close" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+
+    var RELEASE_ICON = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>';
+
+    function toastContainer() {
+        var container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            document.body.appendChild(container);
+        }
+        container.classList.add('toast-container');
+        return container;
+    }
+
+    function dismissToast(toast) {
+        toast.classList.add('toast-removing');
+        toast.addEventListener('animationend', function () {
+            toast.remove();
+        }, { once: true });
+    }
+
+    function displayToast(message, type) {
+        var toast = document.createElement('div');
+        toast.className = 'toast toast-' + (type || 'info');
+
+        var icon = document.createElement('div');
+        icon.innerHTML = TOAST_ICONS[type] || TOAST_ICONS.info;
+
+        var text = document.createElement('span');
+        text.className = 'toast-message';
+        text.textContent = message;
+
+        var close = document.createElement('button');
+        close.type = 'button';
+        close.className = 'toast-close';
+        close.title = 'Dismiss';
+        close.innerHTML = CLOSE_ICON;
+        close.addEventListener('click', function () {
+            dismissToast(toast);
+        });
+
+        toast.appendChild(icon);
+        toast.appendChild(text);
+        toast.appendChild(close);
+
+        toastContainer().appendChild(toast);
+
+        setTimeout(function () {
+            dismissToast(toast);
+        }, 4000);
+    }
+
+    function handleAliasAdded(event) {
+        if (!event.detail.successful) return;
+
+        var form = event.detail.elt;
+        var input = form.querySelector('input[name="alias"]');
+        var alias = (input && input.value || '').trim();
+
+        var data = {};
+        try {
+            data = JSON.parse(event.detail.xhr.response).data || {};
+        } catch (e) {}
+
+        var aliasId = data.id;
+        if (!alias || !aliasId) return;
+
+        var manager = form.closest('.modal-alias-manager');
+        var list = manager.querySelector('.alias-manage-list');
+        if (!list) {
+            var empty = manager.querySelector('.text-secondary');
+            if (empty) empty.remove();
+            list = document.createElement('ul');
+            list.className = 'alias-manage-list';
+            manager.insertBefore(list, form);
+        }
+
+        var li = document.createElement('li');
+        li.className = 'alias-manage-item';
+
+        var name = document.createElement('span');
+        name.textContent = alias;
+
+        var del = document.createElement('button');
+        del.className = 'btn-icon-sm btn-delete';
+        del.title = 'Delete alias';
+        del.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/></svg>';
+        del.setAttribute('hx-delete', form.getAttribute('hx-post').replace(/\/alias$/, '/alias/' + aliasId));
+        del.setAttribute('hx-swap', 'none');
+        del.setAttribute('hx-confirm', 'Delete alias \'' + alias + '\'?');
+        del.setAttribute('hx-on::after-request', 'showToast(event); if (event.detail.successful) this.closest(\'.alias-manage-item\').remove()');
+
+        li.appendChild(name);
+        li.appendChild(del);
+        list.appendChild(li);
+        htmx.process(li);
+
+        if (input) input.value = '';
+    }
+
+    function showToast(event) {
+        var message;
+        var type = 'info';
+
+        try {
+            var response = JSON.parse(event.detail.xhr.response);
+            var data = response.data;
+            if (Array.isArray(data)) {
+                data = data[0];
+            }
+            message = (data && data.toastMessage) || response.message || null;
+        } catch (e) {
+            message = null;
+        }
+
+        if (!message) {
+            var status = event.detail.xhr.status;
+            type = status >= 200 && status < 300 ? 'success' : 'error';
+            message = type === 'success'
+                ? 'Request successful'
+                : status >= 500
+                    ? 'Something went wrong on the server'
+                    : 'Something went wrong';
+        } else {
+            type = event.detail.xhr.status >= 200 && event.detail.xhr.status < 300 ? 'success' : 'error';
+        }
+
+        displayToast(message, type);
+    }
+
+    function padEpisodeNumber(n) {
+        return n < 10 ? '0' + n : '' + n;
+    }
+
+    function onSearchFinished(message) {
+        var label = 'S' + message.season + 'E' + padEpisodeNumber(message.number);
+        if (message.name) {
+            label += ' ' + message.name;
+        }
+        switch (message.result) {
+            case 'snatched':
+                displayToast(label + ' — Snatched', 'success');
+                break;
+            case 'noResults':
+                displayToast(label + ' — No results found', 'info');
+                break;
+            case 'notAired':
+                displayToast(label + ' — Not aired yet', 'info');
+                break;
+            case 'error':
+                displayToast(label + ' — Search failed', 'error');
+                break;
+        }
+    }
+
+    function connect() {
+        var socket;
+        try {
+            socket = new WebSocket(WS_URL);
+        } catch (e) {
+            return;
+        }
+
+        socket.onmessage = function (event) {
+            var message;
+            try {
+                message = JSON.parse(event.data);
+            } catch (e) {
+                return;
+            }
+
+            if (message && message.type === 'EpisodeTrackingUpdated') {
+                updateEpisode(message.episodeID, message.tracking, message.infoUrl);
+            }
+
+            if (message && message.type === 'EpisodeSearchFinished') {
+                onSearchFinished(message);
+            }
+        };
+
+        socket.onclose = function () {
+            setTimeout(connect, 3000);
+        };
+
+        socket.onerror = function () {
+            socket.close();
+        };
+    }
+
+    function addShowSearchPatternRow(pattern) {
+        var container = document.getElementById('show-search-pattern-rows');
+        if (!container) return;
+
+        var row = document.createElement('div');
+        row.className = 'search-pattern-row';
+
+        var valueInput = document.createElement('input');
+        valueInput.type = 'text';
+        valueInput.className = 'search-pattern-value';
+        valueInput.placeholder = '{alias} S{season:00}E{episode:00}...';
+        valueInput.value = pattern || '';
+
+        var removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'btn-icon-sm btn-delete';
+        removeBtn.title = 'Remove pattern';
+        removeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/></svg>';
+        removeBtn.addEventListener('click', function () { row.remove(); });
+
+        row.appendChild(valueInput);
+        row.appendChild(removeBtn);
+        container.appendChild(row);
+    }
+
+    function collectShowSearchPatterns() {
+        var patterns = [];
+        document.querySelectorAll('#show-search-pattern-rows .search-pattern-row').forEach(function (row) {
+            var value = row.querySelector('.search-pattern-value').value.trim();
+            if (value) patterns.push(value);
+        });
+        return patterns;
+    }
+
+    function saveShowSettings(form) {
+        var showId = form.dataset.showId;
+        if (!showId) return;
+
+        var profileId = form.querySelector('[name=filter_profile_id]').value;
+        var payload = {
+            filter_profile_id: profileId ? parseInt(profileId, 10) : null,
+            use_aliases: form.querySelector('[name=use_aliases]').checked,
+            only_latin: form.querySelector('[name=only_latin]').checked,
+            search_patterns: collectShowSearchPatterns()
+        };
+
+        fetch('/api/v1/database/show-settings/' + showId, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+            .then(function (resp) {
+                return resp.json().then(function (body) { return { ok: resp.ok, body: body }; });
+            })
+            .then(function (result) {
+                if (result.ok) {
+                    displayToast((result.body && result.body.message) || 'Settings saved', 'success');
+                    var container = form.closest('#modal-container');
+                    if (container) container.remove();
+                } else {
+                    displayToast((result.body && result.body.message) || 'Failed to save settings', 'error');
+                }
+            })
+            .catch(function () {
+                displayToast('Failed to save settings', 'error');
+            });
+    }
+
+    document.addEventListener('submit', function (event) {
+        var form = event.target;
+        if (form && form.id === 'edit-show-form') {
+            event.preventDefault();
+            saveShowSettings(form);
+        }
+    });
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', connect);
+    } else {
+        connect();
+    }
+
+    window.showToast = showToast;
+    window.toast = displayToast;
+    window.handleAliasAdded = handleAliasAdded;
+    window.addShowSearchPatternRow = addShowSearchPatternRow;
+})();

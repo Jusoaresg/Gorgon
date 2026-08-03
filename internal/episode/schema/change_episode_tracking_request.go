@@ -1,6 +1,6 @@
 package schema
 
 type ChangeEpisodeTrackingRequest struct {
-	EpisodeId int    `json:"episode_id"`
-	Tracking  string `json:"tracking"`
+	EpisodeIds []int  `json:"episode_ids"`
+	Tracking   string `json:"tracking"`
 }

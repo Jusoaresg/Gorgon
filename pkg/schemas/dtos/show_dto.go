@@ -3,6 +3,7 @@ package dtos
 import (
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	episodeModel "github.com/jusoaresg/gorgon/internal/episode/model"
@@ -161,6 +162,7 @@ func (d *ShowDto) CreateDto(
 
 func (d *ShowDto) ToModel() showModel.Show {
 	imdb, _ := strconv.Atoi(d.Externals.Imdb)
+	genresStr := strings.Join(d.Genres, ",")
 
 	show := showModel.Show{
 		TvMazeID:  d.TvMazeID,
@@ -180,6 +182,7 @@ func (d *ShowDto) ToModel() showModel.Show {
 
 		ImageOriginal: d.Image.Original,
 		ImageMedium:   d.Image.Medium,
+		Genres:        genresStr,
 	}
 	return show
 }

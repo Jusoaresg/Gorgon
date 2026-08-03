@@ -93,6 +93,336 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "patch": {
+                "description": "Update Gorgon Application Config",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "App/Config"
+                ],
+                "summary": "Update App Config",
+                "parameters": [
+                    {
+                        "description": "Request Body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ConfigFile"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/database/filter-profile": {
+            "get": {
+                "description": "List Filter Profiles",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Database/FilterProfile"
+                ],
+                "summary": "List Filter Profiles",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create Filter Profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Database/FilterProfile"
+                ],
+                "summary": "Create Filter Profile",
+                "parameters": [
+                    {
+                        "description": "Filter profile data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.SaveFilterProfileRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/database/filter-profile/{id}": {
+            "get": {
+                "description": "Get Filter Profile",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Database/FilterProfile"
+                ],
+                "summary": "Get Filter Profile",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Filter Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update Filter Profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Database/FilterProfile"
+                ],
+                "summary": "Update Filter Profile",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Filter Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Filter profile data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.SaveFilterProfileRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete Filter Profile",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Database/FilterProfile"
+                ],
+                "summary": "Delete Filter Profile",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Filter Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/database/filter-settings": {
+            "get": {
+                "description": "Get Global Filter Settings",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Database/FilterSettings"
+                ],
+                "summary": "Get Filter Settings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Update Global Filter Settings",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Database/FilterSettings"
+                ],
+                "summary": "Update Filter Settings",
+                "parameters": [
+                    {
+                        "description": "Filter settings data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.FilterSettingsDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
             }
         },
         "/database/indexer": {
@@ -327,24 +657,75 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "delete": {
-                "description": "Delete Show from list",
+            }
+        },
+        "/database/show-settings/{id}": {
+            "get": {
+                "description": "Get Show Settings",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Database/Show"
+                    "Database/ShowSettings"
                 ],
-                "summary": "Delete Show",
+                "summary": "Get Show Settings",
                 "parameters": [
                     {
-                        "description": "Request Body",
+                        "type": "integer",
+                        "description": "Show ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update Show Settings",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Database/ShowSettings"
+                ],
+                "summary": "Update Show Settings",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Show ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Show settings data",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/schemas.IdRequest"
+                            "$ref": "#/definitions/schema.ShowSettingsDto"
                         }
                     }
                 ],
@@ -357,6 +738,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/schemas.ErrorResponse"
                         }
@@ -411,16 +798,143 @@ const docTemplate = `{
                 }
             }
         },
-        "/database/show/episode/status": {
+        "/database/show/episode/search": {
             "post": {
-                "description": "Change Episode Tracking Status",
+                "description": "Search and Process the episode ( Automatic Search )",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Database/Show/Episode"
                 ],
-                "summary": "Change Episode Status",
+                "summary": "Search Process Episode",
+                "parameters": [
+                    {
+                        "description": "Request Body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.IdRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/database/show/episode/search/all": {
+            "post": {
+                "description": "Search and process show wanted episodes ( Automatic Show Search )",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Database/Show/Episode"
+                ],
+                "summary": "Search Process Show Wanted Episodes",
+                "parameters": [
+                    {
+                        "description": "Request Body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.IdRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/database/show/episode/search/season/:id": {
+            "post": {
+                "description": "Search and process all aired episodes in a season (Season Force Search)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Database/Show/Episode"
+                ],
+                "summary": "Search Process Season Episodes",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Season ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/database/show/episode/status": {
+            "post": {
+                "description": "Change Episodes Tracking Status",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Database/Show/Episode"
+                ],
+                "summary": "Change Episodes Status",
                 "parameters": [
                     {
                         "description": "Request Body",
@@ -678,6 +1192,152 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete Show from list",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Database/Show"
+                ],
+                "summary": "Delete Show",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Show Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/database/show/{id}/alias": {
+            "post": {
+                "description": "Add a custom alias for a show",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Database/Aliases"
+                ],
+                "summary": "Add Show Alias",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Show ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Alias data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.addShowAliasRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/database/show/{id}/alias/{aliasId}": {
+            "delete": {
+                "description": "Delete a custom alias for a show",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Database/Aliases"
+                ],
+                "summary": "Delete Show Alias",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Show ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Alias ID",
+                        "name": "aliasId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/schemas.ErrorResponse"
                         }
@@ -1096,6 +1756,14 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "api.addShowAliasRequest": {
+            "type": "object",
+            "properties": {
+                "alias": {
+                    "type": "string"
+                }
+            }
+        },
         "schema.AddNewTorrentRequest": {
             "type": "object",
             "properties": {
@@ -1107,8 +1775,11 @@ const docTemplate = `{
         "schema.ChangeEpisodeTrackingRequest": {
             "type": "object",
             "properties": {
-                "episode_id": {
-                    "type": "integer"
+                "episode_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "tracking": {
                     "type": "string"
@@ -1118,6 +1789,15 @@ const docTemplate = `{
         "schema.CheckTorrentResponse": {
             "type": "object",
             "properties": {
+                "added_on": {
+                    "type": "integer"
+                },
+                "amount_left": {
+                    "type": "integer"
+                },
+                "category": {
+                    "type": "string"
+                },
                 "completed": {
                     "type": "integer"
                 },
@@ -1151,6 +1831,9 @@ const docTemplate = `{
                 "save_path": {
                     "type": "string"
                 },
+                "size": {
+                    "type": "integer"
+                },
                 "state": {
                     "type": "string"
                 },
@@ -1159,6 +1842,34 @@ const docTemplate = `{
                 },
                 "upspeed": {
                     "type": "integer"
+                }
+            }
+        },
+        "schema.FilterPatternDto": {
+            "type": "object",
+            "properties": {
+                "kind": {
+                    "type": "string"
+                },
+                "pattern": {
+                    "type": "string"
+                },
+                "score": {
+                    "type": "integer"
+                }
+            }
+        },
+        "schema.FilterSettingsDto": {
+            "type": "object",
+            "properties": {
+                "default_filter_profile_id": {
+                    "type": "string"
+                },
+                "only_latin": {
+                    "type": "boolean"
+                },
+                "use_aliases": {
+                    "type": "boolean"
                 }
             }
         },
@@ -1185,6 +1896,20 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "schema.SaveFilterProfileRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "patterns": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.FilterPatternDto"
+                    }
                 }
             }
         },
@@ -1252,6 +1977,26 @@ const docTemplate = `{
                 }
             }
         },
+        "schema.ShowSettingsDto": {
+            "type": "object",
+            "properties": {
+                "filter_profile_id": {
+                    "type": "integer"
+                },
+                "only_latin": {
+                    "type": "boolean"
+                },
+                "search_patterns": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "use_aliases": {
+                    "type": "boolean"
+                }
+            }
+        },
         "schemas.ConfigFile": {
             "type": "object",
             "properties": {
@@ -1299,7 +2044,7 @@ const docTemplate = `{
         "schemas.ErrorResponse": {
             "type": "object",
             "properties": {
-                "errorCode": {
+                "data": {
                     "type": "string"
                 },
                 "message": {

@@ -1,0 +1,86 @@
+{{ define "calendar" }}
+{{ template "calendar-inner" . }}
+{{ end }}
+
+{{ define "calendar-week" }}
+{{ template "calendar-inner" . }}
+{{ end }}
+
+{{ define "calendar-inner" }}
+{{ $data := .Data }}
+<div id="calendar-page">
+    <div class="cal-header">
+        <div class="cal-nav">
+            <a href="/calendar?week={{ $data.PrevWeek }}" class="btn btn-outline cal-nav-btn"
+               hx-get="/front/calendar/week?week={{ $data.PrevWeek }}" hx-target="#calendar-page" hx-swap="outerHTML" hx-push-url="/calendar?week={{ $data.PrevWeek }}">
+                <svg class="cal-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                Prev
+            </a>
+            <div class="cal-week-title">
+                <svg class="cal-title-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z"></path></svg>
+                <span>{{ $data.WeekStart }} — {{ $data.WeekEnd }}</span>
+            </div>
+            <a href="/calendar?week={{ $data.NextWeek }}" class="btn btn-outline cal-nav-btn"
+               hx-get="/front/calendar/week?week={{ $data.NextWeek }}" hx-target="#calendar-page" hx-swap="outerHTML" hx-push-url="/calendar?week={{ $data.NextWeek }}">
+                Next
+                <svg class="cal-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </a>
+        </div>
+        {{ if not $data.IsCurrentWeek }}
+        <a href="/calendar" class="btn btn-primary cal-today-btn"
+           hx-get="/front/calendar/week" hx-target="#calendar-page" hx-swap="outerHTML" hx-push-url="/calendar">
+            <svg class="cal-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            Today
+        </a>
+        {{ end }}
+    </div>
+
+    <div class="cal-grid">
+        {{ range $day := $data.Days }}
+        <div class="cal-day-col">
+            <div class="cal-day-header{{ if eq $day.Date $data.Today }} cal-day-today{{ end }}">
+                <span class="cal-day-name">{{ $day.DayName }}</span>
+                <span class="cal-day-date">{{ $day.DisplayDate }}</span>
+                <span class="cal-day-count">{{ len $day.Episodes }}</span>
+            </div>
+            <div class="cal-day-eps">
+                {{ range $ep := $day.Episodes }}
+                <a href="/show/{{ $ep.ShowID }}" class="cal-card-link">
+                    <div class="cal-card">
+                        <div class="cal-card-poster">
+                            <img src="{{ $ep.ShowImage }}" alt="{{ $ep.ShowName }}" loading="lazy">
+                        </div>
+                        <div class="cal-card-body">
+                            <span class="cal-card-name" title="{{ $ep.ShowName }}">{{ $ep.ShowName }}</span>
+                            <span class="cal-card-ep">S{{ $ep.Season }}E{{ printf "%02d" $ep.Number }}</span>
+                            {{ if $ep.Name }}
+                            <span class="cal-card-title" title="{{ $ep.Name }}">{{ $ep.Name }}</span>
+                            {{ end }}
+                            <span class="cal-card-airtime">{{ airTimeUnix $ep.AirStamp }}</span>
+                            <span class="cal-card-track {{ $ep.Tracking }}" data-episode-id="{{ $ep.ID }}"
+                                  title="Change Status"
+                                  hx-get="/front/episode/{{ $ep.ID }}/modal/tracking"
+                                  hx-target="body"
+                                  hx-swap="beforeend"
+                                  onclick="event.preventDefault(); event.stopPropagation();">
+                                {{ if eq $ep.Tracking "downloaded" }}Downloaded
+                                {{ else if eq $ep.Tracking "wanted" }}Wanted
+                                {{ else if eq $ep.Tracking "missing" }}Missing
+                                {{ else if eq $ep.Tracking "snatched" }}Snatched
+                                {{ else if eq $ep.Tracking "skipped" }}Skipped
+                                {{ else }}Unknown{{ end }}
+                            </span>
+                        </div>
+                    </div>
+                </a>
+                {{ else }}
+                <div class="cal-empty">
+                    <span>—</span>
+                </div>
+                {{ end }}
+            </div>
+        </div>
+        {{ end }}
+    </div>
+</div>
+{{ end }}

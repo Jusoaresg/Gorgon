@@ -7,6 +7,7 @@ import (
 
 	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/external/tvmaze/service"
+	showHandler "github.com/jusoaresg/gorgon/internal/show/api"
 	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
 	showManager "github.com/jusoaresg/gorgon/internal/show/service"
 	"github.com/jusoaresg/gorgon/pkg/services"
@@ -43,6 +44,7 @@ func UpdateAllShows() {
 		}
 
 		if int64(showOld.Updated) < updatedAt {
+
 			logger.Info(
 				"updating show",
 				slog.Int64("show_id", showOld.ID),
@@ -50,26 +52,14 @@ func UpdateAllShows() {
 				slog.String("title", showOld.Name),
 			)
 
-			showDTO, err := tvMazeService.SearchByTvMazeId(showOld.TvMazeID)
+			_, err := showHandler.UpdateSingleShowInfo(
+				showRepo,
+				tvMazeService,
+				showManagerService,
+				logger,
+				showOld.ID,
+			)
 			if err != nil {
-				logger.Error("error while searching tvmaze for id while updating shows", slog.String("error", err.Error()))
-				continue
-			}
-
-			episodesDTO, err := showManagerService.GetEpisodes(showDTO.TvMazeID)
-			if err != nil {
-				logger.Error("error while getting episodes for show", slog.String("error", err.Error()))
-				continue
-			}
-
-			seasonsDTO, err := showManagerService.GetSeasons(showDTO.TvMazeID)
-			if err != nil {
-				logger.Error("error while getting seasons for show", slog.String("error", err.Error()))
-				continue
-			}
-
-			if err := showManagerService.UpdateShowWithRelations(*showDTO, *seasonsDTO, *episodesDTO); err != nil {
-				logger.Error("error while updating shows with relations", slog.String("error", err.Error()))
 				continue
 			}
 

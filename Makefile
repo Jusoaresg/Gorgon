@@ -1,29 +1,24 @@
-.PHONY: default docs run-with-docs build
+.PHONY: default docs run run-with-docs build cross-build test lint clean check docker-build
 
-SKIP_BUILD_FRONT ?= false
 TAG ?= latest
 
-default: build-front
-	$(MAKE) run-with-docs
+default:
+	$(MAKE) run
 
 docs:
-	swag init
+	go run github.com/swaggo/swag/cmd/swag@v1.16.6 init
+
+run:
+	go run main.go
 
 run-with-docs: docs
 	go run main.go
 
-build-front:
-	@if [ "$(SKIP_BUILD_FRONT)" = "true" ]; then \
-		echo "Skipping front-end build..."; \
-	else \
-		cd assets/front && npm run build; \
-	fi
-
-build: docs build-front
+build:
 	mkdir -p ./tmp
 	CGO_ENABLED=0 go build -o ./tmp/main .
 
-cross-build: docs build-front
+cross-build:
 	set -e; \
 	mkdir -p ./tmp; \
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./tmp/main_linux_amd64 .; \
@@ -42,7 +37,7 @@ clean:
 	rm -rf ./configs
 	rm -rf ./downloads
 
-check: build-front test lint
+check: test lint
 
 docker-build:
 	docker build -t jusoares/gorgon:$(TAG) .

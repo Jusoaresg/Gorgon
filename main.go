@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/jusoaresg/gorgon/config"
+	"github.com/jusoaresg/gorgon/internal/app"
 	"github.com/jusoaresg/gorgon/internal/routes"
 	"github.com/jusoaresg/gorgon/internal/scheduler"
 	"github.com/jusoaresg/gorgon/internal/scheduler/cron"
@@ -20,7 +21,7 @@ import (
 )
 
 // @title           Gongon
-// @version         0.1
+// @version         0.2
 // @description     Show Download Manager API
 // @BasePath /api/v1
 
@@ -44,15 +45,15 @@ func main() {
 		AllowCredentials: true,
 	}
 	e.Use(middleware.CORSWithConfig(cors))
-	e.Use(middleware.Logger())
+	e.Use(middleware.RequestLogger())
 
-	routes.SetupFrontRouter(e)
+	dependencies := app.NewDependencies()
 
-	routes.InitializeRoutes(e)
+	routes.InitializeRoutes(e, dependencies)
 	cron.StartDailyUpdate(scheduler.UpdateAllShows)
 
+	// Initialize Crons and Schedulers
 	scheduler.Start()
-
 	cron.StartVerifyEpisodeWasDeleted(scheduler.VerifyEpisodeWasDeleted)
 
 	sigs := make(chan os.Signal, 1)
@@ -75,8 +76,7 @@ func main() {
 		log.Printf("error shutting down Echo server: %v", err)
 	}
 
-	db := config.GetSQLite()
-	if err := db.Close(); err != nil {
+	if err := dependencies.DB.Close(); err != nil {
 		log.Printf("error closing database: %v", err)
 	} else {
 		log.Printf("database closed cleanly")

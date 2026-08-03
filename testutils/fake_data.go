@@ -30,7 +30,6 @@ func MakeFakeEpisodeContent() epContentModel.EpisodeContent {
 		Name:     fmt.Sprintf("Episode Content %d", rand.Int()),
 		FilePath: fmt.Sprintf("File path"),
 		Size:     rand.Float64(),
-		Is_Seed:  true,
 	}
 }
 

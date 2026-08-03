@@ -1,0 +1,38 @@
+{{ define "add-show-card" }}
+    {{ if not .Shows }}
+        <div class="search-empty-state">
+            <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <h3>No results for "{{ .Query }}"</h3>
+            <p>Try a different spelling or a shorter name.</p>
+        </div>
+    {{ else }}
+    {{ range .Shows }}
+        {{ if .IsAdded }}
+            <a href="#" class="result-card" style="cursor: default;">
+        {{ else }}
+            <a href="/add-show/{{ .Show.TvMazeID }}/config" class="result-card">
+        {{ end }}
+                <div class="result-poster">
+                    <img src="{{ .Show.Image.Medium }}" alt="Poster">
+                    <div class="result-overlay">
+                        {{ if .IsAdded }}
+                             <span class="btn btn-add-small" style="background-color: var(--success); cursor: default;">In Library</span>
+                        {{ else }}
+                             <span class="btn btn-add-small">Add Series</span>
+                        {{ end }}
+                    </div>
+                </div>
+                <div class="result-content">
+                    <div class="result-network">HBO</div>
+                    <h4 class="result-title">{{ .Show.Name }}</h4>
+                    <div class="result-meta">
+                        <span>{{ .Show.Premiered }}</span>
+                        <span>•</span>
+                        <span class="text-success">{{ .Show.Status }}</span>
+                    </div>
+                    <p class="result-summary">{{ .Show.Summary }}</p>
+                </div>
+            </a>
+    {{ end }}
+    {{ end }}
+{{ end }}

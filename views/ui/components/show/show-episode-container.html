@@ -1,0 +1,79 @@
+{{ define "show-episode-container" }}
+<div class="episode-card {{ .Tracking }}" data-episode-id="{{ .ID }}">
+    <div class="episode-header" onclick="toggleEpisode(this)">
+        <div class="episode-main-info">
+            <svg class="episode-toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            <span class="episode-number">{{ .Number }}</span>
+            <div class="episode-title-block">
+                <span class="episode-title">{{ .Name }}</span>
+                <div class="episode-meta-row">
+                    <span>S{{ .Season }}E{{ .Number }}</span>
+                    <span>•</span>
+                    <span>{{ airDate . }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="episode-status-block">
+            <span class="status-badge {{ .Tracking }}" 
+                  style="cursor: pointer; transition: transform 0.2s;" 
+                  title="Change Status"
+                  hx-get="/front/episode/{{ .ID }}/modal/tracking" 
+                  hx-target="body" 
+                  hx-swap="beforeend" 
+                  onclick="event.stopPropagation()">
+                {{ .Tracking }}
+            </span>
+
+            <div class="action-buttons">
+                {{ if eq .Tracking "downloaded" }}
+                <button 
+                 class="btn-icon-sm btn-delete" 
+                 title="Delete Episode" 
+                 onclick="event.stopPropagation()"
+
+                 hx-trigger="click"
+                 hx-delete="/api/v1/database/show/episode/{{ .ID }}"
+                 hx-swap="none"
+                 >
+                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                     <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                     <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                 </svg>
+                </button>
+                {{ end }}
+
+                <button 
+                           class="btn-icon-sm" 
+                           title="Automatic Search" 
+                           id="automatic-search-{{ .ID }}"
+                           onclick="event.stopPropagation()"
+
+                           hx-trigger="click"
+                           hx-post="/api/v1/database/show/episode/search"
+                           hx-vals='{"id": {{ .ID }}}'
+                           parse-types="true"
+                           hx-swap="none"
+                           >
+                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </button>
+                <button class="btn-icon-sm" title="Interactive Search" 
+                        onclick="event.stopPropagation()"
+                        hx-get="/front/episode/{{ .ID }}/interactive-search"
+                        hx-target="body"
+                        hx-swap="beforeend">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{ if .Summary }}
+    <div class="episode-details">
+        <div class="episode-details-content js-summary">
+            {{ .Summary }}
+        </div>
+    </div>
+    {{ end }}
+</div>
+{{ end }}

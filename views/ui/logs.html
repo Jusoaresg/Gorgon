@@ -1,0 +1,150 @@
+{{ define "logs" }}
+{{ $currentFile := .Data.CurrentFile }}
+{{ $search := .Data.Search }}
+{{ $level := .Data.Level }}
+
+<div class="logs-container">
+    <div class="logs-header">
+        <h1>Logs</h1>
+        <p class="text-secondary">system activity and debug information</p>
+    </div>
+
+    <div class="logs-grid">
+        <aside class="logs-sidebar">
+            <h3 class="logs-files-title">Log Files</h3>
+            <div class="logs-files-list">
+                {{ range .Data.Files }}
+                <a href="/logs?file={{ .Name }}{{ if $search }}&search={{ $search }}{{ end }}{{ if $level }}&level={{ $level }}{{ end }}" class="log-file-item {{ if eq .Name $currentFile }}active{{ end }}">
+                    <div class="log-file-info">
+                        <span class="log-file-name">{{ .Name }}</span>
+                        <span class="log-file-size">{{ .Size }}</span>
+                    </div>
+                    {{ if .IsCurrent }}<span class="log-file-badge">active</span>{{ end }}
+                </a>
+                {{ end }}
+            </div>
+        </aside>
+
+        <div class="logs-main">
+            <div class="logs-toolbar">
+                <form class="logs-filter-form" action="/logs" method="GET">
+                    <input type="hidden" name="file" value="{{ $currentFile }}">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="level">Level</label>
+                            <select name="level" id="level" onchange="this.form.submit()">
+                                <option value="">All</option>
+                                <option value="DEBUG" {{ if eq $level "DEBUG" }}selected{{ end }}>DEBUG</option>
+                                <option value="INFO" {{ if eq $level "INFO" }}selected{{ end }}>INFO</option>
+                                <option value="WARN" {{ if eq $level "WARN" }}selected{{ end }}>WARN</option>
+                                <option value="ERROR" {{ if eq $level "ERROR" }}selected{{ end }}>ERROR</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="search">Search</label>
+                            <input type="text" name="search" id="search" value="{{ $search }}" placeholder="Search messages...">
+                        </div>
+                        <div class="filter-actions">
+                            <button type="submit" class="btn btn-primary">Filter</button>
+                            <a style="margin-bottom: -2px;" href="/logs" class="btn btn-outline">Clear</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div id="logs-entries-container"
+                hx-get="/logs?view=log-entries&file={{ $currentFile }}&level={{ $level }}&search={{ $search }}"
+                hx-trigger="every 5s"
+                hx-swap="outerHTML">
+                {{ template "log-entries" . }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="context-modal" class="modal-overlay" style="display:none" onclick="closeContextModal(event)">
+    <div class="modal-content context-modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div>
+                <h3 class="modal-title">Log Context</h3>
+                <span class="modal-subtitle">additional log entry data</span>
+            </div>
+            <button class="btn-close-modal" onclick="closeContextModal(null)">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <pre id="context-json-display" class="context-json"></pre>
+        </div>
+        <div class="modal-footer">
+            <div class="footer-actions-right">
+                <button class="btn btn-primary" onclick="closeContextModal(null)">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showContextModal(btn) {
+        const raw = btn.dataset.context;
+        try {
+            const parsed = JSON.parse(raw);
+            const formatted = JSON.stringify(parsed, null, 2);
+            document.getElementById('context-json-display').textContent = formatted;
+        } catch (e) {
+            document.getElementById('context-json-display').textContent = raw;
+        }
+        document.getElementById('context-modal').style.display = '';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeContextModal(e) {
+        if (e && e.target !== e.currentTarget) return;
+        document.getElementById('context-modal').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+</script>
+{{ end }}
+
+{{ define "log-entries" }}
+<div id="logs-entries-container"
+    hx-get="/logs?view=log-entries&file={{ .Data.CurrentFile }}&level={{ .Data.Level }}&search={{ .Data.Search }}"
+    hx-trigger="every 5s"
+    hx-swap="outerHTML">
+    <div class="logs-entries">
+        {{ if .Data.Entries }}
+        <div class="logs-table">
+            <div class="logs-table-head">
+                <div class="log-col time">Time</div>
+                <div class="log-col level">Level</div>
+                <div class="log-col message">Message</div>
+                <div class="log-col context">Context</div>
+            </div>
+            <div class="logs-table-body">
+                {{ range .Data.Entries }}
+                <div class="logs-table-row">
+                    <div class="log-col time">{{ .Time }}</div>
+                    <div class="log-col level">
+                        <span class="log-level-badge level-{{ toLower .Level }}">{{ .Level }}</span>
+                    </div>
+                    <div class="log-col message">{{ .Message }}</div>
+                    <div class="log-col context">
+                        {{ if .Context }}
+                        <button class="btn-context" data-context="{{ .Context }}" onclick="showContextModal(this)">
+                            <code>{{ .Context }}</code>
+                            <svg class="context-expand-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </button>
+                        {{ end }}
+                    </div>
+                </div>
+                {{ end }}
+            </div>
+        </div>
+        {{ else }}
+        <div class="logs-empty">
+            <p>No log entries found</p>
+        </div>
+        {{ end }}
+    </div>
+</div>
+{{ end }}

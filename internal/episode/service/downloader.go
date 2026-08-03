@@ -9,7 +9,13 @@ import (
 	"github.com/jusoaresg/gorgon/internal/episode/model"
 )
 
-func DownloadEpisode(ep model.Episode, response schema.SearchResponse) error {
+type EpisodeDownloaderInterface interface {
+	DownloadEpisode(ep model.Episode, response schema.SearchResponse) error
+}
+
+type EpisodeDownloader struct{}
+
+func (d *EpisodeDownloader) DownloadEpisode(ep model.Episode, response schema.SearchResponse) error {
 	logger := config.GetLogger()
 
 	torrentService, err := qbittorrentService.NewQBittorrentService(logger)
@@ -24,7 +30,7 @@ func DownloadEpisode(ep model.Episode, response schema.SearchResponse) error {
 
 	logger.Info("added torrent to torrent client")
 
-	if err := SnatchEpisode(&ep, response.InfoHash); err != nil {
+	if err := SnatchEpisode(&ep, response); err != nil {
 		if err := torrentService.DeleteTorrent(response.InfoHash, true); err != nil {
 			return err
 		}

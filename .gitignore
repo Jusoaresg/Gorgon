@@ -1,6 +1,6 @@
 assets/last_update.txt
 configs
-downloads
+/downloads
 shows
 tmp/*
 *.log

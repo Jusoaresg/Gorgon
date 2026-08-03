@@ -22,19 +22,17 @@ func NewEpisodeContentRepository(db *sqlx.DB) EpisodeContentRepository {
 
 func (s *EpisodeContentRepository) Create(content model.EpisodeContent) (int64, error) {
 	query := `
-	INSERT INTO episode_content (
+	INSERT INTO episode_contents (
 		episode_id,
 		name,
 	        file_path,
-		size,
-		is_seed
+		size
 	) 
 	VALUES (
 		:episode_id,
 		:name,
 		:file_path,
-		:size,
-		:is_seed
+		:size
 	) 
 	`
 	result, err := s.db.NamedExec(query, content)
@@ -51,19 +49,17 @@ func (s *EpisodeContentRepository) Create(content model.EpisodeContent) (int64, 
 
 func (s *EpisodeContentRepository) CreateTx(tx *sqlx.Tx, content model.EpisodeContent) (int64, error) {
 	query := `
-	INSERT INTO episode_content (
+	INSERT INTO episode_contents (
 		episode_id,
 		name,
 	        file_path,
-		size,
-		is_seed
+		size
 	) 
 	VALUES (
 		:episode_id,
 		:name,
 		:file_path,
-		:size,
-		:is_seed
+		:size
 	) 
 	`
 	result, err := tx.NamedExec(query, content)
@@ -81,7 +77,7 @@ func (s *EpisodeContentRepository) CreateTx(tx *sqlx.Tx, content model.EpisodeCo
 
 func (s *EpisodeContentRepository) GetById(id int64) (model.EpisodeContent, error) {
 	var content model.EpisodeContent
-	if err := s.db.Get(&content, "SELECT * FROM episode_content WHERE id = ? LIMIT 1", id); err != nil {
+	if err := s.db.Get(&content, "SELECT * FROM episode_contents WHERE id = ? LIMIT 1", id); err != nil {
 		return model.EpisodeContent{}, err
 	}
 	return content, nil
@@ -89,14 +85,14 @@ func (s *EpisodeContentRepository) GetById(id int64) (model.EpisodeContent, erro
 
 func (s *EpisodeContentRepository) GetByEpisodeId(episodeId int64) (model.EpisodeContent, error) {
 	var content model.EpisodeContent
-	if err := s.db.Get(&content, "SELECT * FROM episode_content WHERE episode_id = ? LIMIT 1", episodeId); err != nil {
+	if err := s.db.Get(&content, "SELECT * FROM episode_contents WHERE episode_id = ? LIMIT 1", episodeId); err != nil {
 		return model.EpisodeContent{}, err
 	}
 	return content, nil
 }
 
 func (s *EpisodeContentRepository) DeleteById(id int64) error {
-	if _, err := s.db.Exec("DELETE FROM episode_content WHERE id = ?", id); err != nil {
+	if _, err := s.db.Exec("DELETE FROM episode_contents WHERE id = ?", id); err != nil {
 		return err
 	}
 	return nil
@@ -104,7 +100,7 @@ func (s *EpisodeContentRepository) DeleteById(id int64) error {
 
 func (s *EpisodeContentRepository) List() ([]model.EpisodeContent, error) {
 	var contents []model.EpisodeContent
-	if err := s.db.Select(&contents, "SELECT * FROM episode_content"); err != nil {
+	if err := s.db.Select(&contents, "SELECT * FROM episode_contents"); err != nil {
 		return []model.EpisodeContent{}, err
 	}
 	return contents, nil
@@ -112,7 +108,7 @@ func (s *EpisodeContentRepository) List() ([]model.EpisodeContent, error) {
 
 func (s *EpisodeContentRepository) ListByEpisodeId(episodeID int64) ([]model.EpisodeContent, error) {
 	var contents []model.EpisodeContent
-	if err := s.db.Select(&contents, "SELECT * FROM episode_content WHERE episode_id = ?", episodeID); err != nil {
+	if err := s.db.Select(&contents, "SELECT * FROM episode_contents WHERE episode_id = ?", episodeID); err != nil {
 		return []model.EpisodeContent{}, err
 	}
 	return contents, nil
@@ -120,12 +116,11 @@ func (s *EpisodeContentRepository) ListByEpisodeId(episodeID int64) ([]model.Epi
 
 func (s *EpisodeContentRepository) Update(content model.EpisodeContent) error {
 	query := `
-	UPDATE episode_content SET
+	UPDATE episode_contents SET
 		episode_id = :episode_id,
 		name = :name,
 		size = :size,
-		file_path = :file_path,
-		is_seed = :is_seed
+		file_path = :file_path
 	WHERE id = :id
 	`
 	result, err := s.db.NamedExec(query, content)
@@ -145,12 +140,11 @@ func (s *EpisodeContentRepository) Update(content model.EpisodeContent) error {
 
 func (s *EpisodeContentRepository) UpdateTx(tx *sqlx.Tx, content model.EpisodeContent) error {
 	query := `
-	UPDATE episode_content SET
+	UPDATE episode_contents SET
 		episode_id = :episode_id,
 		name = :name,
 		file_path = :file_path,
-		size = :size,
-		is_seed = :is_seed
+		size = :size
 	WHERE id = :id
 	`
 	_, err := tx.NamedExec(query, content)

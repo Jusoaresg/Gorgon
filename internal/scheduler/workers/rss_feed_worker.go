@@ -6,56 +6,54 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/external/prowlarr/schema"
 	"github.com/jusoaresg/gorgon/external/prowlarr/service"
 	"github.com/jusoaresg/gorgon/internal/episode/model"
+	"github.com/jusoaresg/gorgon/internal/episode/repository"
 )
 
-func StartRssFeedWorker(workerCount int) {
+// NOTE: Responses could be a pointer
+type EpisodeJob struct {
+	Episode   model.Episode
+	Responses []schema.SearchResponse
+}
+
+func StartRssEpisodeFetcherWorker(workerCount int, prowlarrService *service.ProwlarrSearchService) {
 	logger := config.GetLogger().WithGroup("worker").With("name", "StartRssFeedWorker")
 	rssProcessor := NewRssReleaseProcessor(config.GetSQLite())
 
-	prowlarrService, err := service.NewProwlarrSearchService(logger)
-	if err != nil {
-		logger.Error("failed to create prowlarr service", slog.String("error", err.Error()))
-		return
-	}
-
-	episodeChan := make(chan model.Episode)
-	var responses []schema.SearchResponse
+	jobChan := make(chan EpisodeJob, workerCount)
 
 	var wg sync.WaitGroup
 
 	logger.Info(
-		"starting rss feed worker",
+		"Starting rss feed worker",
 		slog.Int("worker_count", workerCount),
 	)
 
 	for i := range workerCount {
 		workerID := i
-		wg.Add(1)
-		go func() {
+		wg.Go(func() {
 			defer wg.Done()
-			logger.Info("worker started", slog.Int("worker_id", workerID))
+			logger.Info("Worker started", slog.Int("worker_id", workerID))
 
-			for ep := range episodeChan {
-				err := rssProcessor.RssProcessRelease(ep, responses)
+			for job := range jobChan {
+				err := rssProcessor.RssProcessRelease(job.Episode, job.Responses)
 				if err != nil {
 					logger.Error(
 						"failed to process episode",
 						slog.String("error", err.Error()),
-						slog.Int64("show_id", ep.ShowID),
-						slog.Int64("episode_id", ep.ID),
+						slog.Int64("show_id", job.Episode.ShowID),
+						slog.Int64("episode_id", job.Episode.ID),
 					)
 					continue
 				}
 			}
-		}()
+		})
 	}
 
-	ticker := time.NewTicker(time.Second * 45)
+	ticker := time.NewTicker(time.Minute * 1)
 	defer ticker.Stop()
 
 	for {
@@ -68,9 +66,11 @@ func StartRssFeedWorker(workerCount int) {
 			continue
 		}
 
+		var currentResponses []schema.SearchResponse
+
 		//TODO: Required words here
 		query := strings.Join([]string{"multi subs"}, " ")
-		prowlarrService.Search(&schema.SearchRequest{Query: query}, &responses)
+		prowlarrService.Search(&schema.SearchRequest{Query: query}, &currentResponses)
 
 		for _, ep := range episodes {
 			logger.Info(
@@ -79,7 +79,10 @@ func StartRssFeedWorker(workerCount int) {
 				slog.Int64("show_id", ep.ShowID),
 				slog.String("name", ep.Name),
 			)
-			episodeChan <- ep
+			jobChan <- EpisodeJob{
+				Episode:   ep,
+				Responses: currentResponses,
+			}
 		}
 	}
 }
@@ -88,20 +91,11 @@ func fetchRssFeedWantedEpisodes() []model.Episode {
 	logger := config.GetLogger().WithGroup("worker").With("name", "fetchWantedEps")
 	db := config.GetSQLite()
 
-	var episodes []model.Episode
+	episodeRepositoy := repository.NewEpisodeRepository(db)
 
-	query, args, err := sqlx.In(`
-		SELECT * FROM episodes WHERE tracking IN (?)
-		`, []string{"wanted", "missing"})
+	episodes, err := episodeRepositoy.ListByTracking("wanted", "missing")
 	if err != nil {
-		logger.Error("failed to build sql query with sqlx.in", slog.String("error", err.Error()))
-		return nil
-	}
-	query = db.Rebind(query)
-
-	err = db.Select(&episodes, query, args...)
-	if err != nil {
-		logger.Error("failed to execute SELECT query", slog.String("error", err.Error()))
+		logger.Error("Failed to list episodes by tracking", slog.String("error", err.Error()))
 	}
 	return episodes
 }

@@ -20,12 +20,11 @@ var (
 	BaseDir             = "."
 	ConfigFolder string = "./configs"
 
-	LogsPath    string = filepath.Join(ConfigFolder, "logs")
-	Port        string = "8080"
-	baseApiPath string
-	safeDB      SafeDB
-	logger      *slog.Logger
-	err         error
+	LogsPath              string = filepath.Join(ConfigFolder, "logs")
+	Port                  string = "8181"
+	safeDB                SafeDB
+	logger                *slog.Logger
+	ProwlarrCooldownCache sync.Map
 )
 
 func Init() error {
@@ -33,6 +32,10 @@ func Init() error {
 
 	if baseDirEnv := os.Getenv("GORGON_BASE_DIR"); baseDirEnv != "" {
 		BaseDir = baseDirEnv
+	}
+
+	if portEnv := os.Getenv("GORGON_PORT"); portEnv != "" {
+		Port = portEnv
 	}
 
 	if InDocker {

@@ -15,4 +15,8 @@ type CheckTorrentResponse struct {
 	NumLeechs   int     `json:"num_leechs"`
 	UpSpeed     int     `json:"upspeed"`
 	DlSpeed     int     `json:"dlspeed"`
+	Size        int64   `json:"size"`
+	AmountLeft  int64   `json:"amount_left"`
+	Category    string  `json:"category"`
+	AddedOn     int64   `json:"added_on"`
 }

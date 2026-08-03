@@ -2,6 +2,8 @@ package repository
 
 import (
 	"errors"
+	"time"
+
 	"github.com/jusoaresg/gorgon/internal/episode/model"
 
 	"github.com/jmoiron/sqlx"
@@ -12,9 +14,12 @@ type EpisodeRepositoryInterface interface {
 	CreateTx(tx *sqlx.Tx, episode model.Episode) (int64, error)
 	DeleteByID(id int64) error
 	GetByID(id int64) (model.Episode, error)
+	GetAllByID(ids ...int64) ([]model.Episode, error)
 	List() ([]model.Episode, error)
 	ListByShowID(showID int64) ([]model.Episode, error)
-	ListByTracking(tracking string) ([]model.Episode, error)
+	ListBySeasonID(seasonId int) ([]model.Episode, error)
+	ListByTracking(trackings ...string) ([]model.Episode, error)
+	ListReleasedByTracking(trackings ...string) ([]model.Episode, error)
 	Update(episode model.Episode) error
 	UpdateTx(tx *sqlx.Tx, episode model.Episode) error
 }
@@ -40,8 +45,7 @@ func (s *EpisodeRepository) Create(episode model.Episode) (int64, error) {
 		number,
 		season,
 		airstamp,
-		tracking,
-		torrent_hash
+		tracking
 	) 
 	VALUES (
 		:show_id, 
@@ -52,8 +56,7 @@ func (s *EpisodeRepository) Create(episode model.Episode) (int64, error) {
 		:number,
 		:season,
 		:airstamp,
-		:tracking,
-		:torrent_hash
+		:tracking
 	) 
 	`
 	result, err := s.db.NamedExec(query, episode)
@@ -79,8 +82,7 @@ func (s *EpisodeRepository) CreateTx(tx *sqlx.Tx, episode model.Episode) (int64,
 		number,
 		season,
 		airstamp,
-		tracking,
-		torrent_hash
+		tracking
 	) 
 	VALUES (
 		:show_id, 
@@ -91,8 +93,7 @@ func (s *EpisodeRepository) CreateTx(tx *sqlx.Tx, episode model.Episode) (int64,
 		:number,
 		:season,
 		:airstamp,
-		:tracking,
-		:torrent_hash
+		:tracking
 	) 
 	`
 	result, err := tx.NamedExec(query, episode)
@@ -116,6 +117,28 @@ func (s *EpisodeRepository) GetByID(id int64) (model.Episode, error) {
 	return episode, nil
 }
 
+func (s *EpisodeRepository) GetAllByID(ids ...int64) ([]model.Episode, error) {
+	var episodes []model.Episode
+
+	if len(ids) <= 0 {
+		return episodes, nil
+	}
+
+	query, args, err := sqlx.In("SELECT * FROM episodes WHERE id IN (?)", ids)
+	if err != nil {
+		return episodes, err
+	}
+
+	query = s.db.Rebind(query)
+
+	err = s.db.Select(&episodes, query, args...)
+	if err != nil {
+		return episodes, err
+	}
+
+	return episodes, nil
+}
+
 func (s *EpisodeRepository) DeleteByID(id int64) error {
 	if _, err := s.db.Exec("DELETE FROM episodes WHERE id = ?", id); err != nil {
 		return err
@@ -131,11 +154,56 @@ func (s *EpisodeRepository) List() ([]model.Episode, error) {
 	return episodes, nil
 }
 
-func (s *EpisodeRepository) ListByTracking(tracking string) ([]model.Episode, error) {
+func (s *EpisodeRepository) ListBySeasonID(seasonId int) ([]model.Episode, error) {
 	var episodes []model.Episode
-	if err := s.db.Select(&episodes, "SELECT * FROM episodes WHERE tracking = ?", tracking); err != nil {
+
+	if err := s.db.Select(&episodes, "SELECT * FROM episodes WHERE season_id = ?", seasonId); err != nil {
 		return []model.Episode{}, err
 	}
+	return episodes, nil
+}
+
+func (s *EpisodeRepository) ListByTracking(trackings ...string) ([]model.Episode, error) {
+	var episodes []model.Episode
+
+	if len(trackings) <= 0 {
+		return episodes, nil
+	}
+
+	query, args, err := sqlx.In("SELECT * FROM episodes WHERE tracking IN (?)", trackings)
+	if err != nil {
+		return episodes, err
+	}
+
+	query = s.db.Rebind(query)
+
+	err = s.db.Select(&episodes, query, args...)
+	if err != nil {
+		return episodes, err
+	}
+
+	return episodes, nil
+}
+
+func (s *EpisodeRepository) ListReleasedByTracking(trackings ...string) ([]model.Episode, error) {
+	var episodes []model.Episode
+
+	if len(trackings) <= 0 {
+		return episodes, nil
+	}
+
+	query, args, err := sqlx.In("SELECT * FROM episodes WHERE tracking IN (?) AND airstamp <= ?", trackings, time.Now().Unix())
+	if err != nil {
+		return episodes, err
+	}
+
+	query = s.db.Rebind(query)
+
+	err = s.db.Select(&episodes, query, args...)
+	if err != nil {
+		return episodes, err
+	}
+
 	return episodes, nil
 }
 
@@ -158,8 +226,7 @@ func (s *EpisodeRepository) Update(episode model.Episode) error {
 		number = :number,
 		season = :season,
 		airstamp = :airstamp,
-		tracking = :tracking,
-		torrent_hash = :torrent_hash
+		tracking = :tracking
 	WHERE id = :id
 	`
 	result, err := s.db.NamedExec(query, episode)
@@ -188,8 +255,7 @@ func (s *EpisodeRepository) UpdateTx(tx *sqlx.Tx, episode model.Episode) error {
 		number = :number,
 		season = :season,
 		airstamp = :airstamp,
-		tracking = :tracking,
-		torrent_hash = :torrent_hash
+		tracking = :tracking
 	WHERE id = :id
 	`
 	_, err := tx.NamedExec(query, episode)

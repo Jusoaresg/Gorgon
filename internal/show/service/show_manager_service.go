@@ -8,6 +8,7 @@ import (
 	"github.com/jusoaresg/gorgon/internal/episode/model"
 	episodeModel "github.com/jusoaresg/gorgon/internal/episode/model"
 	episodeRepository "github.com/jusoaresg/gorgon/internal/episode/repository"
+	episodeTorrentRepository "github.com/jusoaresg/gorgon/internal/episode_torrent/repository"
 	seasonModel "github.com/jusoaresg/gorgon/internal/season/model"
 	seasonRepository "github.com/jusoaresg/gorgon/internal/season/repository"
 	showRepository "github.com/jusoaresg/gorgon/internal/show/repository"
@@ -41,6 +42,7 @@ func NewShowManagerService(logger *slog.Logger, db *sqlx.DB) *ShowManagerService
 			showRepo,
 			&showAliasRepo,
 			episodeRepo,
+			episodeTorrentRepository.NewEpisodeTorrentRepository(db),
 			seasonRepo,
 		),
 		ShowRepo:      showRepo,
@@ -73,8 +75,12 @@ func (sm *ShowManagerService) GetSeasons(tvMazeId int64) (*[]dtos.SeasonDto, err
 
 // NOTE: Everything here will need a refactor later, there're lot of problems
 // Probably will be problems with the seasons updating.
-func (sm *ShowManagerService) UpdateShowWithRelations(showDTO dtos.ShowDto, seasonsDTO []dtos.SeasonDto, episodes []dtos.EpisodeDto) error {
-	aggregatedShow, err := sm.ShowAggregator.GetShowWithRelations(showDTO.TvMazeID)
+func (sm *ShowManagerService) UpdateShowWithRelations(
+	showDTO dtos.ShowDto,
+	seasonsDTO []dtos.SeasonDto,
+	episodes []dtos.EpisodeDto,
+) error {
+	aggregatedShow, err := sm.ShowAggregator.GetShowWithRelationsByTvMazeId(showDTO.TvMazeID)
 	if err != nil {
 		sm.logger.Error(
 			"error while getting aggregated show from db to update show",
@@ -95,16 +101,7 @@ func (sm *ShowManagerService) UpdateShowWithRelations(showDTO dtos.ShowDto, seas
 		return err
 	}
 
-	//TODO: Function inside show model to update
-	showModel.Name = showDTO.Name
-	showModel.Type = showDTO.Type
-	showModel.Language = showDTO.Language
-	showModel.Status = showDTO.Status
-	showModel.Premiered = showDTO.Premiered
-	showModel.Ended = showDTO.Ended
-	showModel.Rating = showDTO.Rating.Average
-	showModel.Ended = showDTO.Ended
-	showModel.Summary = showDTO.Summary
+	showModel = showDTO.ToModel()
 
 	if err := sm.ShowRepo.UpdateTxByTvMazeID(tx, showModel); err != nil {
 		tx.Rollback()

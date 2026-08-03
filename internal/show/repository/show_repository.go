@@ -16,6 +16,7 @@ type ShowRepositoryInterface interface {
 	GetByTvMazeID(tvMazeID int64) (model.Show, error)
 	DeleteById(id int64) error
 	List() ([]model.Show, error)
+	ListFiltered(search, status string) ([]model.Show, error)
 	UpdateByTvMazeID(show model.Show) error
 	UpdateTxByTvMazeID(tx *sqlx.Tx, show model.Show) error
 }
@@ -171,6 +172,28 @@ func (s *ShowRepository) List() ([]model.Show, error) {
 	if err := s.db.Select(&shows, "SELECT * FROM shows"); err != nil {
 		return []model.Show{}, err
 	}
+	return shows, nil
+}
+
+func (s *ShowRepository) ListFiltered(search, status string) ([]model.Show, error) {
+	var shows []model.Show
+	query := "SELECT * FROM shows WHERE 1=1"
+	args := []any{}
+
+	if search != "" {
+		query += " AND name LIKE ?"
+		args = append(args, "%"+search+"%")
+	}
+
+	if status != "" && status != "all" {
+		query += " AND status = ?"
+		args = append(args, status)
+	}
+
+	if err := s.db.Select(&shows, query, args...); err != nil {
+		return []model.Show{}, err
+	}
+
 	return shows, nil
 }
 

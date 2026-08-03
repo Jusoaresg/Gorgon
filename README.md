@@ -2,7 +2,7 @@
 
 **Gorgon** is a self-hosted media automation tool for tracking and managing TV shows.
 
-Built in **Go** with a **SvelteKit** frontend, Gorgon allows users to automatically search, monitor, and organize episodes through a clean web interface. It integrates with torrent clients and indexers to automate the download and organization of content — similar to projects like Sonarr or Pymedusa.
+Built in **Go** with a **HTML + HTMX** frontend, Gorgon allows users to automatically search, monitor, and organize episodes through a clean web interface. It integrates with torrent clients and indexers to automate the download and organization of content. Similar to projects like Sonarr or Pymedusa.
 
 ---
 
@@ -12,21 +12,28 @@ Built in **Go** with a **SvelteKit** frontend, Gorgon allows users to automatica
 - 🔍 Search for episodes via Prowlarr indexers
 - 💾 Automate downloads with qBittorrent integration
 - 🧹 Organize downloads into structured folders with symlinks
+- 🎛️ Keyword-based **filter engine**: profiles with `required` / `rejected` / `preferred` (scored) patterns, per-show search patterns and global defaults
+- 🏷️ Custom aliases per show, searched alongside the canonical name
+- ⚡ Live UI updates via WebSocket (episode tracking buttons update in real time)
+- 📅 Calendar page with upcoming episode releases
+- 📥 Downloads page to track actively downloading episodes
+- 📝 File-based logging with a dedicated Logs page
 - 🧠 Background workers for syncing, cleanup, and update routines
-- 💻 Web UI built with SvelteKit for easy use and management
+- 💻 Web UI built with HTML + HTMX for lightweight, dynamic interactions
+- 📖 Open API docs served at `/api/v1/docs` (Swagger)
 
 ---
 
 ## 📸 Screenshots
 
-![Shows Page](https://i.imgur.com/UOTfCeb.png)
+![Shows Page](https://i.imgur.com/fFum9P2.png)
 
 ---
 
 ## 📦 Stack
 
 - **Backend**: Go (REST API, modular architecture)
-- **Frontend**: SvelteKit (SPA)
+- **Frontend**: HTML + HTMX (server-rendered with progressive enhancement)
 - **Database**: SQLite (lightweight and embedded)
 - **Torrent Client**: [qBittorrent](https://www.qbittorrent.org/)
 - **Indexer Integration**: [Prowlarr](https://github.com/Prowlarr/Prowlarr)
@@ -40,8 +47,7 @@ Built in **Go** with a **SvelteKit** frontend, Gorgon allows users to automatica
 
 - [qBittorrent](https://www.qbittorrent.org/) with Web UI enabled
 - [Prowlarr](https://github.com/Prowlarr/Prowlarr) for torrent indexers
-- Go 1.21+
-- Node.js 20+ (for the frontend)
+- Go 1.25+
 - SQLite (default DB)
 
 ---
@@ -56,7 +62,7 @@ You can run Gorgon and its dependencies (Prowlarr, qBittorrent) using Docker Com
     services:
       gorgon:
         container_name: gorgon
-        image: jusoares/gorgon:v0.1.0
+        image: ghcr.io/jusoaresg/gorgon:latest
         ports:
           - "8080:8080"
         volumes:
@@ -115,6 +121,15 @@ This will build the Gorgon image, pull the required dependencies, and start all 
 - **Prowlarr** will be available at `http://localhost:9696`
 - **qBittorrent** will be available at `http://localhost:9191`
 
+### 🐳 Images
+
+Pre-built images are published automatically to the [GitHub Container Registry](https://github.com/Jusoaresg/gorgon/pkgs/container/gorgon) when pushing to `main` or creating a release:
+
+- `ghcr.io/jusoaresg/gorgon:latest` — built from `main`
+- `ghcr.io/jusoaresg/gorgon:vX.Y.Z` (and `vX.Y`) — built from version tags / releases
+
+Multi-architecture images are provided for `linux/amd64` and `linux/arm64`. The container listens on port `8080` by default (override with the `GORGON_PORT` env var). Other env vars: `GORGON_BASE_DIR` (base path for the `configs`, `downloads` and `shows` folders) and `IN_DOCKER=true` (set automatically in the official image).
+
 ### ⚙️ Initial Setup
 
 -   **Prowlarr**:
@@ -131,10 +146,64 @@ This will build the Gorgon image, pull the required dependencies, and start all 
 
 ---
 
+## 🎛️ Filtering
+
+Gorgon filters search results and release candidates with **profiles** and **per-show search patterns**.
+
+### Filter Profiles
+
+Profiles are reusable collections of **gates** and a search pattern, configured in **Settings → Filters** and shared across shows:
+
+- `search` — the query template(s) used on Prowlarr
+- `required` — words the release filename must contain
+- `rejected` — words that disqualify a release
+- `preferred` — words that add a configurable **score** weighing how strongly a release is wanted
+
+A default profile can be set globally and applied to every show. Each profile can define its own search patterns, and the `preferred` patterns carry a score field.
+
+### Defaults
+
+Under **Settings → Filters**, global search behavior can be configured for every show:
+
+- **Default filter profile** — applied to shows without their own profile (saves automatically when changed)
+- **Use aliases when searching** — search releases using the show's aliases too
+- **Ignore non-latin aliases** — skip aliases containing non-latin characters
+
+### Per-show search patterns
+
+Each show (via the **Edit Series** modal) can list its own **search patterns**, for when a specific show needs a particular query style. These are **combined** (and deduplicated) with the selected profile's search patterns — each one becomes a Prowlarr query. The default `{alias} S{season:00}E{episode:00}` is **always searched first** (when not already listed) so the most precise episode query runs before the extra patterns.
+
+### Placeholders
+
+Patterns may use placeholders that are replaced with the show's data:
+
+| Placeholder | Meaning |
+| --- | --- |
+| `{alias}` | Show name or alias used for the search |
+| `{show}` | Canonical show name |
+| `{season}` | Season number |
+| `{episode}` | Episode number |
+| `{season:00}` | Season number zero-padded |
+| `{episode:00}` | Episode number zero-padded |
+
+---
+
+## 📡 API
+
+Gorgon exposes a REST API under `/api/v1`. Live Swagger documentation is available at:
+
+- `/api/v1/docs` — interactive docs UI
+- `/swagger.json` — OpenAPI 2.0 spec
+
+The web UI consumes this same API, so every interaction in the interface maps to a documented endpoint.
+
+---
+
 ## 🚧 Status
 
-**Currently under active development.**  
-Initial version will include basic automation for shows, manual/auto search, and download tracking.
+**v0.2** — under active development, but usable for personal setups.
+
+Current highlights: the filter engine (profiles, per-show patterns, scoring), custom aliases, live UI updates via WebSocket, and full search → download → organize automation.
 
 ---
 
@@ -143,18 +212,21 @@ Initial version will include basic automation for shows, manual/auto search, and
 Here are the next steps planned for Gorgon, focusing on expanding features, improving usability, and ensuring robustness.
 
 ### 🎯 Core Functionality
-- **Automated Searching:**
-  - [ ] Implement "Search All Missing" functionality on the show page.
+- **Search & Filtering:**
   - [X] Enable automatic and manual search triggers for individual episodes.
-- **Advanced Configuration:**
+  - [X] Implement "Search All Missing" functionality on the show page.
   - [X] Implement the keyword-based scoring system for search results.
-  - [ ] Add a "Downloads" page to display the status of episodes being actively downloaded.
+  - [X] Add filter profiles and per-show search patterns (combined and deduplicated).
+- **Organization & Tracking:**
+  - [X] Add a "Downloads" page to display the status of episodes being actively downloaded.
+  - [X] Add per-show custom aliases.
+  - [ ] Add a "Bulk Edit" feature for managing multiple shows at once.
 - **User Interface:**
-  - [ ] Create a "Calendar" page to display upcoming episode releases for tracked shows.
+  - [X] Create a "Calendar" page to display upcoming episode releases for tracked shows.
   - [X] Persist the user's choice of Grid or List view on the shows page.
+  - [X] Update episode buttons in real time via WebSocket.
 - **System & Management:**
-  - [ ] Implement file-based logging with a dedicated page in the UI for viewing logs.
-  - [ ] Add a "Bulky Edit" feature for managing multiple shows at once.
+  - [X] Implement file-based logging with a dedicated page in the UI for viewing logs.
 
 ### 🔌 Integrations
 - **Torrent Clients:**
@@ -163,6 +235,8 @@ Here are the next steps planned for Gorgon, focusing on expanding features, impr
   - [ ] Add support for Deluge.
 - **Indexers:**
   - [ ] Add support for Jackett as an alternative to Prowlarr.
+- **Automation:**
+  - [ ] Make the RSS feed worker honor filter profiles and per-show search patterns.
 
 ### 🧪 Development & DevOps
 - **Testing:**
@@ -171,6 +245,10 @@ Here are the next steps planned for Gorgon, focusing on expanding features, impr
   - [X] Create a `Dockerfile` for the Gorgon application.
   - [x] Set up a `docker-compose.yml` file for a complete, one-command deployment with Prowlarr and a torrent client.
   - [X] Implement a CI pipeline for automated testing and builds.
+  - [X] Automatically publish Docker images to GHCR on `main` and releases (multi-arch).
+  - [X] Automate GitHub Releases with binaries via GoReleaser.
+  - [X] Dependabot for Go and GitHub Actions dependency updates.
+  - [X] Security scanning with CodeQL and `govulncheck`.
 
 ## 📜 Disclaimer
 
