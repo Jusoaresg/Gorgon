@@ -32,7 +32,7 @@ jobs:
       - name: Install swag (docs)
         run: |
           if ! command -v swag &> /dev/null; then
-            go install github.com/swaggo/swag/cmd/swag@v1.16.3
+            go install github.com/swaggo/swag/cmd/swag@v1.16.6
           fi
 
       - name: Check ( tests + lint )
