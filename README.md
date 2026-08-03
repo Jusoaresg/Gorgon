@@ -19,7 +19,7 @@ Built in **Go** with a **HTML + HTMX** frontend, Gorgon allows users to automati
 
 ## 📸 Screenshots
 
-![Shows Page](https://i.imgur.com/UOTfCeb.png)
+![Shows Page](https://i.imgur.com/fFum9P2.png)
 
 ---
 
@@ -186,7 +186,7 @@ Here are the next steps planned for Gorgon, focusing on expanding features, impr
 
 ### 🎯 Core Functionality
 - **Automated Searching:**
-  - [ ] Implement "Search All Missing" functionality on the show page.
+  - [X] Implement "Search All Missing" functionality on the show page.
   - [X] Enable automatic and manual search triggers for individual episodes.
 - **Advanced Configuration:**
   - [X] Implement the keyword-based scoring system for search results.
