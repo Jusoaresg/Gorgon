@@ -17,7 +17,7 @@ import (
 // @Tags Database/FilterSettings
 // @Accept json
 // @Produce json
-// @Param request body filterSettingsModel.FilterSettings true "Filter settings data"
+// @Param request body schema.FilterSettingsDto true "Filter settings data"
 // @Success 200 {object} schemas.DefaultResponse
 // @Failure 400 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse

@@ -1,5 +1,10 @@
 basePath: /api/v1
 definitions:
+  api.addShowAliasRequest:
+    properties:
+      alias:
+        type: string
+    type: object
   schema.AddNewTorrentRequest:
     properties:
       magneticUrl:
@@ -16,6 +21,12 @@ definitions:
     type: object
   schema.CheckTorrentResponse:
     properties:
+      added_on:
+        type: integer
+      amount_left:
+        type: integer
+      category:
+        type: string
       completed:
         type: integer
       completedon:
@@ -38,12 +49,32 @@ definitions:
         type: number
       save_path:
         type: string
+      size:
+        type: integer
       state:
         type: string
       time_active:
         type: integer
       upspeed:
         type: integer
+    type: object
+  schema.FilterPatternDto:
+    properties:
+      kind:
+        type: string
+      pattern:
+        type: string
+      score:
+        type: integer
+    type: object
+  schema.FilterSettingsDto:
+    properties:
+      default_filter_profile_id:
+        type: string
+      only_latin:
+        type: boolean
+      use_aliases:
+        type: boolean
     type: object
   schema.IndexerResponse:
     properties:
@@ -61,6 +92,15 @@ definitions:
         type: string
       name:
         type: string
+    type: object
+  schema.SaveFilterProfileRequest:
+    properties:
+      name:
+        type: string
+      patterns:
+        items:
+          $ref: '#/definitions/schema.FilterPatternDto'
+        type: array
     type: object
   schema.SearchRequest:
     properties:
@@ -103,6 +143,19 @@ definitions:
         type: integer
       title:
         type: string
+    type: object
+  schema.ShowSettingsDto:
+    properties:
+      filter_profile_id:
+        type: integer
+      only_latin:
+        type: boolean
+      search_patterns:
+        items:
+          type: string
+        type: array
+      use_aliases:
+        type: boolean
     type: object
   schemas.ConfigFile:
     properties:
@@ -243,6 +296,197 @@ paths:
       summary: Update App Config
       tags:
       - App/Config
+  /database/filter-profile:
+    get:
+      description: List Filter Profiles
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: List Filter Profiles
+      tags:
+      - Database/FilterProfile
+    post:
+      consumes:
+      - application/json
+      description: Create Filter Profile
+      parameters:
+      - description: Filter profile data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.SaveFilterProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Create Filter Profile
+      tags:
+      - Database/FilterProfile
+  /database/filter-profile/{id}:
+    delete:
+      description: Delete Filter Profile
+      parameters:
+      - description: Filter Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Delete Filter Profile
+      tags:
+      - Database/FilterProfile
+    get:
+      description: Get Filter Profile
+      parameters:
+      - description: Filter Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Get Filter Profile
+      tags:
+      - Database/FilterProfile
+    put:
+      consumes:
+      - application/json
+      description: Update Filter Profile
+      parameters:
+      - description: Filter Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Filter profile data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.SaveFilterProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Update Filter Profile
+      tags:
+      - Database/FilterProfile
+  /database/filter-settings:
+    get:
+      description: Get Global Filter Settings
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Get Filter Settings
+      tags:
+      - Database/FilterSettings
+    patch:
+      consumes:
+      - application/json
+      description: Update Global Filter Settings
+      parameters:
+      - description: Filter settings data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.FilterSettingsDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Update Filter Settings
+      tags:
+      - Database/FilterSettings
   /database/indexer:
     delete:
       description: Delete Indexer from db
@@ -397,6 +641,71 @@ paths:
       summary: Add Show
       tags:
       - Database/Show
+  /database/show-settings/{id}:
+    get:
+      description: Get Show Settings
+      parameters:
+      - description: Show ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Get Show Settings
+      tags:
+      - Database/ShowSettings
+    put:
+      consumes:
+      - application/json
+      description: Update Show Settings
+      parameters:
+      - description: Show ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Show settings data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.ShowSettingsDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Update Show Settings
+      tags:
+      - Database/ShowSettings
   /database/show/{id}:
     delete:
       description: Delete Show from list
@@ -450,6 +759,77 @@ paths:
       summary: Get Show
       tags:
       - Database/Show
+  /database/show/{id}/alias:
+    post:
+      consumes:
+      - application/json
+      description: Add a custom alias for a show
+      parameters:
+      - description: Show ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Alias data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.addShowAliasRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Add Show Alias
+      tags:
+      - Database/Aliases
+  /database/show/{id}/alias/{aliasId}:
+    delete:
+      description: Delete a custom alias for a show
+      parameters:
+      - description: Show ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Alias ID
+        in: path
+        name: aliasId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Delete Show Alias
+      tags:
+      - Database/Aliases
   /database/show/aliases/{id}:
     get:
       description: List Show Aliases
@@ -585,6 +965,34 @@ paths:
           schema:
             $ref: '#/definitions/schemas.ErrorResponse'
       summary: Search Process Show Wanted Episodes
+      tags:
+      - Database/Show/Episode
+  /database/show/episode/search/season/:id:
+    post:
+      description: Search and process all aired episodes in a season (Season Force
+        Search)
+      parameters:
+      - description: Season ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ErrorResponse'
+      summary: Search Process Season Episodes
       tags:
       - Database/Show/Episode
   /database/show/episode/status:
