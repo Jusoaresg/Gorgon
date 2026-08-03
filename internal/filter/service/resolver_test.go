@@ -3,6 +3,7 @@ package service
 import (
 	"testing"
 
+	"github.com/jusoaresg/gorgon/internal/filter"
 	filterProfileModel "github.com/jusoaresg/gorgon/internal/filter_profile/model"
 	filterProfileRepository "github.com/jusoaresg/gorgon/internal/filter_profile/repository"
 	filterSettingsModel "github.com/jusoaresg/gorgon/internal/filter_settings/model"
@@ -244,4 +245,40 @@ func TestBuildContext_ExcludesDuplicatesAndCanonical(t *testing.T) {
 func TestSearchPatterns_FallsBackToDefault(t *testing.T) {
 	patterns := SearchPatterns(nil)
 	assert.Equal(t, []string{"{alias} S{season:00}E{episode:00}"}, patterns)
+}
+
+func TestSearchPatterns_PrependsDefault(t *testing.T) {
+	profile := &filter.Profile{Search: []string{"{alias} 4k", "{alias} UHD"}}
+	patterns := SearchPatterns(profile)
+	assert.Equal(t, []string{"{alias} S{season:00}E{episode:00}", "{alias} 4k", "{alias} UHD"}, patterns)
+}
+
+func TestSearchPatterns_NoDuplicateDefault(t *testing.T) {
+	profile := &filter.Profile{Search: []string{"{alias} 4k", "{alias} S{season:00}E{episode:00}"}}
+	patterns := SearchPatterns(profile)
+	assert.Equal(t, []string{"{alias} 4k", "{alias} S{season:00}E{episode:00}"}, patterns)
+}
+
+func TestResolveProfile_DedupesCombinedPatterns(t *testing.T) {
+	db := testutils.GetTestDB()
+	repo := filterProfileRepository.NewFilterProfileRepository(db)
+
+	id, err := repo.Create(filterProfileModel.FilterProfile{Name: "HD"}, []filterProfileModel.FilterPattern{
+		{Kind: filterProfileModel.KindSearch, Pattern: "{alias}"},
+	})
+	require.NoError(t, err)
+
+	profile, err := ResolveProfile(db, EffectiveSettings{
+		FilterProfileID: &id,
+		SearchPatterns:  []string{"{alias}", "{alias} 4k"},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, profile)
+	assert.Equal(t, []string{"{alias}", "{alias} 4k"}, profile.Search)
+}
+
+func TestDedupeStrings(t *testing.T) {
+	assert.Equal(t, []string{"a", "b", "c"}, dedupeStrings([]string{"a", "b", "a", "c", "b"}))
+	assert.Equal(t, []string{"a"}, dedupeStrings([]string{"a", "a"}))
+	assert.Nil(t, dedupeStrings(nil))
 }

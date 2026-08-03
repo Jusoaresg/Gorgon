@@ -86,7 +86,7 @@ func ResolveProfile(db *sqlx.DB, settings EffectiveSettings) (*filter.Profile, e
 		profile.Preferred = base.Preferred
 	}
 
-	profile.Search = append(profile.Search, settings.SearchPatterns...)
+	profile.Search = dedupeStrings(append(profile.Search, settings.SearchPatterns...))
 
 	if len(profile.Search) == 0 &&
 		len(profile.Required) == 0 &&
@@ -161,11 +161,36 @@ func BuildContext(db *sqlx.DB, show showModel.Show, season, episode int, setting
 	return ctx, nil
 }
 
-// SearchPatterns returns the search patterns to use for a profile, falling
-// back to the default pattern when the profile has none.
+// SearchPatterns returns the search patterns to use for a profile. The
+// default pattern is always prepended (when not already present) so the most
+// precise episode query runs first and can short-circuit the remaining
+// searches via the early-stop in the searcher.
 func SearchPatterns(profile *filter.Profile) []string {
-	if profile != nil && len(profile.Search) > 0 {
-		return profile.Search
+	var patterns []string
+	if profile != nil {
+		patterns = profile.Search
 	}
-	return []string{filter.DefaultSearchPattern}
+	for _, pattern := range patterns {
+		if pattern == filter.DefaultSearchPattern {
+			return patterns
+		}
+	}
+	return append([]string{filter.DefaultSearchPattern}, patterns...)
+}
+
+// dedupeStrings removes duplicate strings while preserving first occurrence order.
+func dedupeStrings(in []string) []string {
+	if len(in) <= 1 {
+		return in
+	}
+	seen := make(map[string]struct{}, len(in))
+	out := make([]string, 0, len(in))
+	for _, s := range in {
+		if _, ok := seen[s]; ok {
+			continue
+		}
+		seen[s] = struct{}{}
+		out = append(out, s)
+	}
+	return out
 }

@@ -156,7 +156,7 @@ A default profile can be set globally and applied to every show.
 
 ### Per-show search patterns
 
-Each show (via the **Edit Series** modal) can list its own **search patterns**, for when a specific show needs a particular query style. These are **combined** with the selected profile's search patterns — each one becomes a Prowlarr query. The default `{alias} S{season:00}E{episode:00}` is used as fallback when neither the profile nor the show define any search pattern.
+Each show (via the **Edit Series** modal) can list its own **search patterns**, for when a specific show needs a particular query style. These are **combined** (and deduplicated) with the selected profile's search patterns — each one becomes a Prowlarr query. The default `{alias} S{season:00}E{episode:00}` is **always searched first** (when not already listed) so the most precise episode query runs before the extra patterns.
 
 ### Placeholders
 
