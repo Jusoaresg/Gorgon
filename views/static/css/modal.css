@@ -239,12 +239,14 @@
     margin-bottom: 0.5rem;
 }
 
-.alias-manage-item .btn-text-danger {
-    background: none;
-    border: none;
-    color: var(--danger);
-    font-size: 0.85rem;
-    cursor: pointer;
+.alias-manage-item .btn-icon-sm {
+    width: 2rem;
+    height: 2rem;
+}
+
+.alias-manage-item .btn-icon-sm svg {
+    width: 1rem;
+    height: 1rem;
 }
 
 .alias-source {
@@ -506,8 +508,15 @@ body:has(.modal-overlay) {
     font-family: monospace;
 }
 
-.search-pattern-row .btn-text-danger {
-    font-size: 1.25rem;
+.search-pattern-row .btn-icon-sm {
+    width: 2rem;
+    height: 2rem;
+    flex-shrink: 0;
+}
+
+.search-pattern-row .btn-icon-sm svg {
+    width: 1rem;
+    height: 1rem;
 }
 
 @media (max-width: 700px) {
