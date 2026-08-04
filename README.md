@@ -105,8 +105,12 @@ You can run Gorgon and its dependencies (Prowlarr, qBittorrent) using Docker Com
           - 6881:6881
           - 6881:6881/udp
         restart: unless-stopped
+        networks:
+            - gorgon-network
+
     networks:
-      - gorgon-network
+      gorgon-network:
+        driver: bridge
     ```
 
 2.  **Run it:**
