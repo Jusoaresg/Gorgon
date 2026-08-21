@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 
 	"github.com/jusoaresg/gorgon/config"
 	"github.com/jusoaresg/gorgon/external/qbittorrent/schema"
@@ -45,9 +47,11 @@ type QBittorrentService struct {
 	host           string
 	port           string
 	DownloadFolder string
-	sid            string
-	cookieName     string
-	loggedIn       bool
+
+	mu         sync.Mutex
+	sid        string
+	cookieName string
+	loggedIn   bool
 }
 
 func NewQBittorrentService(logger *slog.Logger) (*QBittorrentService, error) {
@@ -80,6 +84,12 @@ func (q *QBittorrentService) Name() string {
 }
 
 func (q *QBittorrentService) Login(request *schema.QBittorrentLoginRequest) error {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	return q.loginLocked(request)
+}
+
+func (q *QBittorrentService) loginLocked(request *schema.QBittorrentLoginRequest) error {
 	form := url.Values{}
 	form.Add("username", request.Username)
 	form.Add("password", request.Password)
@@ -122,21 +132,81 @@ func (q *QBittorrentService) Login(request *schema.QBittorrentLoginRequest) erro
 	return fmt.Errorf("QBittorrent SID not found (status=%d)", resp.StatusCode)
 }
 
-func (q *QBittorrentService) SidVerification() error {
+func (q *QBittorrentService) ensureAuthenticated() error {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+
 	if q.loggedIn {
 		return nil
 	}
+
 	req := schema.QBittorrentLoginRequest{
 		Username: q.username,
 		Password: q.password,
 	}
-	if err := q.Login(&req); err != nil {
+	if err := q.loginLocked(&req); err != nil {
 		return fmt.Errorf("error while logging on qbittorrent: %w", err)
 	}
 	return nil
 }
 
+func (q *QBittorrentService) invalidateSession() {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	q.sid = ""
+	q.cookieName = ""
+	q.loggedIn = false
+}
+
+func (q *QBittorrentService) SidVerification() error {
+	return q.ensureAuthenticated()
+}
+
+func drainBody(resp *http.Response) {
+	if resp.Body != nil {
+		_, _ = io.Copy(io.Discard, resp.Body)
+		_ = resp.Body.Close()
+	}
+}
+
+func (q *QBittorrentService) doAuthenticated(fn func() (*http.Response, error)) (*http.Response, error) {
+	if err := q.ensureAuthenticated(); err != nil {
+		return nil, err
+	}
+
+	resp, err := fn()
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusForbidden {
+		return resp, nil
+	}
+
+	drainBody(resp)
+
+	q.invalidateSession()
+
+	if err := q.ensureAuthenticated(); err != nil {
+		return nil, fmt.Errorf("error while re-authenticating on qbittorrent: %w", err)
+	}
+
+	resp, err = fn()
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode == http.StatusForbidden {
+		drainBody(resp)
+		return nil, fmt.Errorf("qbittorrent request failed after re-authentication (status=%d)", resp.StatusCode)
+	}
+
+	return resp, nil
+}
+
 func (q *QBittorrentService) cookieHeader() string {
+	q.mu.Lock()
+	defer q.mu.Unlock()
 	if q.cookieName != "" {
 		return fmt.Sprintf("%s=%s", q.cookieName, q.sid)
 	}
@@ -144,8 +214,16 @@ func (q *QBittorrentService) cookieHeader() string {
 }
 
 func (q *QBittorrentService) CheckConnection() error {
-	if err := q.SidVerification(); err != nil {
+	resp, err := q.doAuthenticated(func() (*http.Response, error) {
+		return q.APIService.GetWithHeadersRaw("/api/v2/app/version", nil)
+	})
+	if err != nil {
 		return err
+	}
+	drainBody(resp)
+
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		return fmt.Errorf("qbittorrent connection check failed (status=%d)", resp.StatusCode)
 	}
 	return nil
 }
@@ -155,30 +233,29 @@ func (q *QBittorrentService) Logout() error {
 }
 
 func (q *QBittorrentService) AddTorrent(torrentUrl string) error {
-	if err := q.SidVerification(); err != nil {
-		return err
-	}
-
-	var requestBody bytes.Buffer
-	writer := multipart.NewWriter(&requestBody)
-
-	writer.WriteField("urls", torrentUrl)
-	writer.WriteField("category", "gorgon")
-	writer.WriteField("skip_checking", "false")
-	writer.WriteField("root_folder", "false")
-	writer.WriteField("paused", "false")
-	writer.Close()
-
-	headers := map[string]string{
-		"Content-Type": writer.FormDataContentType(),
-		"Cookie":       q.cookieHeader(),
-	}
-
 	var addResp addTorrentResponse
-	resp, err := q.APIService.Post("/api/v2/torrents/add", requestBody.Bytes(), &addResp, headers)
+	resp, err := q.doAuthenticated(func() (*http.Response, error) {
+		var requestBody bytes.Buffer
+		writer := multipart.NewWriter(&requestBody)
+
+		writer.WriteField("urls", torrentUrl)
+		writer.WriteField("category", "gorgon")
+		writer.WriteField("skip_checking", "false")
+		writer.WriteField("root_folder", "false")
+		writer.WriteField("paused", "false")
+		writer.Close()
+
+		headers := map[string]string{
+			"Content-Type": writer.FormDataContentType(),
+			"Cookie":       q.cookieHeader(),
+		}
+
+		return q.APIService.Post("/api/v2/torrents/add", requestBody.Bytes(), &addResp, headers)
+	})
 	if err != nil {
 		return err
 	}
+	drainBody(resp)
 
 	if resp.StatusCode == http.StatusConflict {
 		q.Logger.Info("torrent already exists in torrent client", slog.String("url", torrentUrl))
@@ -197,23 +274,22 @@ func (q *QBittorrentService) AddTorrent(torrentUrl string) error {
 }
 
 func (q *QBittorrentService) DeleteTorrent(hash string, deleteFile bool) error {
-	if err := q.SidVerification(); err != nil {
-		return err
-	}
+	resp, err := q.doAuthenticated(func() (*http.Response, error) {
+		form := url.Values{}
+		form.Add("hashes", hash)
+		form.Add("deleteFiles", fmt.Sprintf("%t", deleteFile))
 
-	form := url.Values{}
-	form.Add("hashes", hash)
-	form.Add("deleteFiles", fmt.Sprintf("%t", deleteFile))
+		headers := map[string]string{
+			"Content-Type": "application/x-www-form-urlencoded",
+			"Cookie":       q.cookieHeader(),
+		}
 
-	headers := map[string]string{
-		"Content-Type": "application/x-www-form-urlencoded",
-		"Cookie":       q.cookieHeader(),
-	}
-
-	resp, err := q.APIService.Post("/api/v2/torrents/delete", form.Encode(), nil, headers)
+		return q.APIService.Post("/api/v2/torrents/delete", form.Encode(), nil, headers)
+	})
 	if err != nil {
 		return err
 	}
+	drainBody(resp)
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("failed to delete torrent (status=%d)", resp.StatusCode)
@@ -223,55 +299,51 @@ func (q *QBittorrentService) DeleteTorrent(hash string, deleteFile bool) error {
 }
 
 func (q *QBittorrentService) CheckTorrents(filter string, response *[]schema.CheckTorrentResponse) error {
-	if err := q.SidVerification(); err != nil {
-		return err
-	}
-
-	headers := map[string]string{
-		"Cookie": q.cookieHeader(),
-	}
-
 	endpoint := fmt.Sprintf("/api/v2/torrents/info?filter=%s", filter)
 	q.Logger.Debug("Calling QBittorrent API", slog.String("url", endpoint), slog.String("filter", filter))
 
-	if err := q.APIService.GetWithHeaders(endpoint, response, headers); err != nil {
-		return fmt.Errorf("error while get torrent info: %w", err)
-	}
-
-	return nil
+	return q.checkTorrentsEndpoint(endpoint, response)
 }
 
 func (q *QBittorrentService) CheckTorrentsWithHash(filter, hash string, response *[]schema.CheckTorrentResponse) error {
-	if err := q.SidVerification(); err != nil {
-		return err
-	}
-
-	headers := map[string]string{
-		"Cookie": q.cookieHeader(),
-	}
-
 	encodedHash := url.QueryEscape(hash)
 	endpoint := fmt.Sprintf("/api/v2/torrents/info?filter=%s&hashes=%s", filter, encodedHash)
 
-	if err := q.APIService.GetWithHeaders(endpoint, response, headers); err != nil {
+	return q.checkTorrentsEndpoint(endpoint, response)
+}
+
+func (q *QBittorrentService) checkTorrentsEndpoint(endpoint string, response *[]schema.CheckTorrentResponse) error {
+	resp, err := q.doAuthenticated(func() (*http.Response, error) {
+		headers := map[string]string{
+			"Cookie": q.cookieHeader(),
+		}
+		return q.APIService.GetWithHeadersRaw(endpoint, headers)
+	})
+	if err != nil {
 		return fmt.Errorf("error while get torrent info: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to get torrent info (status=%d)", resp.StatusCode)
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(response); err != nil {
+		return fmt.Errorf("error decoding torrent info: %w", err)
 	}
 
 	return nil
 }
 
 func (q *QBittorrentService) GetContent(hash string) ([]model.EpisodeContent, error) {
-	if err := q.SidVerification(); err != nil {
-		return nil, err
-	}
-
-	headers := map[string]string{
-		"Cookie": q.cookieHeader(),
-	}
-
 	endpoint := fmt.Sprintf("/api/v2/torrents/files?hash=%s", hash)
 
-	resp, err := q.APIService.GetWithHeadersRaw(endpoint, headers)
+	resp, err := q.doAuthenticated(func() (*http.Response, error) {
+		headers := map[string]string{
+			"Cookie": q.cookieHeader(),
+		}
+		return q.APIService.GetWithHeadersRaw(endpoint, headers)
+	})
 	if err != nil {
 		return nil, err
 	}
