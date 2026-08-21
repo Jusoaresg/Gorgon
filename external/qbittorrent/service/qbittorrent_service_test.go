@@ -2,10 +2,12 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/jusoaresg/gorgon/external/qbittorrent/schema"
@@ -404,4 +406,177 @@ func TestCheckConnection_Failure(t *testing.T) {
 	svc := newTestService(server.URL, logger)
 	err := svc.CheckConnection()
 	require.Error(t, err)
+}
+
+func TestAddTorrent_ReauthOnExpiredSID(t *testing.T) {
+	logger := newTestLogger()
+
+	var mu sync.Mutex
+	loginCount := 0
+	addCount := 0
+	currentSID := ""
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		defer mu.Unlock()
+		switch r.URL.Path {
+		case "/api/v2/auth/login":
+			loginCount++
+			currentSID = fmt.Sprintf("sid-%d", loginCount)
+			http.SetCookie(w, &http.Cookie{Name: "SID", Value: currentSID, Path: "/"})
+			w.WriteHeader(http.StatusNoContent)
+		case "/api/v2/torrents/add":
+			addCount++
+			if addCount == 1 {
+				w.WriteHeader(http.StatusForbidden)
+				w.Write([]byte("Forbidden."))
+				return
+			}
+			assert.Contains(t, r.Header.Get("Cookie"), "SID=sid-2", "retry must use the fresh SID")
+			resp := addTorrentResponse{AddedTorrentIds: []string{"test123"}, SuccessCount: 1}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(resp)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+
+	svc := newTestService(server.URL, logger)
+	err := svc.AddTorrent("magnet:?xt=urn:btih:test123")
+
+	require.NoError(t, err)
+	mu.Lock()
+	defer mu.Unlock()
+	assert.Equal(t, 2, loginCount, "should re-login after 403")
+	assert.Equal(t, 2, addCount, "should retry the request once")
+}
+
+func TestCheckTorrents_ReauthOnExpiredSID(t *testing.T) {
+	logger := newTestLogger()
+
+	var mu sync.Mutex
+	loginCount := 0
+	infoCount := 0
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		defer mu.Unlock()
+		switch r.URL.Path {
+		case "/api/v2/auth/login":
+			loginCount++
+			http.SetCookie(w, &http.Cookie{Name: "SID", Value: fmt.Sprintf("sid-%d", loginCount), Path: "/"})
+			w.WriteHeader(http.StatusNoContent)
+		case "/api/v2/torrents/info":
+			infoCount++
+			if infoCount == 1 {
+				w.WriteHeader(http.StatusForbidden)
+				w.Write([]byte("Forbidden."))
+				return
+			}
+			torrents := []schema.CheckTorrentResponse{
+				{Name: "test-torrent", Hash: "abc123", Progress: 1.0},
+			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(torrents)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+
+	svc := newTestService(server.URL, logger)
+	var result []schema.CheckTorrentResponse
+	err := svc.CheckTorrents("all", &result)
+
+	require.NoError(t, err)
+	require.Len(t, result, 1)
+	mu.Lock()
+	defer mu.Unlock()
+	assert.Equal(t, 2, loginCount, "should re-login after 403")
+	assert.Equal(t, 2, infoCount, "should retry the request once")
+}
+
+func TestDoAuthenticated_RetryFailsAfterSecond403(t *testing.T) {
+	logger := newTestLogger()
+
+	var mu sync.Mutex
+	loginCount := 0
+	infoCount := 0
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		defer mu.Unlock()
+		switch r.URL.Path {
+		case "/api/v2/auth/login":
+			loginCount++
+			http.SetCookie(w, &http.Cookie{Name: "SID", Value: "always-valid", Path: "/"})
+			w.WriteHeader(http.StatusNoContent)
+		case "/api/v2/torrents/info":
+			infoCount++
+			w.WriteHeader(http.StatusForbidden)
+			w.Write([]byte("Forbidden."))
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+
+	svc := newTestService(server.URL, logger)
+	var result []schema.CheckTorrentResponse
+	err := svc.CheckTorrents("all", &result)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "after re-authentication")
+	mu.Lock()
+	defer mu.Unlock()
+	assert.Equal(t, 2, loginCount, "must not loop: exactly one re-login")
+	assert.Equal(t, 2, infoCount, "must not loop: exactly one retry")
+}
+
+func TestConcurrentCalls_AreRaceFree(t *testing.T) {
+	logger := newTestLogger()
+
+	var mu sync.Mutex
+	loginCount := 0
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/v2/auth/login":
+			mu.Lock()
+			loginCount++
+			mu.Unlock()
+			http.SetCookie(w, &http.Cookie{Name: "SID", Value: "shared-sid", Path: "/"})
+			w.WriteHeader(http.StatusNoContent)
+		case "/api/v2/torrents/info":
+			torrents := []schema.CheckTorrentResponse{{Name: "t", Hash: "h"}}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(torrents)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+
+	svc := newTestService(server.URL, logger)
+
+	const goroutines = 20
+	errs := make([]error, goroutines)
+	var wg sync.WaitGroup
+	for i := 0; i < goroutines; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			var result []schema.CheckTorrentResponse
+			errs[i] = svc.CheckTorrents("all", &result)
+		}(i)
+	}
+	wg.Wait()
+
+	for i, err := range errs {
+		require.NoError(t, err, "goroutine %d failed", i)
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	assert.Equal(t, 1, loginCount, "mutex should prevent login stampede")
 }
