@@ -59,7 +59,7 @@ func TestLogin_Success(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "test-sid-value", svc.sid)
 	assert.Equal(t, "QBT_SID_9191", svc.cookieName)
-	assert.True(t, svc.loggedIn)
+	assert.True(t, svc.IsAuthenticated())
 }
 
 func TestLogin_Forbidden(t *testing.T) {
@@ -108,24 +108,13 @@ func TestLogin_ClassicSID(t *testing.T) {
 func TestSidVerification_AlreadyLoggedIn(t *testing.T) {
 	logger := newTestLogger()
 
-	requestCount := 0
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		requestCount++
-		http.SetCookie(w, &http.Cookie{
-			Name:  "QBT_SID_9191",
-			Value: "test-sid",
-			Path:  "/",
-		})
-		w.WriteHeader(http.StatusNoContent)
-	}))
-	defer server.Close()
+	svc := newTestService("", logger)
+	svc.sid = "test-sid"
+	svc.cookieName = "QBT_SID_9191"
 
-	svc := newTestService(server.URL, logger)
-	svc.loggedIn = true
+	err := svc.EnsureAuthenticated()
 
-	err := svc.SidVerification()
 	require.NoError(t, err)
-	assert.Equal(t, 0, requestCount, "should not make any HTTP requests when already logged in")
 }
 
 func TestSidVerification_NeedsLogin(t *testing.T) {
@@ -146,11 +135,10 @@ func TestSidVerification_NeedsLogin(t *testing.T) {
 	defer server.Close()
 
 	svc := newTestService(server.URL, logger)
-	svc.loggedIn = false
 
-	err := svc.SidVerification()
+	err := svc.EnsureAuthenticated()
 	require.NoError(t, err)
-	assert.True(t, svc.loggedIn)
+	assert.True(t, svc.IsAuthenticated())
 }
 
 func TestCookieHeader(t *testing.T) {
@@ -382,6 +370,11 @@ func TestCheckConnection_Success(t *testing.T) {
 	logger := newTestLogger()
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v2/app/version" {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("v4.4.0"))
+			return
+		}
 		http.SetCookie(w, &http.Cookie{Name: "QBT_SID_9191", Value: "test-sid", Path: "/"})
 		w.WriteHeader(http.StatusNoContent)
 	}))
