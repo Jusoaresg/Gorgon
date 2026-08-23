@@ -2,6 +2,9 @@ package views
 
 import (
 	"bytes"
+	"net/url"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/jusoaresg/gorgon/external/qbittorrent/schema"
@@ -24,18 +27,18 @@ func TestRenderDownloadsPage(t *testing.T) {
 	items := []service.DownloadItem{
 		{
 			Torrent: schema.CheckTorrentResponse{
-				Name:    "My.Show.S01E01.1080p.WEB-DL",
-				Hash:    "abc123",
-				State:   "downloading",
-				Category: "gorgon",
-				Progress: 0.42,
-				Size:     734003200,
+				Name:      "My.Show.S01E01.1080p.WEB-DL",
+				Hash:      "abc123",
+				State:     "downloading",
+				Category:  "gorgon",
+				Progress:  0.42,
+				Size:      734003200,
 				Completed: 308281344,
-				DlSpeed:  5242880,
-				UpSpeed:  1048576,
-				NumSeeds: 12,
+				DlSpeed:   5242880,
+				UpSpeed:   1048576,
+				NumSeeds:  12,
 				NumLeechs: 3,
-				Eta:      98,
+				Eta:       98,
 			},
 			Episode: &service.EpisodeInfo{
 				EpisodeID: 1,
@@ -60,12 +63,12 @@ func TestRenderDownloadsPage(t *testing.T) {
 		},
 		{
 			Torrent: schema.CheckTorrentResponse{
-				Name:     "My.Show.S01E02.1080p.WEB-DL",
-				Hash:     "donehash",
-				State:    "uploading",
-				Category: "gorgon",
-				Progress: 1.0,
-				Size:     500000000,
+				Name:      "My.Show.S01E02.1080p.WEB-DL",
+				Hash:      "donehash",
+				State:     "uploading",
+				Category:  "gorgon",
+				Progress:  1.0,
+				Size:      500000000,
 				Completed: 500000000,
 			},
 			Episode: &service.EpisodeInfo{
@@ -250,17 +253,17 @@ func TestRenderDownloadsFullLayout(t *testing.T) {
 			Items: []service.DownloadItem{
 				{
 					Torrent: schema.CheckTorrentResponse{
-						Name:    "My.Show.S01E01.1080p.WEB-DL",
-						Hash:    "abc123",
-						State:   "downloading",
-						Category: "gorgon",
-						Progress: 0.42,
-						Size:     734003200,
+						Name:      "My.Show.S01E01.1080p.WEB-DL",
+						Hash:      "abc123",
+						State:     "downloading",
+						Category:  "gorgon",
+						Progress:  0.42,
+						Size:      734003200,
 						Completed: 308281344,
-						DlSpeed:  5242880,
-						NumSeeds: 12,
+						DlSpeed:   5242880,
+						NumSeeds:  12,
 						NumLeechs: 3,
-						Eta:      98,
+						Eta:       98,
 					},
 					Episode: &service.EpisodeInfo{
 						EpisodeID: 1,
@@ -291,5 +294,170 @@ func TestRenderDownloadsFullLayout(t *testing.T) {
 		if !bytes.Contains(buf.Bytes(), []byte(want)) {
 			t.Errorf("rendered layout missing %q", want)
 		}
+	}
+}
+
+// logsDataTest mirrors internal/show/web.LogsData (cannot be imported here as
+// the web package already imports views).
+type logsDataTest struct {
+	Entries       []logsEntryTest
+	CurrentFile   string
+	Search        string
+	Level         string
+	Page          int
+	PageSize      int
+	TotalPages    int
+	TotalEntries  int
+	IsCurrentFile bool
+}
+
+func (d logsDataTest) BaseQuery() string {
+	v := url.Values{}
+	v.Set("view", "log-entries")
+	v.Set("file", d.CurrentFile)
+	if d.Level != "" {
+		v.Set("level", d.Level)
+	}
+	if d.Search != "" {
+		v.Set("search", d.Search)
+	}
+	return v.Encode()
+}
+
+func (d logsDataTest) PageURL(page int) string {
+	return "/logs?" + d.BaseQuery() + "&page=" + strconv.Itoa(page) + "&pageSize=" + strconv.Itoa(d.PageSize)
+}
+
+func (d logsDataTest) LiveURL() string {
+	v := url.Values{}
+	v.Set("view", "log-table")
+	v.Set("file", d.CurrentFile)
+	if d.Level != "" {
+		v.Set("level", d.Level)
+	}
+	if d.Search != "" {
+		v.Set("search", d.Search)
+	}
+	v.Set("page", strconv.Itoa(d.Page))
+	v.Set("pageSize", strconv.Itoa(d.PageSize))
+	return "/logs?" + v.Encode()
+}
+
+func (d logsDataTest) PrevPage() int {
+	if d.Page > 1 {
+		return d.Page - 1
+	}
+	return 1
+}
+
+func (d logsDataTest) NextPage() int {
+	if d.Page < d.TotalPages {
+		return d.Page + 1
+	}
+	return d.TotalPages
+}
+
+type logsEntryTest struct {
+	Time    string
+	Level   string
+	Message string
+	Context string
+}
+
+func TestRenderLogEntriesPagination(t *testing.T) {
+	tmpl := NewTemplate()
+
+	data := logsDataTest{
+		Entries: []logsEntryTest{
+			{Time: "2026-08-23 10:00:00", Level: "INFO", Message: "older"},
+			{Time: "2026-08-23 11:00:00", Level: "ERROR", Message: "newer", Context: `{"key":"value"}`},
+		},
+		CurrentFile:  "gorgon-2026-08-23.log",
+		Page:         2,
+		PageSize:     100,
+		TotalPages:   3,
+		TotalEntries: 250,
+	}
+
+	var buf bytes.Buffer
+	if err := tmpl.templates.ExecuteTemplate(&buf, "log-entries", PageData{Data: data}); err != nil {
+		t.Fatalf("failed to render log-entries: %v", err)
+	}
+
+	out := buf.String()
+	for _, want := range []string{
+		"logs-pagination",
+		"Page 2 of 3",
+		"250 entries",
+		"page=1&amp;pageSize=100",
+		"page=3&amp;pageSize=100",
+	} {
+		if !bytes.Contains(buf.Bytes(), []byte(want)) {
+			t.Errorf("rendered log-entries missing %q\n---\n%s", want, out)
+		}
+	}
+}
+
+func TestRenderLogEntriesPollingOnlyOnFirstPageOfCurrentFile(t *testing.T) {
+	tmpl := NewTemplate()
+
+	render := func(data logsDataTest) string {
+		var buf bytes.Buffer
+		if err := tmpl.templates.ExecuteTemplate(&buf, "log-entries", PageData{Data: data}); err != nil {
+			t.Fatalf("failed to render log-entries: %v", err)
+		}
+		return buf.String()
+	}
+
+	firstPageCurrent := render(logsDataTest{
+		Entries:       []logsEntryTest{{Level: "INFO", Message: "x"}},
+		CurrentFile:   "gorgon-2026-08-23.log",
+		Page:          1,
+		PageSize:      100,
+		TotalPages:    5,
+		IsCurrentFile: true,
+	})
+	if !strings.Contains(firstPageCurrent, `hx-trigger="every 5s"`) {
+		t.Error("page 1 of current file should include polling trigger")
+	}
+
+	// The poller must live on the table region only; the container that wraps
+	// the pagination controls must stay static so clicks are never destroyed
+	// by a polling swap.
+	if !strings.Contains(firstPageCurrent, `id="logs-live"`) {
+		t.Error("polling element #logs-live is missing")
+	}
+	for _, line := range strings.Split(firstPageCurrent, "\n") {
+		if strings.Contains(line, `id="logs-entries-container"`) && strings.Contains(line, "hx-") {
+			t.Errorf("container must not carry hx attributes (poll would destroy pagination clicks): %s", strings.TrimSpace(line))
+		}
+	}
+	if !strings.Contains(firstPageCurrent, `hx-get="/logs?file=gorgon-2026-08-23.log&amp;page=1&amp;pageSize=100&amp;view=log-table"`) &&
+		!strings.Contains(firstPageCurrent, `view=log-table`) {
+		t.Error("poller should request the log-table partial, not the full log-entries partial")
+	}
+
+	otherPage := render(logsDataTest{
+		Entries:       []logsEntryTest{{Level: "INFO", Message: "x"}},
+		CurrentFile:   "gorgon-2026-08-23.log",
+		Page:          3,
+		PageSize:      100,
+		TotalPages:    5,
+		IsCurrentFile: true,
+	})
+	if strings.Contains(otherPage, "hx-trigger") {
+		t.Error("pages other than 1 should not include polling trigger")
+	}
+
+	oldFile := render(logsDataTest{
+		Entries:       []logsEntryTest{{Level: "INFO", Message: "x"}},
+		CurrentFile:   "gorgon-2026-08-01.log",
+		Page:          1,
+		PageSize:      100,
+		TotalPages:    2,
+		IsCurrentFile: false,
+	})
+	if strings.Contains(oldFile, "hx-trigger") {
+		t.Error("non-current files should not include polling trigger")
 	}
 }

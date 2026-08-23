@@ -6,12 +6,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/jusoaresg/gorgon/config"
@@ -317,11 +319,67 @@ type LogFileInfo struct {
 }
 
 type LogsData struct {
-	Files       []LogFileInfo
-	Entries     []LogEntry
-	CurrentFile string
-	Search      string
-	Level       string
+	Files         []LogFileInfo
+	Entries       []LogEntry
+	CurrentFile   string
+	Search        string
+	Level         string
+	Page          int
+	PageSize      int
+	TotalPages    int
+	TotalEntries  int
+	IsCurrentFile bool
+}
+
+func (d LogsData) BaseQuery() string {
+	v := url.Values{}
+	v.Set("view", "log-entries")
+	v.Set("file", d.CurrentFile)
+	if d.Level != "" {
+		v.Set("level", d.Level)
+	}
+	if d.Search != "" {
+		v.Set("search", d.Search)
+	}
+	return v.Encode()
+}
+
+// PageURL returns the full /logs URL for the given page of log entries,
+// preserving the current file/search/level filters.
+func (d LogsData) PageURL(page int) string {
+	return "/logs?" + d.BaseQuery() + "&page=" + strconv.Itoa(page) + "&pageSize=" + strconv.Itoa(d.PageSize)
+}
+
+// LiveURL returns the partial-refresh URL used by the auto-refresh poller.
+// It renders only the log table (not the pagination controls) so that polling
+// never replaces elements the user is interacting with.
+func (d LogsData) LiveURL() string {
+	v := url.Values{}
+	v.Set("view", "log-table")
+	v.Set("file", d.CurrentFile)
+	if d.Level != "" {
+		v.Set("level", d.Level)
+	}
+	if d.Search != "" {
+		v.Set("search", d.Search)
+	}
+	v.Set("page", strconv.Itoa(d.Page))
+	v.Set("pageSize", strconv.Itoa(d.PageSize))
+	return "/logs?" + v.Encode()
+}
+
+func (d LogsData) PrevPage() int {
+	if d.Page > 1 {
+		return d.Page - 1
+	}
+	return 1
+}
+
+func (d LogsData) NextPage() int {
+	if d.Page < d.TotalPages {
+		return d.Page + 1
+	}
+	return d.TotalPages
 }
 
 var logFileNamePattern = regexp.MustCompile(`^gorgon-[A-Za-z0-9._-]+\.log(?:\.gz)?$`)
@@ -350,17 +408,31 @@ func (h *Handler) LogsRoute(c echo.Context) error {
 	if selectedFile == "" || !isValidLogFileName(selectedFile) {
 		selectedFile = defaultFile
 	}
+	isCurrentFile := selectedFile == defaultFile
 
 	if !isValidLogFileName(selectedFile) {
 		return c.String(400, "invalid log file")
 	}
 
-	entries := readLogFile(filepath.Join(logsPath, selectedFile))
+	page := 1
+	if p, err := strconv.Atoi(c.QueryParam("page")); err == nil && p > 0 {
+		page = p
+	}
+	const defaultPageSize = 100
+	const maxPageSize = 500
+	pageSize := defaultPageSize
+	if ps, err := strconv.Atoi(c.QueryParam("pageSize")); err == nil && ps > 0 {
+		pageSize = ps
+	}
+	if pageSize > maxPageSize {
+		pageSize = maxPageSize
+	}
+
+	entries := loadLogEntries(filepath.Join(logsPath, selectedFile))
 	entries = filterLogs(entries, search, levelFilter)
 
-	for i, j := 0, len(entries)-1; i < j; i, j = i+1, j-1 {
-		entries[i], entries[j] = entries[j], entries[i]
-	}
+	totalEntries := len(entries)
+	pageEntries, page, totalPages := paginateLogs(entries, page, pageSize)
 
 	var files []LogFileInfo
 	entriesDir, err := os.ReadDir(logsPath)
@@ -395,36 +467,125 @@ func (h *Handler) LogsRoute(c echo.Context) error {
 	return views.Render(c, views.View{
 		Layout:    "layout",
 		Default:   "logs",
-		Templates: map[string]string{"log-entries": "log-entries"},
+		Templates: map[string]string{"log-entries": "log-entries", "log-table": "log-table"},
 		Data: LogsData{
-			Files:       files,
-			Entries:     entries,
-			CurrentFile: selectedFile,
-			Search:      search,
-			Level:       levelFilter,
+			Files:         files,
+			Entries:       pageEntries,
+			CurrentFile:   selectedFile,
+			Search:        search,
+			Level:         levelFilter,
+			Page:          page,
+			PageSize:      pageSize,
+			TotalPages:    totalPages,
+			TotalEntries:  totalEntries,
+			IsCurrentFile: isCurrentFile,
 		},
 		Styles: []string{"logs.css"},
 	})
 }
 
-func readLogFile(path string) []LogEntry {
-	f, err := os.Open(path)
+// paginateLogs slices entries (newest first) for the requested page, clamping
+// page to the valid range. Returns the page slice, the effective page and the
+// total number of pages.
+func paginateLogs(entries []LogEntry, page, pageSize int) ([]LogEntry, int, int) {
+	totalPages := (len(entries) + pageSize - 1) / pageSize
+	if totalPages < 1 {
+		totalPages = 1
+	}
+	if page < 1 {
+		page = 1
+	}
+	if page > totalPages {
+		page = totalPages
+	}
+
+	start := (page - 1) * pageSize
+	end := start + pageSize
+	if end > len(entries) {
+		end = len(entries)
+	}
+
+	var pageEntries []LogEntry
+	if start < end {
+		pageEntries = entries[start:end]
+	}
+	return pageEntries, page, totalPages
+}
+
+type logFileCacheEntry struct {
+	entries []LogEntry
+	modTime time.Time
+	size    int64
+}
+
+var (
+	logCacheMutex sync.Mutex
+	logCache      = map[string]logFileCacheEntry{}
+)
+
+// maxLogCacheFiles bounds the number of cached files, evicting the oldest one
+// so the cache cannot grow indefinitely as log files rotate.
+const maxLogCacheFiles = 32
+
+func evictOldestLogCacheLocked() {
+	if len(logCache) < maxLogCacheFiles {
+		return
+	}
+	var oldestPath string
+	var oldestTime time.Time
+	for path, entry := range logCache {
+		if oldestPath == "" || entry.modTime.Before(oldestTime) {
+			oldestPath = path
+			oldestTime = entry.modTime
+		}
+	}
+	delete(logCache, oldestPath)
+}
+
+// loadLogEntries returns the parsed entries of a log file (plain or gzipped),
+// newest first. Parsed entries are cached and only re-parsed when the file's
+// mtime or size changes.
+func loadLogEntries(path string) []LogEntry {
+	info, err := os.Stat(path)
 	if err != nil {
-		gzPath := path + ".gz"
-		f, err = os.Open(gzPath)
+		path += ".gz"
+		info, err = os.Stat(path)
 		if err != nil {
 			return nil
 		}
-		defer f.Close()
+	}
+
+	logCacheMutex.Lock()
+	defer logCacheMutex.Unlock()
+	if cached, ok := logCache[path]; ok && cached.modTime.Equal(info.ModTime()) && cached.size == info.Size() {
+		return cached.entries
+	}
+
+	f, err := os.Open(path)
+	if err != nil {
+		return nil
+	}
+	defer f.Close()
+
+	var entries []LogEntry
+	if strings.HasSuffix(path, ".gz") {
 		gzr, err := gzip.NewReader(f)
 		if err != nil {
 			return nil
 		}
 		defer gzr.Close()
-		return parseLogLines(gzr)
+		entries = parseLogLines(gzr)
+	} else {
+		entries = parseLogLines(f)
 	}
-	defer f.Close()
-	return parseLogLines(f)
+
+	for i, j := 0, len(entries)-1; i < j; i, j = i+1, j-1 {
+		entries[i], entries[j] = entries[j], entries[i]
+	}
+
+	evictOldestLogCacheLocked()
+	logCache[path] = logFileCacheEntry{entries: entries, modTime: info.ModTime(), size: info.Size()}
+	return entries
 }
 
 func parseLogLines(r io.Reader) []LogEntry {

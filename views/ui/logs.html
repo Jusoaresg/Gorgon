@@ -53,8 +53,8 @@
             </div>
 
             <div id="logs-entries-container"
-                hx-get="/logs?view=log-entries&file={{ $currentFile }}&level={{ $level }}&search={{ $search }}"
-                hx-trigger="every 5s"
+                hx-get="{{ .Data.PageURL .Data.Page }}"
+                {{ if and .Data.IsCurrentFile (eq .Data.Page 1) }}hx-trigger="every 5s"{{ end }}
                 hx-swap="outerHTML">
                 {{ template "log-entries" . }}
             </div>
@@ -106,44 +106,81 @@
 </script>
 {{ end }}
 
-{{ define "log-entries" }}
-<div id="logs-entries-container"
-    hx-get="/logs?view=log-entries&file={{ .Data.CurrentFile }}&level={{ .Data.Level }}&search={{ .Data.Search }}"
-    hx-trigger="every 5s"
-    hx-swap="outerHTML">
-    <div class="logs-entries">
-        {{ if .Data.Entries }}
-        <div class="logs-table">
-            <div class="logs-table-head">
-                <div class="log-col time">Time</div>
-                <div class="log-col level">Level</div>
-                <div class="log-col message">Message</div>
-                <div class="log-col context">Context</div>
+{{ define "log-rows" }}
+<div class="logs-table">
+    <div class="logs-table-head">
+        <div class="log-col time">Time</div>
+        <div class="log-col level">Level</div>
+        <div class="log-col message">Message</div>
+        <div class="log-col context">Context</div>
+    </div>
+    <div class="logs-table-body">
+        {{ range .Data.Entries }}
+        <div class="logs-table-row">
+            <div class="log-col time">{{ .Time }}</div>
+            <div class="log-col level">
+                <span class="log-level-badge level-{{ toLower .Level }}">{{ .Level }}</span>
             </div>
-            <div class="logs-table-body">
-                {{ range .Data.Entries }}
-                <div class="logs-table-row">
-                    <div class="log-col time">{{ .Time }}</div>
-                    <div class="log-col level">
-                        <span class="log-level-badge level-{{ toLower .Level }}">{{ .Level }}</span>
-                    </div>
-                    <div class="log-col message">{{ .Message }}</div>
-                    <div class="log-col context">
-                        {{ if .Context }}
-                        <button class="btn-context" data-context="{{ .Context }}" onclick="showContextModal(this)">
-                            <code>{{ .Context }}</code>
-                            <svg class="context-expand-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        </button>
-                        {{ end }}
-                    </div>
-                </div>
+            <div class="log-col message">{{ .Message }}</div>
+            <div class="log-col context">
+                {{ if .Context }}
+                <button class="btn-context" data-context="{{ .Context }}" onclick="showContextModal(this)">
+                    <code>{{ .Context }}</code>
+                    <svg class="context-expand-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </button>
                 {{ end }}
             </div>
         </div>
-        {{ else }}
-        <div class="logs-empty">
-            <p>No log entries found</p>
-        </div>
+        {{ end }}
+    </div>
+</div>
+{{ end }}
+
+{{ define "log-table" }}
+<div id="logs-live"
+    hx-get="{{ .Data.LiveURL }}"
+    {{ if and .Data.IsCurrentFile (eq .Data.Page 1) }}hx-trigger="every 5s"{{ end }}
+    hx-swap="outerHTML">
+    {{ if .Data.Entries }}
+    {{ template "log-rows" . }}
+    {{ else }}
+    <div class="logs-empty">
+        <p>No log entries found</p>
+    </div>
+    {{ end }}
+</div>
+{{ end }}
+
+{{ define "log-entries" }}
+<div id="logs-entries-container">
+    <div class="logs-entries">
+        {{ template "log-table" . }}
+        {{ if gt .Data.TotalPages 1 }}
+        <nav class="logs-pagination">
+            {{ if gt .Data.Page 1 }}
+            <a class="pagination-btn"
+               href="{{ .Data.PageURL .Data.PrevPage }}"
+               hx-get="{{ .Data.PageURL .Data.PrevPage }}"
+               hx-target="#logs-entries-container"
+               hx-swap="outerHTML show:no-scroll"
+               hx-push-url="true">&lsaquo;</a>
+            {{ else }}
+            <span class="pagination-btn disabled">&lsaquo;</span>
+            {{ end }}
+
+            <span class="logs-pagination-info">Page {{ .Data.Page }} of {{ .Data.TotalPages }} &middot; {{ .Data.TotalEntries }} entries</span>
+
+            {{ if lt .Data.Page .Data.TotalPages }}
+            <a class="pagination-btn"
+               href="{{ .Data.PageURL .Data.NextPage }}"
+               hx-get="{{ .Data.PageURL .Data.NextPage }}"
+               hx-target="#logs-entries-container"
+               hx-swap="outerHTML show:no-scroll"
+               hx-push-url="true">&rsaquo;</a>
+            {{ else }}
+            <span class="pagination-btn disabled">&rsaquo;</span>
+            {{ end }}
+        </nav>
         {{ end }}
     </div>
 </div>
