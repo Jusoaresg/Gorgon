@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"mime/multipart"
 	"net/http"
@@ -99,38 +100,70 @@ func (q *QBittorrentService) Login(request *schema.QBittorrentLoginRequest) erro
 	form.Add("password", request.Password)
 
 	headers := map[string]string{
-		"Content-Type": "application/x-www-form-urlencoded",
-		"Referer":      fmt.Sprintf("%s:%s", q.host, q.port),
+		"Referer": fmt.Sprintf("%s:%s", q.host, q.port),
 	}
 
-	resp, err := q.APIService.Post("/api/v2/auth/login", form.Encode(), nil, headers)
+	resp, err := q.APIService.PostRaw(
+		"/api/v2/auth/login",
+		"application/x-www-form-urlencoded",
+		strings.NewReader(form.Encode()),
+		headers,
+	)
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusForbidden {
+		return q.loginForbiddenError(resp)
+	}
+
+	sid, cookieName, ok := extractSessionCookie(resp)
+	if !ok {
+		return fmt.Errorf("QBittorrent SID not found (status=%d)", resp.StatusCode)
+	}
+
+	q.Logger.Debug("qbittorrent login successful",
+		slog.Int("status", resp.StatusCode),
+		slog.String("cookie_name", cookieName),
+		slog.Int("sid_length", len(sid)),
+	)
+
+	q.sid = sid
+	q.cookieName = cookieName
+	return nil
+}
+
+// extractSessionCookie finds the session cookie in a login response. Since
+// qBittorrent 5.2 the cookie is named "QBT_SID_<port>" instead of "SID"; both
+// forms are accepted. The cookie value must be non-empty.
+func extractSessionCookie(resp *http.Response) (sid, cookieName string, ok bool) {
+	for _, cookie := range resp.Cookies() {
+		if cookie.Value == "" {
+			continue
+		}
+		if strings.HasPrefix(cookie.Name, "SID") || strings.HasPrefix(cookie.Name, "QBT_SID") {
+			return cookie.Value, cookie.Name, true
+		}
+	}
+	return "", "", false
+}
+
+// loginForbiddenError builds an error for a 403 login response. qBittorrent
+// returns 403 when the client IP is banned after too many failed attempts,
+// which is a different problem from wrong credentials.
+func (q *QBittorrentService) loginForbiddenError(resp *http.Response) error {
+	snippet := responseBodySnippet(resp)
+	if strings.Contains(strings.ToLower(snippet), "ban") {
+		return fmt.Errorf(
+			"qbittorrent refused login: this IP is temporarily banned after too many failed authentication attempts; wait for the ban to expire or restart qbittorrent (body=%q)",
+			snippet,
+		)
+	}
+	if snippet == "" {
 		return fmt.Errorf("invalid credentials")
 	}
-
-	if resp.StatusCode == http.StatusNoContent {
-		for _, cookie := range resp.Cookies() {
-			if strings.HasPrefix(cookie.Name, "SID") || strings.HasPrefix(cookie.Name, "QBT_SID") {
-				q.sid = cookie.Value
-				q.cookieName = cookie.Name
-				return nil
-			}
-		}
-		return nil
-	}
-
-	for _, cookie := range resp.Cookies() {
-		if strings.HasPrefix(cookie.Name, "SID") || strings.HasPrefix(cookie.Name, "QBT_SID") {
-			q.sid = cookie.Value
-			q.cookieName = cookie.Name
-			return nil
-		}
-	}
-	return fmt.Errorf("QBittorrent SID not found (status=%d)", resp.StatusCode)
+	return fmt.Errorf("invalid credentials (body=%q)", snippet)
 }
 
 func (q *QBittorrentService) EnsureAuthenticated() error {
@@ -179,28 +212,55 @@ func (q *QBittorrentService) cookieHeader() string {
 	return fmt.Sprintf("SID=%s", q.sid)
 }
 
+func (q *QBittorrentService) currentSID() string {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	return q.sid
+}
+
+// responseBodySnippet reads up to 512 bytes of an error response body so the
+// reason sent by qbittorrent (ban message, validation error, etc.) shows up
+// in logs instead of a bare status code.
+func responseBodySnippet(resp *http.Response) string {
+	if resp.Body == nil {
+		return ""
+	}
+	body, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
+	return strings.TrimSpace(string(body))
+}
+
 func (q *QBittorrentService) CheckConnection() error {
-	_, err := q.doAuthenticatedRequest(func() (*http.Response, error) {
+	resp, err := q.doAuthenticatedRequest(func() (*http.Response, error) {
 		headers := map[string]string{
 			"Cookie":  q.cookieHeader(),
 			"Referer": fmt.Sprintf("%s:%s", q.host, q.port),
 		}
-		resp, err := q.APIService.GetWithHeadersRaw("/api/v2/app/version", headers)
-		if err != nil {
-			return nil, err
-		}
-		if resp.StatusCode != http.StatusOK {
-			return resp, fmt.Errorf("qbittorrent request failed after re-authentication (status=%d)", resp.StatusCode)
-		}
-		return resp, nil
+		return q.APIService.GetWithHeadersRaw("/api/v2/app/version", headers)
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf(
+			"qbittorrent connection check failed (status=%d): %s",
+			resp.StatusCode,
+			responseBodySnippet(resp),
+		)
+	}
+	return nil
 }
 
 func (q *QBittorrentService) Logout() error {
 	return nil
 }
 
+// doAuthenticatedRequest runs an authenticated API call. When the call comes
+// back with 403 (expired/invalidated session), it re-authenticates once and
+// retries. The request func must return the raw response (it may hold a
+// non-OK status); converting statuses into domain errors is done by the
+// callers afterwards, otherwise the retry would never be reached.
 func (q *QBittorrentService) doAuthenticatedRequest(request func() (*http.Response, error)) (*http.Response, error) {
 	if err := q.EnsureAuthenticated(); err != nil {
 		return nil, err
@@ -215,20 +275,34 @@ func (q *QBittorrentService) doAuthenticatedRequest(request func() (*http.Respon
 		return resp, nil
 	}
 
-	oldSID := q.sid
+	oldSID := q.currentSID()
+	resp.Body.Close()
 
 	if err := q.Reauthenticate(oldSID); err != nil {
-		resp.Body.Close()
 		return nil, err
 	}
 
-	resp.Body.Close()
+	resp, err = request()
+	if err != nil {
+		return nil, err
+	}
 
-	return request()
+	if resp.StatusCode == http.StatusForbidden {
+		defer resp.Body.Close()
+		return nil, fmt.Errorf(
+			"qbittorrent request failed after re-authentication (status=%d): %s",
+			resp.StatusCode,
+			responseBodySnippet(resp),
+		)
+	}
+
+	return resp, nil
 }
 
 func (q *QBittorrentService) AddTorrent(torrentUrl string) error {
-	_, err := q.doAuthenticatedRequest(func() (*http.Response, error) {
+	var addResp addTorrentResponse
+
+	resp, err := q.doAuthenticatedRequest(func() (*http.Response, error) {
 		var requestBody bytes.Buffer
 		writer := multipart.NewWriter(&requestBody)
 
@@ -245,34 +319,30 @@ func (q *QBittorrentService) AddTorrent(torrentUrl string) error {
 			"Referer":      fmt.Sprintf("%s:%s", q.host, q.port),
 		}
 
-		var addResp addTorrentResponse
-		resp, err := q.APIService.Post("/api/v2/torrents/add", requestBody.Bytes(), &addResp, headers)
-
-		if err != nil {
-			return resp, err
-		}
-
-		if resp.StatusCode == http.StatusConflict {
-			q.Logger.Info("torrent already exists in torrent client", slog.String("url", torrentUrl))
-			return resp, nil
-		}
-
-		if resp.StatusCode != http.StatusOK {
-			return resp, fmt.Errorf("failed to add torrent (status=%d)", resp.StatusCode)
-		}
-
-		if addResp.FailureCount > 0 {
-			return resp, fmt.Errorf("failed to add torrent (failures=%d)", addResp.FailureCount)
-		}
-
-		return resp, err
+		return q.APIService.Post("/api/v2/torrents/add", requestBody.Bytes(), &addResp, headers)
 	})
+	if err != nil {
+		return err
+	}
 
-	return err
+	if resp.StatusCode == http.StatusConflict {
+		q.Logger.Info("torrent already exists in torrent client", slog.String("url", torrentUrl))
+		return nil
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to add torrent (status=%d)", resp.StatusCode)
+	}
+
+	if addResp.FailureCount > 0 {
+		return fmt.Errorf("failed to add torrent (failures=%d)", addResp.FailureCount)
+	}
+
+	return nil
 }
 
 func (q *QBittorrentService) DeleteTorrent(hash string, deleteFile bool) error {
-	_, err := q.doAuthenticatedRequest(func() (*http.Response, error) {
+	resp, err := q.doAuthenticatedRequest(func() (*http.Response, error) {
 		form := url.Values{}
 		form.Add("hashes", hash)
 		form.Add("deleteFiles", fmt.Sprintf("%t", deleteFile))
@@ -283,23 +353,21 @@ func (q *QBittorrentService) DeleteTorrent(hash string, deleteFile bool) error {
 			"Referer":      fmt.Sprintf("%s:%s", q.host, q.port),
 		}
 
-		resp, err := q.APIService.Post("/api/v2/torrents/delete", form.Encode(), nil, headers)
-		if err != nil {
-			return resp, err
-		}
-
-		if resp.StatusCode != http.StatusOK {
-			return resp, fmt.Errorf("failed to delete torrent (status=%d)", resp.StatusCode)
-		}
-
-		return resp, nil
+		return q.APIService.Post("/api/v2/torrents/delete", form.Encode(), nil, headers)
 	})
+	if err != nil {
+		return err
+	}
 
-	return err
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to delete torrent (status=%d)", resp.StatusCode)
+	}
+
+	return nil
 }
 
 func (q *QBittorrentService) CheckTorrents(filter string, response *[]schema.CheckTorrentResponse) error {
-	_, err := q.doAuthenticatedRequest(func() (*http.Response, error) {
+	resp, err := q.doAuthenticatedRequest(func() (*http.Response, error) {
 		headers := map[string]string{
 			"Cookie":  q.cookieHeader(),
 			"Referer": fmt.Sprintf("%s:%s", q.host, q.port),
@@ -314,26 +382,36 @@ func (q *QBittorrentService) CheckTorrents(filter string, response *[]schema.Che
 		}
 
 		if resp.StatusCode != http.StatusOK {
-			resp.Body.Close()
-			return resp, fmt.Errorf("failed to get torrent info (status=%d)", resp.StatusCode)
+			return resp, nil
 		}
 
 		if err := json.NewDecoder(resp.Body).Decode(response); err != nil {
 			resp.Body.Close()
-			return resp, fmt.Errorf("error decoding torrent info: %w", err)
+			return nil, fmt.Errorf("error decoding torrent info: %w", err)
 		}
 
 		resp.Body.Close()
 
 		return resp, nil
 	})
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
 
-	return err
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf(
+			"failed to get torrent info (status=%d): %s",
+			resp.StatusCode,
+			responseBodySnippet(resp),
+		)
+	}
+
+	return nil
 }
 
 func (q *QBittorrentService) CheckTorrentsWithHash(filter, hash string, response *[]schema.CheckTorrentResponse) error {
-	_, err := q.doAuthenticatedRequest(func() (*http.Response, error) {
-
+	resp, err := q.doAuthenticatedRequest(func() (*http.Response, error) {
 		headers := map[string]string{
 			"Cookie":  q.cookieHeader(),
 			"Referer": fmt.Sprintf("%s:%s", q.host, q.port),
@@ -348,32 +426,36 @@ func (q *QBittorrentService) CheckTorrentsWithHash(filter, hash string, response
 		}
 
 		if resp.StatusCode != http.StatusOK {
-			resp.Body.Close()
-			return resp, fmt.Errorf(
-				"failed to get torrent info (status=%d)",
-				resp.StatusCode,
-			)
+			return resp, nil
 		}
 
 		if err := json.NewDecoder(resp.Body).Decode(response); err != nil {
 			resp.Body.Close()
-			return resp, fmt.Errorf(
-				"error decoding torrent info: %w",
-				err,
-			)
+			return nil, fmt.Errorf("error decoding torrent info: %w", err)
 		}
 
 		resp.Body.Close()
 
 		return resp, nil
 	})
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
 
-	return err
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf(
+			"failed to get torrent info (status=%d): %s",
+			resp.StatusCode,
+			responseBodySnippet(resp),
+		)
+	}
+
+	return nil
 }
 
 func (q *QBittorrentService) GetContent(hash string) ([]model.EpisodeContent, error) {
 	resp, err := q.doAuthenticatedRequest(func() (*http.Response, error) {
-
 		headers := map[string]string{
 			"Cookie":  q.cookieHeader(),
 			"Referer": fmt.Sprintf("%s:%s", q.host, q.port),
@@ -385,17 +467,20 @@ func (q *QBittorrentService) GetContent(hash string) ([]model.EpisodeContent, er
 		if err != nil {
 			return nil, err
 		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			return nil, fmt.Errorf("failed to get torrent files (status=%d)", resp.StatusCode)
-		}
 
 		return resp, nil
 	})
-
 	if err != nil {
 		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf(
+			"failed to get torrent files (status=%d): %s",
+			resp.StatusCode,
+			responseBodySnippet(resp),
+		)
 	}
 
 	var files []schema.TorrentContent

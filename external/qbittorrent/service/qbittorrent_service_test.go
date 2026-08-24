@@ -2,10 +2,12 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/jusoaresg/gorgon/external/qbittorrent/schema"
@@ -397,4 +399,154 @@ func TestCheckConnection_Failure(t *testing.T) {
 	svc := newTestService(server.URL, logger)
 	err := svc.CheckConnection()
 	require.Error(t, err)
+}
+
+func TestLogin_NoContentWithoutSIDCookie(t *testing.T) {
+	logger := newTestLogger()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	svc := newTestService(server.URL, logger)
+	err := svc.Login(&schema.QBittorrentLoginRequest{
+		Username: "admin",
+		Password: "adminadmin",
+	})
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "SID not found")
+	assert.False(t, svc.IsAuthenticated())
+}
+
+func TestLogin_SuccessBodyWithoutCookie(t *testing.T) {
+	logger := newTestLogger()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Ok."))
+	}))
+	defer server.Close()
+
+	svc := newTestService(server.URL, logger)
+	err := svc.Login(&schema.QBittorrentLoginRequest{
+		Username: "admin",
+		Password: "adminadmin",
+	})
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "SID not found")
+}
+
+func TestLogin_ForbiddenBanned(t *testing.T) {
+	logger := newTestLogger()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte("Your IP address has been banned after too many failed authentication attempts."))
+	}))
+	defer server.Close()
+
+	svc := newTestService(server.URL, logger)
+	err := svc.Login(&schema.QBittorrentLoginRequest{
+		Username: "admin",
+		Password: "adminadmin",
+	})
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "banned")
+	assert.NotContains(t, err.Error(), "invalid credentials")
+}
+
+func TestCheckConnection_PersistentForbiddenIncludesBody(t *testing.T) {
+	logger := newTestLogger()
+	var logins atomic.Int32
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/v2/auth/login":
+			logins.Add(1)
+			http.SetCookie(w, &http.Cookie{Name: fmt.Sprintf("QBT_SID_8080_%d", logins.Load()), Value: "sid", Path: "/"})
+			w.WriteHeader(http.StatusNoContent)
+		case "/api/v2/app/version":
+			w.WriteHeader(http.StatusForbidden)
+			w.Write([]byte("Your IP address has been banned after too many failed authentication attempts."))
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+
+	svc := newTestService(server.URL, logger)
+	err := svc.CheckConnection()
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "status=403")
+	assert.Contains(t, err.Error(), "banned")
+	assert.Equal(t, int32(2), logins.Load(), "should have re-authenticated once before failing")
+}
+
+func TestSessionExpiry_ReauthRecovers(t *testing.T) {
+	logger := newTestLogger()
+	var versionCalls atomic.Int32
+	var sidCounter atomic.Int32
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/v2/auth/login":
+			http.SetCookie(w, &http.Cookie{Name: "QBT_SID_8080", Value: fmt.Sprintf("sid-%d", sidCounter.Add(1)), Path: "/"})
+			w.WriteHeader(http.StatusNoContent)
+		case "/api/v2/torrents/info":
+			if versionCalls.Add(1) == 1 {
+				w.WriteHeader(http.StatusForbidden)
+				w.Write([]byte("Forbidden"))
+				return
+			}
+			assert.Contains(t, r.Header.Get("Cookie"), "sid-2", "retry must use the fresh SID")
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode([]schema.CheckTorrentResponse{{Name: "ok", Hash: "h1"}})
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+
+	svc := newTestService(server.URL, logger)
+	var result []schema.CheckTorrentResponse
+	err := svc.CheckTorrents("all", &result)
+
+	require.NoError(t, err)
+	require.Len(t, result, 1)
+	assert.Equal(t, int32(2), sidCounter.Load(), "a new session should have been issued")
+}
+
+func TestGetContent_Success(t *testing.T) {
+	logger := newTestLogger()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/v2/auth/login":
+			http.SetCookie(w, &http.Cookie{Name: "QBT_SID_8080", Value: "test-sid", Path: "/"})
+			w.WriteHeader(http.StatusNoContent)
+		case "/api/v2/torrents/files":
+			assert.Contains(t, r.Header.Get("Cookie"), "QBT_SID_8080=test-sid")
+			assert.Equal(t, "abc123", r.URL.Query().Get("hash"))
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode([]map[string]any{
+				{"name": "S01E01.mkv", "size": 1000},
+			})
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+
+	svc := newTestService(server.URL, logger)
+	content, err := svc.GetContent("abc123")
+
+	require.NoError(t, err)
+	require.Len(t, content, 1)
+	assert.Equal(t, "S01E01.mkv", content[0].Name)
+	assert.Equal(t, float64(1000), content[0].Size)
 }

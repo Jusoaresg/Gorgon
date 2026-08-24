@@ -131,6 +131,36 @@ func (a *APIService) GetWithHeadersRaw(endpoint string, headers map[string]strin
 	return resp, nil
 }
 
+// PostRaw performs a POST request and returns the raw response without
+// consuming or closing its body. The caller owns the response body.
+func (a *APIService) PostRaw(endpoint, contentType string, body io.Reader, headers map[string]string) (*http.Response, error) {
+	url := fmt.Sprintf("%s%s", a.Url, endpoint)
+
+	req, err := http.NewRequest("POST", url, body)
+	if err != nil {
+		return nil, fmt.Errorf("Error while creating POST request: %w", err)
+	}
+
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
+	}
+
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+
+	resp, err := a.Client.Do(req)
+	if err != nil {
+		a.Logger.Error("POST request failed",
+			slog.String("url", url),
+			slog.String("error", err.Error()),
+		)
+		return nil, fmt.Errorf("Error while making POST request: %w", err)
+	}
+
+	return resp, nil
+}
+
 func (a *APIService) Post(endpoint string, requestData any, response any, headersInfo ...map[string]string) (*http.Response, error) {
 	url := fmt.Sprintf("%s%s", a.Url, endpoint)
 
