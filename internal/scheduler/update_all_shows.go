@@ -66,7 +66,7 @@ func UpdateAllShows() {
 			updatedCount++
 			time.Sleep(15 * time.Second)
 		}
-
-		logger.Info("finished updating shows", slog.Int("total_updated", updatedCount))
 	}
+
+	logger.Info("finished updating shows", slog.Int("total_updated", updatedCount))
 }
