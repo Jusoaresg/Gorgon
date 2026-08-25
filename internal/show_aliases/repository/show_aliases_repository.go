@@ -12,6 +12,7 @@ var ErrAliasNotFound = errors.New("alias not found")
 type ShowAliasesRepositoryInterface interface {
 	Create(show model.ShowAlias) (int64, error)
 	CreateTx(tx *sqlx.Tx, alias model.ShowAlias) (int64, error)
+	UpdateTx(tx *sqlx.Tx, alias model.ShowAlias) error
 	GetByID(id int64) (model.ShowAlias, error)
 	DeleteByID(id int64) error
 	ListByShowID(show_id int64) ([]model.ShowAlias, error)
@@ -82,6 +83,32 @@ func (s *ShowAliasesRepository) CreateTx(tx *sqlx.Tx, alias model.ShowAlias) (in
 	return id, nil
 }
 
+func (s *ShowAliasesRepository) UpdateTx(tx *sqlx.Tx, alias model.ShowAlias) error {
+	query := `
+	UPDATE show_aliases SET
+		alias = :alias,
+		country = :country
+	WHERE id = :id
+	`
+	result, err := tx.NamedExec(query, alias)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	if rows == 0 {
+		tx.Rollback()
+		return ErrAliasNotFound
+	}
+
+	return nil
+}
+
 func (s *ShowAliasesRepository) GetByID(id int64) (model.ShowAlias, error) {
 	var alias model.ShowAlias
 	if err := s.db.Get(&alias, "SELECT * FROM show_aliases WHERE id = ? LIMIT 1", id); err != nil {
@@ -114,7 +141,5 @@ func (s *ShowAliasesRepository) ListByShowID(show_id int64) ([]model.ShowAlias, 
 	}
 	return aliases, nil
 }
-
-//TODO: Create update method later
 
 var _ ShowAliasesRepositoryInterface = (*ShowAliasesRepository)(nil)
