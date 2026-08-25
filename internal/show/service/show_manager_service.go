@@ -79,7 +79,7 @@ func (sm *ShowManagerService) UpdateShowWithRelations(
 	showDTO dtos.ShowDto,
 	seasonsDTO []dtos.SeasonDto,
 	episodes []dtos.EpisodeDto,
-) error {
+) (err error) {
 	aggregatedShow, err := sm.ShowAggregator.GetShowWithRelationsByTvMazeId(showDTO.TvMazeID)
 	if err != nil {
 		sm.logger.Error(
@@ -91,7 +91,6 @@ func (sm *ShowManagerService) UpdateShowWithRelations(
 		return err
 	}
 
-	showModel := aggregatedShow.Show
 	showAliasesModel := aggregatedShow.ShowAliases
 	episodesModel := aggregatedShow.Episodes
 	seasonsModel := aggregatedShow.Seasons
@@ -100,11 +99,16 @@ func (sm *ShowManagerService) UpdateShowWithRelations(
 	if err != nil {
 		return err
 	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
 
-	showModel = showDTO.ToModel()
+	showModel := showDTO.ToModel()
+	showModel.ID = aggregatedShow.Show.ID
 
-	if err := sm.ShowRepo.UpdateTxByTvMazeID(tx, showModel); err != nil {
-		tx.Rollback()
+	if err = sm.ShowRepo.UpdateTxByTvMazeID(tx, showModel); err != nil {
 		return err
 	}
 
@@ -120,6 +124,10 @@ func (sm *ShowManagerService) UpdateShowWithRelations(
 			sm.logger.Info("updating show alias", slog.String("alias", alias.Alias), slog.String("country", alias.Country))
 			existing.Alias = alias.Alias
 			existing.Country = alias.Country
+			if err = sm.ShowAliasRepo.UpdateTx(tx, *existing); err != nil {
+				sm.logger.Error("failed to update show alias", slog.String("error", err.Error()), slog.Int64("alias_id", existing.ID))
+				return err
+			}
 		} else {
 			newAlias := showAliasModel.ShowAlias{
 				ShowID:  showModel.ID,
@@ -225,5 +233,10 @@ func (sm *ShowManagerService) UpdateShowWithRelations(
 		}
 	}
 
-	return tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
