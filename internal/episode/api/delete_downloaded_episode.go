@@ -81,6 +81,10 @@ func (h *Handler) DeleteDownloadedEpisode(c echo.Context) error {
 		h.Logger.Error("Failed to delete episode content from the database (The File was deleted)", slog.String("error", err.Error()))
 	}
 
+	if err := h.EpisodeTorrentRepo.DeleteByEpisodeID(ep.ID); err != nil {
+		h.Logger.Error("Failed to delete episode torrent association", slog.Int64("episode_id", ep.ID), slog.String("error", err.Error()))
+	}
+
 	ep.SetNotInstalled()
 	err = h.EpisodeRepo.Update(ep)
 	if err != nil {
