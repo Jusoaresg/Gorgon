@@ -63,6 +63,15 @@ func NewTemplate() *Template {
 			}
 			return count
 		},
+		"countMonitored": func(episodes []episodeModel.Episode) int {
+			count := 0
+			for _, ep := range episodes {
+				if ep.Tracking != episodeModel.TrackingSkipped {
+					count++
+				}
+			}
+			return count
+		},
 		"calcPercentage": func(part, total int) int {
 			if total == 0 {
 				return 0

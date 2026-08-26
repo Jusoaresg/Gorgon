@@ -1,7 +1,7 @@
 {{ define "show-card" }}
     {{ $downloaded := countDownloaded .Episodes }}
-    {{ $total := len .Episodes }}
-    {{ $percentage := calcPercentage $downloaded $total }}
+    {{ $monitored := countMonitored .Episodes }}
+    {{ $percentage := calcPercentage $downloaded $monitored }}
 
     <a href="/show/{{ .Show.ID }}" class="show-card-link">
         <div class="show-card">
@@ -29,7 +29,11 @@
                 <div class="show-meta-tags">
                     <span>{{ .Show.Premiered }}</span>
                     <span class="separator">•</span>
-                    <span>{{ $downloaded }}/{{ $total }} Eps</span>
+                    {{ if gt $monitored 0 }}
+                        <span>{{ $downloaded }}/{{ $monitored }} Eps</span>
+                    {{ else }}
+                        <span>All Skipped</span>
+                    {{ end }}
                 </div>
 
                 <div class="show-card-footer">
