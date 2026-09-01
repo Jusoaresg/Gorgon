@@ -52,24 +52,28 @@
                         </div>
                         <div class="cal-card-body">
                             <span class="cal-card-name" title="{{ $ep.ShowName }}">{{ $ep.ShowName }}</span>
-                            <span class="cal-card-ep">S{{ $ep.Season }}E{{ printf "%02d" $ep.Number }}</span>
-                            {{ if $ep.Name }}
-                            <span class="cal-card-title" title="{{ $ep.Name }}">{{ $ep.Name }}</span>
-                            {{ end }}
-                            <span class="cal-card-airtime">{{ airTimeUnix $ep.AirStamp }}</span>
-                            <span class="cal-card-track {{ $ep.Tracking }}" data-episode-id="{{ $ep.ID }}"
-                                  title="Change Status"
-                                  hx-get="/front/episode/{{ $ep.ID }}/modal/tracking"
-                                  hx-target="body"
-                                  hx-swap="beforeend"
-                                  onclick="event.preventDefault(); event.stopPropagation();">
-                                {{ if eq $ep.Tracking "downloaded" }}Downloaded
-                                {{ else if eq $ep.Tracking "wanted" }}Wanted
-                                {{ else if eq $ep.Tracking "missing" }}Missing
-                                {{ else if eq $ep.Tracking "snatched" }}Snatched
-                                {{ else if eq $ep.Tracking "skipped" }}Skipped
-                                {{ else }}Unknown{{ end }}
+                            <span class="cal-card-meta">
+                                <span class="cal-card-ep">S{{ $ep.Season }}E{{ printf "%02d" $ep.Number }}</span>
+                                {{ if $ep.Name }}
+                                <span class="cal-card-title" title="{{ $ep.Name }}">{{ $ep.Name }}</span>
+                                {{ end }}
                             </span>
+                            <div class="cal-card-footer">
+                                <span class="cal-card-airtime">{{ airTimeUnix $ep.AirStamp }}</span>
+                                <span class="cal-card-track {{ $ep.Tracking }}" data-episode-id="{{ $ep.ID }}"
+                                      title="Change Status"
+                                      hx-get="/front/episode/{{ $ep.ID }}/modal/tracking"
+                                      hx-target="body"
+                                      hx-swap="beforeend"
+                                      onclick="event.preventDefault(); event.stopPropagation();">
+                                    {{ if eq $ep.Tracking "downloaded" }}Downloaded
+                                    {{ else if eq $ep.Tracking "wanted" }}Wanted
+                                    {{ else if eq $ep.Tracking "missing" }}Missing
+                                    {{ else if eq $ep.Tracking "snatched" }}Snatched
+                                    {{ else if eq $ep.Tracking "skipped" }}Skipped
+                                    {{ else }}Unknown{{ end }}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </a>
