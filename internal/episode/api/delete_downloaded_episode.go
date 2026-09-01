@@ -2,6 +2,7 @@ package api
 
 import (
 	"log/slog"
+	"os"
 	"strconv"
 
 	"github.com/jusoaresg/gorgon/config"
@@ -48,7 +49,7 @@ func (h *Handler) DeleteDownloadedEpisode(c echo.Context) error {
 		return err
 	}
 
-	episodeContent, err := h.EpisodeContentRepo.GetByEpisodeId(idInt64)
+	episodeContents, err := h.EpisodeContentRepo.ListByEpisodeId(idInt64)
 	if err != nil {
 		h.Logger.Error("Error while fetching episode content from database", slog.String("error", err.Error()))
 		schemas.SendError(c, 500, "Error while fetching episode content")
@@ -67,18 +68,18 @@ func (h *Handler) DeleteDownloadedEpisode(c echo.Context) error {
 		return err
 	}
 
-	filePath, err := utils.DeleteFile(downloadFolder, episodeContent.Name)
-	if err != nil {
-		h.Logger.Error("Failed to delete downloaded episode", slog.String("error", err.Error()))
-		return err
-	}
-	if err := utils.DeleteSymlink(cfg.ShowsFolder, show.Name, ep, episodeContent); err != nil {
-		h.Logger.Error("Failed to delete episode symlink from shows folder", slog.String("error", err.Error()))
-		return err
-	}
+	for _, episodeContent := range episodeContents {
+		if _, err := utils.DeleteFile(downloadFolder, episodeContent.Name); err != nil && !os.IsNotExist(err) {
+			h.Logger.Error("Failed to delete downloaded episode", slog.String("error", err.Error()))
+		}
 
-	if err := h.EpisodeContentRepo.DeleteById(episodeContent.ID); err != nil {
-		h.Logger.Error("Failed to delete episode content from the database (The File was deleted)", slog.String("error", err.Error()))
+		if err := utils.DeleteSymlink(cfg.ShowsFolder, show.Name, ep, episodeContent); err != nil {
+			h.Logger.Error("Failed to delete episode symlink from shows folder", slog.String("error", err.Error()))
+		}
+
+		if err := h.EpisodeContentRepo.DeleteById(episodeContent.ID); err != nil {
+			h.Logger.Error("Failed to delete episode content from the database (The File was deleted)", slog.String("error", err.Error()))
+		}
 	}
 
 	if err := h.EpisodeTorrentRepo.DeleteByEpisodeID(ep.ID); err != nil {
@@ -93,7 +94,7 @@ func (h *Handler) DeleteDownloadedEpisode(c echo.Context) error {
 
 	episode.EmitEpisodeTrackingUpdatedEvent(ep.ID, episodeModel.TrackingSkipped, "")
 
-	h.Logger.Info("Successfully deleted downloaded episode", slog.String("FilePath", filePath))
+	h.Logger.Info("Successfully deleted downloaded episode", slog.Int64("episode_id", ep.ID))
 	schemas.SendSuccess(c, "Delete Downloaded Episode", map[string]any{
 		"toastMessage": "Episode deleted",
 	})
